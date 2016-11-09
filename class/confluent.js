@@ -4269,7 +4269,7 @@ var ConfluentGraph = (function () {
             this.links[i].size = [];
             this.links[i].gate_position = [];
             this.links[i].gate_colors = [];
-            this.links[i].texture = "rectangle_texture.png";
+            this.links[i].texture = "images/rectangle_texture.png";
             this.links[i].number_particles = this.number_particles;
             this.links[i].coefficient_number_particles = 1;
             this.links[i].gates = [];
@@ -4623,7 +4623,7 @@ var ConfluentGraph = (function () {
         for (var i = 0; i < this.links[link_id].path_quadratic.length; i++) {
             path_quadratic = path_quadratic.concat(this.links[link_id].path_quadratic[i]);
         }
-        var texture = new THREE.TextureLoader().load("images/" + this.links[link_id].texture);
+        var texture = new THREE.TextureLoader().load(this.links[link_id].texture);
         texture.minFilter = THREE.LinearMipMapLinearFilter;
         texture.magFilter = THREE.LinearFilter;
         var uniforms = {
@@ -4953,6 +4953,9 @@ var ConfluentGraph = (function () {
         for (var j = 0; j < this.curveSplines[id].children.length; j++) {
             this.curveSplines[id].children[j].material.opacity = opacity;
         }
+    };
+    ConfluentGraph.prototype.load_particle_texture = function (link_id, value) {
+        this.links[link_id].texture = value;
     };
     ConfluentGraph.prototype.bezier = function (t, p0, p1, p2, p3) {
         var cX = 3 * (p1.x - p0.x), bX = 3 * (p2.x - p1.x) - cX, aX = p3.x - p0.x - cX - bX;

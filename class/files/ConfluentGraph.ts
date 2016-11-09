@@ -454,7 +454,7 @@ class ConfluentGraph{
                 this.links[i].size = [];
                 this.links[i].gate_position = [];
                 this.links[i].gate_colors = []; 
-                this.links[i].texture = "rectangle_texture.png"; 
+                this.links[i].texture = "images/rectangle_texture.png"; 
                 this.links[i].number_particles = this.number_particles;
                 this.links[i].coefficient_number_particles = 1;
                 this.links[i].gates = [];
@@ -983,7 +983,7 @@ class ConfluentGraph{
             //console.log("YOOOOO", self.camera)
             //console.log(this.links[link_id].curvePath[11], this.links[link_id].curvePath[0])
             //console.log(path_quadratic)
-            var texture = new THREE.TextureLoader().load( "images/" + this.links[link_id].texture );
+            var texture = new THREE.TextureLoader().load( this.links[link_id].texture );
             texture.minFilter = THREE.LinearMipMapLinearFilter;
 			texture.magFilter = THREE.LinearFilter;
 
@@ -1484,6 +1484,9 @@ class ConfluentGraph{
             { 
                 this.curveSplines[id].children[j].material.opacity = opacity;
             }
+        }
+        load_particle_texture(link_id,  value){
+            this.links[link_id].texture = value;
         }
         bezier(t, p0, p1, p2, p3){
             var cX = 3 * (p1.x - p0.x),
