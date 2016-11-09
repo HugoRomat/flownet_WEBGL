@@ -1,0 +1,24 @@
+ 
+ Network:
+
+ ☐ Essayer d'adapter Confluent Drawing
+ ☐ Zoom on shader
+ ☐ Lorsque je resize la taille du tube, updater la position des gates 
+ ☐ Pouvoir incorporer deux vitesses dams chaque lien
+ ☐ Mettre en place un nouveau language pour le network
+
+ 
+Experiences:
+  Trouver comment mapper les variables visuelles:
+   ☐ Faire des ranges (vitesse, taille) / Etude isolé des variables
+   ☐ Combinaisons efficaces et non efficaces
+   ☐ Quel genre de variables va avec quel data
+
+
+
+
+
+
+＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+Archive:
+ ✔ Adapter le label des noeuds au Zoom  @done (16-10-24 10:45)

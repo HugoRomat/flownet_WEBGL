@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>confluent vs powergraph</title>
+
+
+    <script src="lib/three.min.js"></script>
+    <script src="lib/d3.js"></script>
+    <script src="lib/networkcube.js"></script>
+    <script src="lib/jquery.js"></script>
+    <script src="lib/d3-legend.js"></script>
+    <script src="lib/cola.min.js"></script>
+    <script src="lib/topojson.v1.min.js"></script>
+    <script src="class/confluent.js"></script>
+    <style>
+        div{
+            float: left;
+            margin-right: 5px;
+        }
+
+    </style>
+
+
+</head>
+<body>
+    <div id="visFrame"></div>
+    <button id="empty_scene">Clear Scene</button>
+
+    <div id="visFrame2"></div>
+    <div id="visFrame3"></div>
+    <div id="visFrame4"></div>
+
+    <script>
+
+    var confluentGraph;
+    var my_app;
+
+    $( "#empty_scene" ).click(function() {
+      var scene = confluentGraph.scene;
+      my_app.stop_renderer();
+      // for (var i = scene.children.length - 1; i >= 0 ; i--) {
+      //   var child = scene.children[ i ];
+      //   scene.remove(child);
+      // }
+    });
+
+
+
+
+
+    var my_projection = d3.geo.mercator()
+                    .scale(900)
+                    .translate([1500,500]);
+
+    var tube_size_scale = d3.scale.linear()
+                     .domain([0,0])
+                     .range([0.01,5])
+
+    var tube_opacity_scale = d3.scale.linear()
+                     .domain([0,1])
+                     .range([0.1,0.8])
+
+    var particle_size_scale = d3.scale.linear()
+                     .domain([0,0])
+                     .range([100,200])
+
+    var particle_velocity_scale = d3.scale.linear()
+                     .domain([0,0])
+                     .range([2,0.1])
+
+    var number_particles_scale = d3.scale.linear()
+                     .domain([0,0])
+                     .range([0.1,2])
+
+    networkcube.loadJson("data/TOSFO2322.json", function(dataset){
+      networkcube.importData("miserables", dataset);
+      var graph = networkcube.getDynamicGraph(dataset.name, "miserables");
+      my_app = new Main("#visFrame",graph, 2000, 1500, "#d1e5f0");
+
+      confluentGraph = my_app.confluentGraph;
+      var nodes = confluentGraph.nodes;
+      var links = confluentGraph.links;
+
+      confluentGraph.launch_network(1000,function(){
+
+          var max_number_companies = confluentGraph.get_max_of_attributes("number_carrier");
+          var max_seats = confluentGraph.get_max_of_attributes("seats");
+          var max_arr_delay = confluentGraph.get_max_of_attributes("arr_delay");
+          var min_arr_delay = confluentGraph.get_min_of_attributes("arr_delay");
+
+          var max_number_plane = confluentGraph.get_max_of_attributes("number_plane");
+          var max_passengers = confluentGraph.get_max_of_attributes("passengers");
+
+
+
+          tube_size_scale.domain([0, max_number_companies]);
+          particle_size_scale.domain([0, max_seats]);
+          particle_velocity_scale.domain([min_arr_delay, max_arr_delay]);
+          //tube_opacity_scale.domain([0, max_passengers]);
+          number_particles_scale.domain([0, max_number_plane]);
+
+          //confluentGraph.draw_map(my_projection);
+
+          for (var i =0; i<nodes.length;i++){
+              var coordinates = my_projection([nodes[i].attr('long'),nodes[i].attr('lat')]);
+              nodes[i].x = coordinates[0];
+              nodes[i].y = - coordinates[1];
+              confluentGraph.updateNode_color(i ,new THREE.Color("rgb(77,175,74)"))
+          }
+          confluentGraph.updateNodes_scale(5)
+
+          for (var i = 0;i<links.length; i++){
+
+              var number_companies = links[i].attr("number_carrier");
+              var seats = links[i].attr("seats");
+              var arr_delay = links[i].attr("arr_delay");
+              var number_plane = links[i].attr("number_plane");
+              var passengers = links[i].attr("passengers");
+              var ratio = passengers / seats;
+
+              confluentGraph.set_tube_width(i, tube_size_scale(number_companies));
+              links[i].size[0] = particle_size_scale(seats);
+              //console.log(particle_velocity_scale(arr_delay))
+              links[i].velocity[0] = particle_velocity_scale(arr_delay)
+              confluentGraph.set_tube_color(i, "0x984ea3", tube_opacity_scale(ratio));
+              // console.log("RATIO", ratio, passengers, seats);
+
+              confluentGraph.updateNumber_of_particles(i, number_particles_scale(number_plane));
+              //console.log("NUMBER PARTICULES", Math.round(number_particles_scale(number_plane)))
+              //var color_custom = new THREE.Color().setHSL(0,1,color_scale(number_flights));
+              //console.log(color_scale(number_flights),color_scale(number_flights).slice(1));
+              var color_custom = new THREE.Color("#377eb8");
+              links[i].gate_colors[0] = color_custom;
+              //links[i].wiggling[0] = wiggling_scale(free_seats);
+              //console.log(wiggling_scale(free_seats))
+              //links[i].velocity[0] = velocity_scale(delay)
+
+              //links[i].size[0] = size_scale(attr_size);
+              //confluentGraph.set_tube_width(i, tube_size_scale(number_companies));
+              //console.log(delay_scale(delay))
+              //confluentGraph.set_tube_color(i, "#5aae61", delay_scale(number_companies));
+              //confluentGraph.set_tube_color(i, "0x3498db", 1);
+              //links[i].velocity[0] = delay_scale(delay);
+
+              //confluentGraph.fit_temporal_distribution(i);
+
+          }
+          confluentGraph.fit_all_temporal_distribution();
+
+      })
+  });
+
+
+
+
+    </script>
+
+
+</body>
+</html>

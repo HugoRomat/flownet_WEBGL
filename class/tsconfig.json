@@ -1,0 +1,33 @@
+{
+    "version": "1.5.0-alpha",
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "declaration": false,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false,
+        "preserveConstEnums": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "out": "confluent.js",
+        "watch": true
+    },
+    "files": [
+        "files/Main.ts",
+        "files/Map_to_attributes.ts",
+        "files/Visualisation.ts",
+        "files/Drop_Down.ts",
+        "files/UIInformations_general.ts",
+        "files/Slider_Button.ts",
+        "files/LinkAppearance.ts",
+        "files/UIInformations.ts",
+        "files/ColorPicker.ts",
+        "files/UI.ts",
+        "files/UIGate.ts",
+        "files/Slider.ts",
+        "files/ConfluentGraph.ts",
+        "files/confluent.ts"
+
+   
+    ]
+}

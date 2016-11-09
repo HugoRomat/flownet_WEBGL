@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>confluent vs powergraph</title>   
+
+	<script src="lib/three.min.js"></script>
+	<script src="lib/d3.js"></script>
+	<script src="lib/networkcube.js"></script>
+	<script src="lib/jquery.js"></script>
+    <script src="lib/d3-legend.js"></script>
+	<script src="lib/cola.min.js"></script> 
+    <script src="lib/topojson.v1.min.js"></script> 
+	<script src="class/confluent.js"></script>
+    <style>
+        div{
+            float: left;
+            margin-right: 5px;
+        }
+        
+    </style>
+
+
+</head>
+<body>
+	<div id="visFrame"></div>
+    <div id="visFrame2"></div>
+    <div id="visFrame3"></div>
+    <div id="visFrame4"></div>
+    <svg id="legend"></svg>
+    
+	<script>
+    var color_scale = d3.scale.linear()
+                     .domain([0,1])
+                     .range([0,0.5])
+    
+    var my_projection = d3.geo.mercator()
+                    .scale(900);
+
+    var particle_size_scale = d3.scale.linear()
+                     .domain([0, 30])
+                     .range([15,30])
+
+    var frequence_scale = d3.scale.linear()
+                     .domain([0, 10])
+                     .range([0,14])
+
+    var particle_velocity_scale = d3.scale.linear()
+                     .domain([0,0])
+                     .range([0.1,1.2])
+
+    var number_particles_scale = d3.scale.linear()
+                     .domain([0,0])
+                     .range([1,5])
+
+    
+    networkcube.loadJson("data/TKM_data_fake.json", function(dataset){
+        networkcube.importData("miserables", dataset);
+        var graph = networkcube.getDynamicGraph(dataset.name, "miserables");
+        var nodes = graph.nodes().toArray();
+        var links = graph.links().toArray();
+        var my_app = new Main("#visFrame",nodes,links, 900, 900, "#a6cee3");
+
+        var confluentGraph = my_app.confluentGraph;
+        var nodes = confluentGraph.nodes;
+        var links = confluentGraph.links;
+
+        confluentGraph.launch_network(1000,function(){
+            // confluentGraph.set_tube_width(1, 5);
+            // confluentGraph.set_tube_color(1, "0x5e4fa2", 1);
+            //var max_number_publication = confluentGraph.get_max_of_attributes("number_publication");
+            var max_number_litterature = confluentGraph.get_max_of_attributes("number_litterature");
+            var max_frequence = confluentGraph.get_max_of_attributes("frequence");
+            
+            number_particles_scale.domain([0, max_number_litterature]);
+            particle_size_scale.domain([0, max_frequence]);
+
+            for (var i = 0;i<links.length; i++){
+                
+                confluentGraph.set_tube_color(i, "#1f78b4", 1);
+                
+                //confluentGraph.set_links_color(i,  1);
+
+                var frequence = links[i].attr("frequence");
+                var number_litterature = links[i].attr("number_litterature");
+                var percentage_patent = links[i].attr('number_patent') / number_litterature;
+                var percentage_publis = links[i].attr('number_publication') / number_litterature;
+                
+                var color_custom = new THREE.Color().setHSL(0.997,0.60,color_scale(percentage_patent));
+                links[i].gate_colors[0] = color_custom;
+
+                //links[i].velocity[0] = particle_velocity_scale(arr_delay)
+                links[i].size[0] = 15;//size_scale(number_litterature);
+                //links[i].coefficient_number_particles = Math.round(number_particles_scale(number_litterature));
+                //console.log(number_litterature)
+                //links[1].wiggling[0] = 0.8;
+                //var frequence = parseFloat(links[i].attr('frequence'))
+                //confluentGraph.fit_temporal_distribution(i);
+
+            }
+            //Juste a cause que la disance des mon lien doit etre proportionnel a mon nombre de particules.
+            confluentGraph.updateLinks();
+            for (var i = 0;i<links.length; i++){
+                confluentGraph.fit_to_frequence_temporal_distrib(i,2,[0.2,0.6,0.8])
+            }
+            //confluentGraph.updateLinks();   
+            //confluentGraph.fit_all_temporal_distribution()
+            for (var i = 0;i<nodes.length; i++){
+                if (nodes[i].attr('type') == 1){
+                    confluentGraph.updateNode_color(i , new THREE.Color("rgb(227, 26, 28)"))
+                    confluentGraph.updateNodes_scale(10);
+                }
+                if (nodes[i].attr('type') == 2){
+                    confluentGraph.updateNode_color(i , new THREE.Color("rgb(255, 127, 0)"))
+                    confluentGraph.updateNodes_scale(10);
+                }
+                
+            }
+
+
+        })
+    }); 
+
+
+
+	
+	</script>
+
+
+</body>
+</html>

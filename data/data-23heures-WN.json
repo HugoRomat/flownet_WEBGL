@@ -1,0 +1,256 @@
+{
+    "nodes": [
+        {
+            "id": 0, 
+            "iata": "BWI", 
+            "label": "Baltimore-Washington International", 
+            "city": "Baltimore", 
+            "state": "MD", 
+            "country": "USA", 
+            "lat": "39.17540167", 
+            "long": "-76.66819833"
+        }, 
+        {
+            "id": 1, 
+            "iata": "CMH", 
+            "label": "Port Columbus Intl", 
+            "city": "Columbus", 
+            "state": "OH", 
+            "country": "USA", 
+            "lat": "39.99798528", 
+            "long": "-82.89188278"
+        }, 
+        {
+            "id": 2, 
+            "iata": "LAS", 
+            "label": "McCarran International", 
+            "city": "Las Vegas", 
+            "state": "NV", 
+            "country": "USA", 
+            "lat": "36.08036111", 
+            "long": "-115.1523333"
+        }, 
+        {
+            "id": 3, 
+            "iata": "LAX", 
+            "label": "Los Angeles International", 
+            "city": "Los Angeles", 
+            "state": "CA", 
+            "country": "USA", 
+            "lat": "33.94253611", 
+            "long": "-118.4080744"
+        }, 
+        {
+            "id": 4, 
+            "iata": "MCO", 
+            "label": "Orlando International", 
+            "city": "Orlando", 
+            "state": "FL", 
+            "country": "USA", 
+            "lat": "28.42888889", 
+            "long": "-81.31602778"
+        }, 
+        {
+            "id": 5, 
+            "iata": "MDW", 
+            "label": "Chicago Midway", 
+            "city": "Chicago", 
+            "state": "IL", 
+            "country": "USA", 
+            "lat": "41.7859825", 
+            "long": "-87.75242444"
+        }, 
+        {
+            "id": 6, 
+            "iata": "MHT", 
+            "label": "Manchester", 
+            "city": "Manchester", 
+            "state": "NH", 
+            "country": "USA", 
+            "lat": "42.93451639", 
+            "long": "-71.43705583"
+        }, 
+        {
+            "id": 7, 
+            "iata": "ONT", 
+            "label": "Ontario International", 
+            "city": "Ontario", 
+            "state": "CA", 
+            "country": "USA", 
+            "lat": "34.056", 
+            "long": "-117.6011944"
+        }, 
+        {
+            "id": 8, 
+            "iata": "PHX", 
+            "label": "Phoenix Sky Harbor International", 
+            "city": "Phoenix", 
+            "state": "AZ", 
+            "country": "USA", 
+            "lat": "33.43416667", 
+            "long": "-112.0080556"
+        }, 
+        {
+            "id": 9, 
+            "iata": "RNO", 
+            "label": "Reno/Tahoe International", 
+            "city": "Reno", 
+            "state": "NV", 
+            "country": "USA", 
+            "lat": "39.49857611", 
+            "long": "-119.7680647"
+        }, 
+        {
+            "id": 10, 
+            "iata": "SAN", 
+            "label": "San Diego International-Lindbergh ", 
+            "city": "San Diego", 
+            "state": "CA", 
+            "country": "USA", 
+            "lat": "32.73355611", 
+            "long": "-117.1896567"
+        }, 
+        {
+            "id": 11, 
+            "iata": "SFO", 
+            "label": "San Francisco International", 
+            "city": "San Francisco", 
+            "state": "CA", 
+            "country": "USA", 
+            "lat": "37.61900194", 
+            "long": "-122.3748433"
+        }, 
+        {
+            "id": 12, 
+            "iata": "SJC", 
+            "label": "San Jose International", 
+            "city": "San Jose", 
+            "state": "CA", 
+            "country": "USA", 
+            "lat": "37.36186194", 
+            "long": "-121.9290089"
+        }, 
+        {
+            "id": 13, 
+            "iata": "SMF", 
+            "label": "Sacramento International", 
+            "city": "Sacramento", 
+            "state": "CA", 
+            "country": "USA", 
+            "lat": "38.69542167", 
+            "long": "-121.5907669"
+        }
+    ], 
+    "links": [
+        {
+            "id": 0, 
+            "source": 2, 
+            "target": 11, 
+            "origin": "LAS", 
+            "dest": "SFO", 
+            "number": 1, 
+            "dep_delay": 116.0, 
+            "arr_delay": 139.0, 
+            "passengers": 1900.0
+        }, 
+        {
+            "id": 1, 
+            "source": 3, 
+            "target": 11, 
+            "origin": "LAX", 
+            "dest": "SFO", 
+            "number": 2, 
+            "dep_delay": 206.0, 
+            "arr_delay": 203.0, 
+            "passengers": 53.0
+        }, 
+        {
+            "id": 2, 
+            "source": 5, 
+            "target": 0, 
+            "origin": "MDW", 
+            "dest": "BWI", 
+            "number": 3, 
+            "dep_delay": 224.0, 
+            "arr_delay": 202.0, 
+            "passengers": 3439.0
+        }, 
+        {
+            "id": 3, 
+            "source": 5, 
+            "target": 1, 
+            "origin": "MDW", 
+            "dest": "CMH", 
+            "number": 1, 
+            "dep_delay": 101.0, 
+            "arr_delay": 91.0, 
+            "passengers": 721.0
+        }, 
+        {
+            "id": 4, 
+            "source": 6, 
+            "target": 4, 
+            "origin": "MHT", 
+            "dest": "MCO", 
+            "number": 1, 
+            "dep_delay": 137.0, 
+            "arr_delay": 106.0, 
+            "passengers": 560.0
+        }, 
+        {
+            "id": 5, 
+            "source": 8, 
+            "target": 7, 
+            "origin": "PHX", 
+            "dest": "ONT", 
+            "number": 1, 
+            "dep_delay": 91.0, 
+            "arr_delay": 93.0, 
+            "passengers": 458.0
+        }, 
+        {
+            "id": 6, 
+            "source": 8, 
+            "target": 10, 
+            "origin": "PHX", 
+            "dest": "SAN", 
+            "number": 1, 
+            "dep_delay": 101.0, 
+            "arr_delay": 109.0, 
+            "passengers": 1554.0
+        }, 
+        {
+            "id": 7, 
+            "source": 8, 
+            "target": 13, 
+            "origin": "PHX", 
+            "dest": "SMF", 
+            "number": 1, 
+            "dep_delay": 100.0, 
+            "arr_delay": 94.0, 
+            "passengers": 2339.0
+        }, 
+        {
+            "id": 8, 
+            "source": 11, 
+            "target": 10, 
+            "origin": "SFO", 
+            "dest": "SAN", 
+            "number": 2, 
+            "dep_delay": 186.5, 
+            "arr_delay": 48.5, 
+            "passengers": 2210.0
+        }, 
+        {
+            "id": 9, 
+            "source": 12, 
+            "target": 9, 
+            "origin": "SJC", 
+            "dest": "RNO", 
+            "number": 1, 
+            "dep_delay": 146.0, 
+            "arr_delay": 130.0, 
+            "passengers": 4318.0
+        }
+    ]
+}
