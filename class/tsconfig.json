@@ -14,6 +14,7 @@
     },
     "files": [
         "files/Main.ts",
+        "files/Shaders.ts",
         "files/Map_to_attributes.ts",
         "files/Visualisation.ts",
         "files/Drop_Down.ts",
@@ -25,8 +26,7 @@
         "files/UI.ts",
         "files/UIGate.ts",
         "files/Slider.ts",
-        "files/ConfluentGraph.ts",
-        "files/confluent.ts"
+        "files/ParticleVis.ts"
 
    
     ]

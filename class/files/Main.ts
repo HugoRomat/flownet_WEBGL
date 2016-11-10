@@ -9,15 +9,15 @@ class Main{
     nodes;
     links;
     interface_;
-    confluentGraph;
+    particleVis;
     _UI;
     mapping;
 
     frame =0;
     refreshIntervalId;
 
-
-
+    actual_frame = 0;
+    currentFPS;
     then = Date.now();
     startTime = this.then;
     fps = 60;
@@ -42,15 +42,16 @@ class Main{
         this.nodes = nodes;
         console.log(this.links)
         this.interface_ = new Visualisation(div, width, height, bg_color);
-        this.confluentGraph = new ConfluentGraph(this.nodes, this.links, this.interface_);
-        this._UI = new UI(this.confluentGraph, this.interface_.scene, this.interface_.camera, this.interface_.renderer, this.interface_.raycaster);
+        this.particleVis = new ParticleVis(this.nodes, this.links, this.interface_);
+        this._UI = new UI(this.particleVis, this.interface_.scene, this.interface_.camera, this.interface_.renderer, this.interface_.raycaster);
         
 
-        this.mapping = new Mapping(this.confluentGraph);
+        this.mapping = new Mapping(this.particleVis);
         console.log("LAUNCH")
         //this.launch_animation(500);
         //this.self_adjusting_timer();
         this.animate(); 
+        //this.calculate_FPS()
     }
 
     stop_renderer(){
@@ -64,7 +65,7 @@ class Main{
     }
     render(){
         //Update mes particule de une case
-        this.confluentGraph.update();
+        this.particleVis.update();
         //Render l'interface graphique
         this.interface_.renderer.render(this.interface_.scene, this.interface_.camera);
     }
@@ -85,8 +86,25 @@ class Main{
         self.frame++;
         
     }
+    calculate_FPS(){
+        var self = this;
+        //window.setInterval(this.gameLoop, 1000);
+        setInterval(function() {
+            //var now = Date.now();
+            //var elapsed = now - self.then;
+            var difference = self.frame - self.actual_frame;
+            console.log("FPS ", difference/10);
+            self.particleVis.FPS = 1;
+            self.particleVis.fit_all_particles_to_frequence_temporal_distrib();
+            self.particleVis.updateParticles_TemporalDistribution3();
+            self.actual_frame = self.frame;
+
+            }, 10000);
+    }
+
     /* Self Adjusting Timer */
     self_adjusting_timer() {
+        var self = this;
         requestAnimationFrame(this.self_adjusting_timer.bind(this));
         
         var now = Date.now();
@@ -97,9 +115,9 @@ class Main{
             // Also, adjust for fpsInterval not being multiple of 16.67
             this.then = now - (elapsed % this.fpsInterval);
             var sinceStart = now - this.startTime;
-            var currentFps = Math.round(1000 / (sinceStart / ++this.frame) * 100) / 100;
+            self.currentFPS = Math.round(1000 / (sinceStart / ++this.frame) * 100) / 100;
             //console.log(currentFps)
-            this.render();
+            self.render();
             // draw stuff here
         }
     }

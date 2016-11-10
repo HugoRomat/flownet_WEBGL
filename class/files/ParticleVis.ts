@@ -14,7 +14,7 @@
 ///<reference path="../colasrc/shortestpaths.ts"/>
 ///<reference path="../colasrc/geom.ts"/>
 
-class ConfluentGraph{
+class ParticleVis{
     links;
     nodes;
     camera;
@@ -50,7 +50,7 @@ class ConfluentGraph{
 
     needUpdate = true;
 
-
+    FPS = 60;
     /*********** FOR PARTICLES *************/
     // temporal = Array.apply(null, Array(this.number_particles)).map(Number.prototype.valueOf,0);
     // velocity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
@@ -141,14 +141,18 @@ class ConfluentGraph{
                 this.createLinks();
                 
                 callback();
+                
+                
+
                 this.updateNodes();
                 //this.updateLabel();
                 this.updateLinks();
                 this.updateTube();
+
+                this.fit_all_particles_to_frequence_temporal_distrib();
                 
 
                 this.createParticle();
-
                 d3.select("#spinner").style("display","none");
                 this.needUpdate = false;
                 console.log(this.nodes);
@@ -267,7 +271,7 @@ class ConfluentGraph{
         }
         createParticle(){
             for ( var j = 0;  j < this.links.length; j ++ ){
-                console.log(this.links[j])
+                //console.log(this.links[j])
                 this.createParticles_webgl(this.links[j].number_particles, this.links[j].id);
                 // permits to update the spatial and temporal after resizing links
                 // this.updateParticles_SpatialDistribution(this.links[j].spatial_distribution, this.links[j]._id);
@@ -447,7 +451,7 @@ class ConfluentGraph{
                 this.links[i].number_segmentation_pattern_fitting = 50;
                 
                 this.links[i].spatial_distribution = [];
-                this.links[i].temporal_distribution = [];
+                this.links[i].temporal_distribution2 = [0.0];
                 this.links[i].velocity = [];
                 this.links[i].opacity = [];
                 this.links[i].wiggling = [];
@@ -459,6 +463,8 @@ class ConfluentGraph{
                 this.links[i].coefficient_number_particles = 1;
                 this.links[i].gates = [];
                 this.links[i].id = i;
+                this.links[i].frequency_pattern = 1.0;
+                this.links[i].temporal_distribution = [];
                 this.links[i].path_quadratic = [];
 
                 
@@ -849,6 +855,26 @@ class ConfluentGraph{
             return array[indice]
             
         }
+        updateParticles_number_segmentation_pattern_fitting(){
+            for ( var j = 0; j < this.links.length; j ++ ){
+                var number_particles = this.links[j].userData.number_particles
+                var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
+                    uniforms.temporal_delay.value = this.links[j].number_segmentation_pattern_fitting;
+
+                }
+        }
+        
+        updateParticles_TemporalDistribution3(){
+            for ( var j = 0; j < this.links.length; j ++ ){
+            var number_particles = this.links[j].userData.number_particles
+            var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
+
+                for ( var i = 0; i < this.links[j].temporal_distribution.length; i ++ ){
+                    uniforms.temporal_delay.value[i] = this.links[j].temporal_distribution[i];
+                }
+            }
+        }
+        // Pour updater avec des valeurs
         updateParticles_TemporalDistribution(temporal_distribution, link, number_values){
         
             var number_particles = this.links[link].userData.number_particles
@@ -1296,7 +1322,7 @@ class ConfluentGraph{
             var self = this;
             $.ajax({
                 async: false,
-                url: 'class/shaders/vertex.js',
+                url: 'shaders/vertex.js',
                 success: function (data) {
                     self.vertex_shader = data;
                 },
@@ -1308,7 +1334,7 @@ class ConfluentGraph{
             var self = this;
             $.ajax({
                     async: false,
-                    url : "class/shaders/fragment.js",
+                    url : "shaders/fragment.js",
                     success: function (data) {
                     self.fragment_shader = data;
                 },
@@ -1366,6 +1392,11 @@ class ConfluentGraph{
                 this.links[i].spatial_distribution[0] = this.links[i].number_particles;
             }
         }
+        fit_all_particles_to_frequence_temporal_distrib(){
+            for(var i=0 ; i<this.links.length ; i++){   
+                this.fit_to_frequence_temporal_distrib(i);
+            }
+        }
         /**
          * Create a function to specify the number of particles, frequence of pattern, and temporal distribution
          * @param {Number} link_id 
@@ -1373,24 +1404,37 @@ class ConfluentGraph{
          * @param {Number} between [0,100] frequence_patttern
          * @param {array} between [0,100] temporal_distribution
          */
-        fit_to_frequence_temporal_distrib(id,  frequence_patttern, temporal_distribution){
+        
+        fit_to_frequence_temporal_distrib(id){
+            
+            //console.log("HEY")
             // temporal_distribution = [0, 0.5, 0.7];
             // Je recois une frequence exprimant quand j'envoi chaque pattern (exprimé en secondes)
             // J'ai 60 fps donc je multiplie par 60 pour avoir l'equivalent en frame
-            frequence_patttern *= 60; 
+            var frequence_patttern = this.links[id].frequency_pattern;
+            var temporal_distribution = this.links[id].temporal_distribution2;
+            var speed = this.links[id].velocity[0];
+            frequence_patttern = this.FPS * frequence_patttern; 
+
+            //console.log(frequence_patttern, temporal_distribution);
+
+            //console.log(frequence_patttern, temporal_distribution)
 
             //Je multiplie par frequence pattern pour partir d'une echelle sur [O,1] en entrée vers [0,-frequence_patttern]
             //Négatif pour que ca parte vers l'arriere
+            // Divise par speed pour que cela soit proportionnel si l'on change la vitesse
             var temporal_dis = [];
             for (var i = 0;i<temporal_distribution.length; i++){
-                temporal_dis.push(temporal_distribution[i] * -frequence_patttern);
+                temporal_dis.push(temporal_distribution[i] * -frequence_patttern / speed);
             }
             //Motifs = Je prend la plus grande partie d'un lien
             //Si mon lien fait 130, je prend le multiple le plus haut de frequence pattern (si=80, je prend 160)
             var motifs = Math.ceil(this.links[id].number_segmentation/frequence_patttern)
             this.links[id].number_particles = motifs * temporal_distribution.length;
+            
             this.links[id].number_segmentation_pattern_fitting = motifs*frequence_patttern;
 
+            //console.log()
             //console.log(this.links[id].number_particles,this.links[id].number_segmentation,  this.links[id].number_segmentation_pattern_fitting)
             
 

@@ -6,6 +6,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var Main = (function () {
     function Main(div, nodes, links, width, height, bg_color) {
         this.frame = 0;
+        this.actual_frame = 0;
         this.then = Date.now();
         this.startTime = this.then;
         this.fps = 60;
@@ -15,9 +16,9 @@ var Main = (function () {
         this.nodes = nodes;
         console.log(this.links);
         this.interface_ = new Visualisation(div, width, height, bg_color);
-        this.confluentGraph = new ConfluentGraph(this.nodes, this.links, this.interface_);
-        this._UI = new UI(this.confluentGraph, this.interface_.scene, this.interface_.camera, this.interface_.renderer, this.interface_.raycaster);
-        this.mapping = new Mapping(this.confluentGraph);
+        this.particleVis = new ParticleVis(this.nodes, this.links, this.interface_);
+        this._UI = new UI(this.particleVis, this.interface_.scene, this.interface_.camera, this.interface_.renderer, this.interface_.raycaster);
+        this.mapping = new Mapping(this.particleVis);
         console.log("LAUNCH");
         this.animate();
     }
@@ -28,7 +29,7 @@ var Main = (function () {
         this.refreshIntervalId = undefined;
     };
     Main.prototype.render = function () {
-        this.confluentGraph.update();
+        this.particleVis.update();
         this.interface_.renderer.render(this.interface_.scene, this.interface_.camera);
     };
     Main.prototype.launch_animation = function (frame_rating) {
@@ -44,15 +45,27 @@ var Main = (function () {
         self.render();
         self.frame++;
     };
+    Main.prototype.calculate_FPS = function () {
+        var self = this;
+        setInterval(function () {
+            var difference = self.frame - self.actual_frame;
+            console.log("FPS ", difference / 10);
+            self.particleVis.FPS = 1;
+            self.particleVis.fit_all_particles_to_frequence_temporal_distrib();
+            self.particleVis.updateParticles_TemporalDistribution3();
+            self.actual_frame = self.frame;
+        }, 10000);
+    };
     Main.prototype.self_adjusting_timer = function () {
+        var self = this;
         requestAnimationFrame(this.self_adjusting_timer.bind(this));
         var now = Date.now();
         var elapsed = now - this.then;
         if (elapsed > this.fpsInterval) {
             this.then = now - (elapsed % this.fpsInterval);
             var sinceStart = now - this.startTime;
-            var currentFps = Math.round(1000 / (sinceStart / ++this.frame) * 100) / 100;
-            this.render();
+            self.currentFPS = Math.round(1000 / (sinceStart / ++this.frame) * 100) / 100;
+            self.render();
         }
     };
     Main.prototype.draw = function () {
@@ -63,6 +76,12 @@ var Main = (function () {
         this.then = new Date().getTime();
     };
     return Main;
+}());
+var Shaders = (function () {
+    function Shaders() {
+        this.fragment = "";
+    }
+    return Shaders;
 }());
 var Mapping = (function () {
     function Mapping(confluentGraph) {
@@ -3962,8 +3981,8 @@ var cola;
     }
     cola.d3adaptor = d3adaptor;
 })(cola || (cola = {}));
-var ConfluentGraph = (function () {
-    function ConfluentGraph(nodes, links, interface_) {
+var ParticleVis = (function () {
+    function ParticleVis(nodes, links, interface_) {
         this.labelNodes = [];
         this.labelLinks = [];
         this.webGL_nodes = [];
@@ -3980,6 +3999,7 @@ var ConfluentGraph = (function () {
         this.links_opacity = 0;
         this.tube_width = 1;
         this.needUpdate = true;
+        this.FPS = 60;
         this.links = links;
         this.nodes = nodes;
         this.scene = interface_.scene;
@@ -3988,7 +4008,7 @@ var ConfluentGraph = (function () {
         this.load_fragment_shaders();
         this.create();
     }
-    ConfluentGraph.prototype.draw_map = function (projection) {
+    ParticleVis.prototype.draw_map = function (projection) {
         var array = [];
         var self = this;
         d3.json("./data/us.json", function (error, us) {
@@ -4015,7 +4035,7 @@ var ConfluentGraph = (function () {
             }
         });
     };
-    ConfluentGraph.prototype.create = function () {
+    ParticleVis.prototype.create = function () {
         this.d3cola
             .nodes(this.nodes)
             .links(this.links)
@@ -4023,7 +4043,7 @@ var ConfluentGraph = (function () {
         console.log("DEBUT");
         this.createNodes();
     };
-    ConfluentGraph.prototype.launch_network = function (time, callback) {
+    ParticleVis.prototype.launch_network = function (time, callback) {
         var _this = this;
         d3.select("#spinner").style("display", "block");
         d3.select("#number_nodes").append("h1").text(this.links.length + " Links & " + this.nodes.length + " Nodes");
@@ -4035,6 +4055,7 @@ var ConfluentGraph = (function () {
             _this.updateNodes();
             _this.updateLinks();
             _this.updateTube();
+            _this.fit_all_particles_to_frequence_temporal_distrib();
             _this.createParticle();
             d3.select("#spinner").style("display", "none");
             _this.needUpdate = false;
@@ -4044,7 +4065,7 @@ var ConfluentGraph = (function () {
         }, time);
         console.log("FINISH UPDATE");
     };
-    ConfluentGraph.prototype.create_gates = function (id, segment, x1, y1, x2, y2) {
+    ParticleVis.prototype.create_gates = function (id, segment, x1, y1, x2, y2) {
         var material = new THREE.LineBasicMaterial({
             color: 0x0000ff,
             linewidth: 3,
@@ -4062,13 +4083,13 @@ var ConfluentGraph = (function () {
         array.splice(array.length - 1, 0, { factor: 1, position: segment });
         this.scene.add(line);
     };
-    ConfluentGraph.prototype.updateLabel_scale = function (scale) {
+    ParticleVis.prototype.updateLabel_scale = function (scale) {
         console.log("UPDATE SCALE LABEL");
         for (var i = 0; i < this.webGL_label.length; i++) {
             this.webGL_label[i].scale.set(1 / scale, 1 / scale, 1 / scale);
         }
     };
-    ConfluentGraph.prototype.createLabel = function () {
+    ParticleVis.prototype.createLabel = function () {
         var self = this;
         var loader = new THREE.FontLoader();
         loader.load('font/helvetiker_bold.typeface.json', function (font) {
@@ -4094,7 +4115,7 @@ var ConfluentGraph = (function () {
             }
         });
     };
-    ConfluentGraph.prototype.createNodes = function () {
+    ParticleVis.prototype.createNodes = function () {
         var n;
         console.log(this.scene);
         for (var i = 0; i < this.webGL_nodes.length; i++) {
@@ -4116,39 +4137,38 @@ var ConfluentGraph = (function () {
             this.scene.add(circle);
         }
     };
-    ConfluentGraph.prototype.update_values = function () {
+    ParticleVis.prototype.update_values = function () {
         this.updateNodes();
         this.updateLabel();
         this.updateLinks();
         this.updateTube();
     };
-    ConfluentGraph.prototype.update = function () {
+    ParticleVis.prototype.update = function () {
         if (this.needUpdate == true) {
         }
         else {
             this.updateParticle();
         }
     };
-    ConfluentGraph.prototype.createParticle = function () {
+    ParticleVis.prototype.createParticle = function () {
         for (var j = 0; j < this.links.length; j++) {
-            console.log(this.links[j]);
             this.createParticles_webgl(this.links[j].number_particles, this.links[j].id);
         }
     };
-    ConfluentGraph.prototype.updateNodes = function () {
+    ParticleVis.prototype.updateNodes = function () {
         console.log("YOOO UPDATE NODES");
         for (var i = 0; i < this.nodes.length; i++) {
             this.webGL_nodes[i].position.set(this.nodes[i].x, this.nodes[i].y, 1);
         }
     };
-    ConfluentGraph.prototype.updateLabel = function () {
+    ParticleVis.prototype.updateLabel = function () {
         console.log("UPDATE LABEL");
         for (var i = 0; i < this.webGL_label.length; i++) {
             this.webGL_label[i].position.x = this.nodes[i].x + 10;
             this.webGL_label[i].position.y = this.nodes[i].y;
         }
     };
-    ConfluentGraph.prototype.updateTube = function () {
+    ParticleVis.prototype.updateTube = function () {
         console.log("UPDATE TUBE");
         var p, splineObject;
         var path = [];
@@ -4209,7 +4229,7 @@ var ConfluentGraph = (function () {
             object.geometry.dynamic = true;
         }
     };
-    ConfluentGraph.prototype.createTube = function () {
+    ParticleVis.prototype.createTube = function () {
         var path = [];
         var geometry, p;
         var splineObject;
@@ -4253,7 +4273,7 @@ var ConfluentGraph = (function () {
             this.tube.push(octagon);
         }
     };
-    ConfluentGraph.prototype.createLinks = function () {
+    ParticleVis.prototype.createLinks = function () {
         var path = [];
         var geometry, p;
         var splineObject;
@@ -4262,7 +4282,7 @@ var ConfluentGraph = (function () {
             this.links[i].number_segmentation = 50;
             this.links[i].number_segmentation_pattern_fitting = 50;
             this.links[i].spatial_distribution = [];
-            this.links[i].temporal_distribution = [];
+            this.links[i].temporal_distribution2 = [0.0];
             this.links[i].velocity = [];
             this.links[i].opacity = [];
             this.links[i].wiggling = [];
@@ -4274,6 +4294,8 @@ var ConfluentGraph = (function () {
             this.links[i].coefficient_number_particles = 1;
             this.links[i].gates = [];
             this.links[i].id = i;
+            this.links[i].frequency_pattern = 1.0;
+            this.links[i].temporal_distribution = [];
             this.links[i].path_quadratic = [];
             this.links[i].width_tube = this.tube_width;
             this.links[i].gates.push({ object: "null", position: 0 });
@@ -4338,7 +4360,7 @@ var ConfluentGraph = (function () {
             this.scene.add(multi_line);
         }
     };
-    ConfluentGraph.prototype.updateLinks = function () {
+    ParticleVis.prototype.updateLinks = function () {
         console.log("UPDATE LINKS");
         var path = [];
         for (var i = 0; i < this.links.length; i++) {
@@ -4400,7 +4422,7 @@ var ConfluentGraph = (function () {
             }
         }
     };
-    ConfluentGraph.prototype.updateTube_width_gate = function (link_id, gate, value) {
+    ParticleVis.prototype.updateTube_width_gate = function (link_id, gate, value) {
         var self = this;
         var array_gates = this.links[link_id].gate_infos;
         var array_tube = [];
@@ -4457,7 +4479,7 @@ var ConfluentGraph = (function () {
         this.tube[link_id].children[0].geometry.colorsNeedUpdate = true;
         this.tube[link_id].children[0].geometry.tangentsNeedUpdate = true;
     };
-    ConfluentGraph.prototype.updateLinks_width_gate = function (link_id, gate, value) {
+    ParticleVis.prototype.updateLinks_width_gate = function (link_id, gate, value) {
         var array_gates = this.links[link_id].gate_infos;
         array_gates[gate].factor = value;
         for (var i = 0; i < 12; i++) {
@@ -4476,7 +4498,7 @@ var ConfluentGraph = (function () {
         }
         this.updateParticles_Paths(link_id);
     };
-    ConfluentGraph.prototype.updateParticles_Paths = function (link_id) {
+    ParticleVis.prototype.updateParticles_Paths = function (link_id) {
         var number_particles = this.links[link_id].userData.number_particles;
         var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
         var path2 = [];
@@ -4486,26 +4508,26 @@ var ConfluentGraph = (function () {
         uniforms.path_general.value = path2;
         console.log("PATHS", uniforms.path_general);
     };
-    ConfluentGraph.prototype.updateParticles_Texture = function (link_id, value) {
+    ParticleVis.prototype.updateParticles_Texture = function (link_id, value) {
         var number_particles = this.links[link_id].userData.number_particles;
         var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
         uniforms.texture.value = new THREE.TextureLoader().load("images/" + value);
         uniforms.texture.name = value;
         console.log("TEXTURE", uniforms.texture.value);
     };
-    ConfluentGraph.prototype.updateParticles_Velocity = function (link_id, gate, value) {
+    ParticleVis.prototype.updateParticles_Velocity = function (link_id, gate, value) {
         var number_particles = this.links[link_id].userData.number_particles;
         var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
         uniforms.velocity.value[gate] = value;
         console.log("VELOCITY", uniforms.velocity.value);
     };
-    ConfluentGraph.prototype.updateParticles_Wiggling = function (link_id, gate, value) {
+    ParticleVis.prototype.updateParticles_Wiggling = function (link_id, gate, value) {
         var number_particles = this.links[link_id].userData.number_particles;
         var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
         uniforms.wiggling.value[gate] = value;
         console.log("WIGGLING", uniforms.wiggling.value);
     };
-    ConfluentGraph.prototype.updateParticles_Zoom = function (value) {
+    ParticleVis.prototype.updateParticles_Zoom = function (value) {
         for (var i = 0; i < this.links.length; i++) {
             var uniforms = this.links[i].particleSystems.material.__webglShader.uniforms;
             console.log(uniforms);
@@ -4513,19 +4535,19 @@ var ConfluentGraph = (function () {
             uniforms.ProjectionMatrix.value = value;
         }
     };
-    ConfluentGraph.prototype.updateParticles_Opacity = function (link_id, gate, value) {
+    ParticleVis.prototype.updateParticles_Opacity = function (link_id, gate, value) {
         var number_particles = this.links[link_id].userData.number_particles;
         var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
         uniforms.opacity.value[gate] = value;
         console.log("OPACITY", uniforms.opacity.value);
     };
-    ConfluentGraph.prototype.updateParticles_Size = function (link_id, gate, value) {
+    ParticleVis.prototype.updateParticles_Size = function (link_id, gate, value) {
         var number_particles = this.links[link_id].userData.number_particles;
         var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
         uniforms.size.value[gate] = value;
         console.log("SIZE", uniforms.size.value);
     };
-    ConfluentGraph.prototype.updateParticles_SpatialDistribution = function (spatial_distribution, link) {
+    ParticleVis.prototype.updateParticles_SpatialDistribution = function (spatial_distribution, link) {
         console.log(spatial_distribution);
         var f = 0;
         for (var j = 0; j < this.links.length; j++) {
@@ -4543,7 +4565,7 @@ var ConfluentGraph = (function () {
             }
         }
     };
-    ConfluentGraph.prototype.array_SpatialDistribution = function (spatial_distribution, indice) {
+    ParticleVis.prototype.array_SpatialDistribution = function (spatial_distribution, indice) {
         var f = 0;
         var array = Array.apply(null, Array(spatial_distribution.length)).map(Number.prototype.valueOf, 0.0);
         var particule_number = 0;
@@ -4557,14 +4579,30 @@ var ConfluentGraph = (function () {
         }
         return array[indice];
     };
-    ConfluentGraph.prototype.updateParticles_TemporalDistribution = function (temporal_distribution, link, number_values) {
+    ParticleVis.prototype.updateParticles_number_segmentation_pattern_fitting = function () {
+        for (var j = 0; j < this.links.length; j++) {
+            var number_particles = this.links[j].userData.number_particles;
+            var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
+            uniforms.temporal_delay.value = this.links[j].number_segmentation_pattern_fitting;
+        }
+    };
+    ParticleVis.prototype.updateParticles_TemporalDistribution3 = function () {
+        for (var j = 0; j < this.links.length; j++) {
+            var number_particles = this.links[j].userData.number_particles;
+            var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
+            for (var i = 0; i < this.links[j].temporal_distribution.length; i++) {
+                uniforms.temporal_delay.value[i] = this.links[j].temporal_distribution[i];
+            }
+        }
+    };
+    ParticleVis.prototype.updateParticles_TemporalDistribution = function (temporal_distribution, link, number_values) {
         var number_particles = this.links[link].userData.number_particles;
         var uniforms = this.links[link].particleSystems.material.__webglShader.uniforms;
         for (var i = 0; i < temporal_distribution.length; i++) {
             uniforms.temporal_delay.value[i] = Math.floor(-temporal_distribution[i]);
         }
     };
-    ConfluentGraph.prototype.updateParticles_TemporalDistribution2 = function (temporal_distribution, link, number_values) {
+    ParticleVis.prototype.updateParticles_TemporalDistribution2 = function (temporal_distribution, link, number_values) {
         var f = 0;
         var number_particles = this.links[link].userData.number_particles;
         var uniforms = this.links[link].particleSystems.material.__webglShader.uniforms;
@@ -4577,13 +4615,13 @@ var ConfluentGraph = (function () {
             }
         }
     };
-    ConfluentGraph.prototype.updateParticles_Color = function (id_link, color, gate) {
+    ParticleVis.prototype.updateParticles_Color = function (id_link, color, gate) {
         var number_particles = this.links[id_link].userData.number_particles;
         var uniforms = this.links[id_link].particleSystems.material.__webglShader.uniforms;
         var indice = 0;
         uniforms.gate_colors.value[gate] = new THREE.Vector3(color.r, color.g, color.b);
     };
-    ConfluentGraph.prototype.updateParticles_Gates = function (id_link, gate) {
+    ParticleVis.prototype.updateParticles_Gates = function (id_link, gate) {
         var uniforms = this.links[id_link].particleSystems.material.__webglShader.uniforms;
         var indice = 0;
         for (var j = 1; j < uniforms.gate_position.value.length; j++) {
@@ -4595,7 +4633,7 @@ var ConfluentGraph = (function () {
         console.log("GATE", uniforms.gate_position);
         console.log("Temporal", uniforms.temporal_delay);
     };
-    ConfluentGraph.prototype.updateParticle = function () {
+    ParticleVis.prototype.updateParticle = function () {
         var count = 0;
         var s, cs, t;
         var numParticles;
@@ -4607,7 +4645,7 @@ var ConfluentGraph = (function () {
             }
         }
     };
-    ConfluentGraph.prototype.createParticles_webgl = function (particles, link_id) {
+    ParticleVis.prototype.createParticles_webgl = function (particles, link_id) {
         console.log("CREATE PARTICLES", particles, link_id);
         var self = this;
         var temporal = this.links[link_id].temporal_distribution;
@@ -4689,7 +4727,7 @@ var ConfluentGraph = (function () {
         console.log("particle created");
         return this.particleSystems;
     };
-    ConfluentGraph.prototype.delete_entity_by_type = function (tag_data) {
+    ParticleVis.prototype.delete_entity_by_type = function (tag_data) {
         for (var i = 0; i < this.scene.children.length; i++) {
             var object = this.scene.children[i];
             if (object.userData.type == tag_data) {
@@ -4697,7 +4735,7 @@ var ConfluentGraph = (function () {
             }
         }
     };
-    ConfluentGraph.prototype.get_middle_position_normal = function (x1, y1, x2, y2, link_id) {
+    ParticleVis.prototype.get_middle_position_normal = function (x1, y1, x2, y2, link_id) {
         var segmentation = this.links[link_id].number_segmentation;
         var divide = Math.round(segmentation / 3);
         var euclidean_distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
@@ -4721,7 +4759,7 @@ var ConfluentGraph = (function () {
         var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
         return { x1: X1, y1: Y1, x2: X2, y2: Y2 };
     };
-    ConfluentGraph.prototype.get_normal_position = function (x1, y1, x2, y2, gate, distance, _number) {
+    ParticleVis.prototype.get_normal_position = function (x1, y1, x2, y2, gate, distance, _number) {
         var fix_distance = distance;
         var array = [];
         var alpha = (y2 - y1) / (x2 - x1);
@@ -4740,7 +4778,7 @@ var ConfluentGraph = (function () {
         }
         return array;
     };
-    ConfluentGraph.prototype.get_normal_position_border = function (x1, y1, x2, y2, distance, _number) {
+    ParticleVis.prototype.get_normal_position_border = function (x1, y1, x2, y2, distance, _number) {
         var fix_distance = distance;
         var array = [];
         var alpha = (y2 - y1) / (x2 - x1);
@@ -4769,7 +4807,7 @@ var ConfluentGraph = (function () {
         }
         return array;
     };
-    ConfluentGraph.prototype.draw_circle = function (x, y) {
+    ParticleVis.prototype.draw_circle = function (x, y) {
         var material = new THREE.MeshBasicMaterial({
             color: 0x4286f4
         });
@@ -4781,7 +4819,7 @@ var ConfluentGraph = (function () {
         circle.position.set(x, y, 1);
         this.scene.add(circle);
     };
-    ConfluentGraph.prototype.hslToRgb = function (h, s, l) {
+    ParticleVis.prototype.hslToRgb = function (h, s, l) {
         var r, g, b;
         if (s == 0) {
             r = g = b = l;
@@ -4808,7 +4846,7 @@ var ConfluentGraph = (function () {
         }
         return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
     };
-    ConfluentGraph.prototype.getColor = function (percent) {
+    ParticleVis.prototype.getColor = function (percent) {
         var r = percent < 50 ? 255 : Math.floor(255 - (percent * 2 - 100) * 255 / 100);
         var g = percent > 50 ? 255 : Math.floor((percent * 2) * 255 / 100);
         if (r < 0) {
@@ -4816,40 +4854,40 @@ var ConfluentGraph = (function () {
         }
         return new THREE.Vector3(r / 255.0, g / 255.0, 0);
     };
-    ConfluentGraph.prototype.load_vertex_shaders = function () {
+    ParticleVis.prototype.load_vertex_shaders = function () {
         var self = this;
         $.ajax({
             async: false,
-            url: 'class/shaders/vertex.js',
+            url: 'shaders/vertex.js',
             success: function (data) {
                 self.vertex_shader = data;
             },
             dataType: 'html'
         });
     };
-    ConfluentGraph.prototype.load_fragment_shaders = function () {
+    ParticleVis.prototype.load_fragment_shaders = function () {
         var self = this;
         $.ajax({
             async: false,
-            url: "class/shaders/fragment.js",
+            url: "shaders/fragment.js",
             success: function (data) {
                 self.fragment_shader = data;
             },
             dataType: 'html'
         });
     };
-    ConfluentGraph.prototype.get_middle = function (x1, y1, x2, y2) {
+    ParticleVis.prototype.get_middle = function (x1, y1, x2, y2) {
         var middle_X = ((x2 - x1) / 2) + x1;
         var middle_Y = ((y2 - y1) / 2) + y1;
         return { x: middle_X, y: middle_Y };
     };
-    ConfluentGraph.prototype.get_distance = function (x1, y1, x2, y2) {
+    ParticleVis.prototype.get_distance = function (x1, y1, x2, y2) {
         var a = x1 - x2;
         var b = y1 - y2;
         var c = Math.sqrt(a * a + b * b);
         return c;
     };
-    ConfluentGraph.prototype.fit_temporal_distribution = function (link_id) {
+    ParticleVis.prototype.fit_temporal_distribution = function (link_id) {
         var delay = 0;
         var iteration = (this.links[link_id].number_segmentation) / this.links[link_id].number_particles;
         for (var j = 0; j < this.links[link_id].number_particles; j++) {
@@ -4858,7 +4896,7 @@ var ConfluentGraph = (function () {
         }
         this.links[link_id].spatial_distribution[0] = this.links[link_id].number_particles;
     };
-    ConfluentGraph.prototype.fit_all_temporal_distribution = function () {
+    ParticleVis.prototype.fit_all_temporal_distribution = function () {
         for (var i = 0; i < this.links.length; i++) {
             var delay = 0;
             var iteration = (this.links[i].number_segmentation) / this.links[i].number_particles;
@@ -4869,11 +4907,19 @@ var ConfluentGraph = (function () {
             this.links[i].spatial_distribution[0] = this.links[i].number_particles;
         }
     };
-    ConfluentGraph.prototype.fit_to_frequence_temporal_distrib = function (id, frequence_patttern, temporal_distribution) {
-        frequence_patttern *= 60;
+    ParticleVis.prototype.fit_all_particles_to_frequence_temporal_distrib = function () {
+        for (var i = 0; i < this.links.length; i++) {
+            this.fit_to_frequence_temporal_distrib(i);
+        }
+    };
+    ParticleVis.prototype.fit_to_frequence_temporal_distrib = function (id) {
+        var frequence_patttern = this.links[id].frequency_pattern;
+        var temporal_distribution = this.links[id].temporal_distribution2;
+        var speed = this.links[id].velocity[0];
+        frequence_patttern = this.FPS * frequence_patttern;
         var temporal_dis = [];
         for (var i = 0; i < temporal_distribution.length; i++) {
-            temporal_dis.push(temporal_distribution[i] * -frequence_patttern);
+            temporal_dis.push(temporal_distribution[i] * -frequence_patttern / speed);
         }
         var motifs = Math.ceil(this.links[id].number_segmentation / frequence_patttern);
         this.links[id].number_particles = motifs * temporal_distribution.length;
@@ -4892,7 +4938,7 @@ var ConfluentGraph = (function () {
         }
         this.links[id].spatial_distribution[0] = this.links[id].number_particles;
     };
-    ConfluentGraph.prototype.get_max_of_attributes = function (attribute_name) {
+    ParticleVis.prototype.get_max_of_attributes = function (attribute_name) {
         var max_value = this.links[0].attr(attribute_name);
         for (var i = 1; i < this.links.length; i++) {
             var attr_value = this.links[i].attr(attribute_name);
@@ -4902,7 +4948,7 @@ var ConfluentGraph = (function () {
         }
         return max_value;
     };
-    ConfluentGraph.prototype.get_min_of_attributes = function (attribute_name) {
+    ParticleVis.prototype.get_min_of_attributes = function (attribute_name) {
         var min_value = this.links[0].attr(attribute_name);
         for (var i = 1; i < this.links.length; i++) {
             var attr_value = this.links[i].attr(attribute_name);
@@ -4912,66 +4958,66 @@ var ConfluentGraph = (function () {
         }
         return min_value;
     };
-    ConfluentGraph.prototype.updateNumber_of_particles = function (i, coefficient) {
+    ParticleVis.prototype.updateNumber_of_particles = function (i, coefficient) {
         this.links[i].coefficient_number_particles = coefficient;
     };
-    ConfluentGraph.prototype.updateNode_color = function (i, color) {
+    ParticleVis.prototype.updateNode_color = function (i, color) {
         this.webGL_nodes[i].material.color = color;
     };
-    ConfluentGraph.prototype.updateNodes_color = function (color) {
+    ParticleVis.prototype.updateNodes_color = function (color) {
         for (var i = 0; i < this.nodes.length; i++) {
             this.webGL_nodes[i].material.color = color;
         }
     };
-    ConfluentGraph.prototype.updateNodes_scale = function (scale) {
+    ParticleVis.prototype.updateNodes_scale = function (scale) {
         for (var i = 0; i < this.nodes.length; i++) {
             this.webGL_nodes[i].scale.set(scale, scale, scale);
         }
     };
-    ConfluentGraph.prototype.updateNode_scale = function (i, scale) {
+    ParticleVis.prototype.updateNode_scale = function (i, scale) {
         this.webGL_nodes[i].scale.set(scale, scale, scale);
     };
-    ConfluentGraph.prototype.set_tube_width = function (id, width) {
+    ParticleVis.prototype.set_tube_width = function (id, width) {
         this.links[id].width_tube = width;
     };
-    ConfluentGraph.prototype.set_tube_color = function (id, color, opacity) {
+    ParticleVis.prototype.set_tube_color = function (id, color, opacity) {
         color = color.replace("#", "0x");
         this.tube[id].children[0].material.color.setHex(color);
         this.tube[id].children[0].material.opacity = opacity;
     };
-    ConfluentGraph.prototype.set_tubes_color = function (color) {
+    ParticleVis.prototype.set_tubes_color = function (color) {
         for (var i = 0; i < this.links.length; i++) {
             this.tube[i].children[0].material.color.setHex(color);
         }
     };
-    ConfluentGraph.prototype.set_tubes_width = function (width) {
+    ParticleVis.prototype.set_tubes_width = function (width) {
         for (var i = 0; i < this.links.length; i++) {
             this.links[i].width_tube = width;
         }
     };
-    ConfluentGraph.prototype.set_links_color = function (id, opacity) {
+    ParticleVis.prototype.set_links_color = function (id, opacity) {
         for (var j = 0; j < this.curveSplines[id].children.length; j++) {
             this.curveSplines[id].children[j].material.opacity = opacity;
         }
     };
-    ConfluentGraph.prototype.load_particle_texture = function (link_id, value) {
+    ParticleVis.prototype.load_particle_texture = function (link_id, value) {
         this.links[link_id].texture = value;
     };
-    ConfluentGraph.prototype.bezier = function (t, p0, p1, p2, p3) {
+    ParticleVis.prototype.bezier = function (t, p0, p1, p2, p3) {
         var cX = 3 * (p1.x - p0.x), bX = 3 * (p2.x - p1.x) - cX, aX = p3.x - p0.x - cX - bX;
         var cY = 3 * (p1.y - p0.y), bY = 3 * (p2.y - p1.y) - cY, aY = p3.y - p0.y - cY - bY;
         var x = (aX * Math.pow(t, 3)) + (bX * Math.pow(t, 2)) + (cX * t) + p0.x;
         var y = (aY * Math.pow(t, 3)) + (bY * Math.pow(t, 2)) + (cY * t) + p0.y;
         return { x: x, y: y };
     };
-    ConfluentGraph.prototype.get_nodes = function () {
+    ParticleVis.prototype.get_nodes = function () {
         var array = [];
         for (var j = 0; j < this.nodes.length; j++) {
             array.push({ "x": this.nodes[j].x, "y": -this.nodes[j].y, "fixed": true });
         }
         return array;
     };
-    ConfluentGraph.prototype.get_links = function () {
+    ParticleVis.prototype.get_links = function () {
         var array = [];
         for (var j = 0; j < this.links.length; j++) {
             array.push({ "id": j, "source": this.links[j].source.index,
@@ -4983,5 +5029,5 @@ var ConfluentGraph = (function () {
         }
         return array;
     };
-    return ConfluentGraph;
+    return ParticleVis;
 }());
