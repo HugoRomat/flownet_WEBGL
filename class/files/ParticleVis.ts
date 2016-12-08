@@ -14,7 +14,11 @@
 ///<reference path="../colasrc/shortestpaths.ts"/>
 ///<reference path="../colasrc/geom.ts"/>
 
-class ParticleVis{
+module Sparkiz {
+
+
+
+export class Sparkiz{
     links;
     nodes;
     camera;
@@ -22,16 +26,14 @@ class ParticleVis{
     vertex_shader;
     fragment_shader;
 
-    labelNodes = [];
-    labelLinks = [];
-
 
     webGL_nodes = []
     webGL_label = []
 
     d3cola = cola.d3adaptor()
             .avoidOverlaps(false)
-            .linkDistance(100)
+            //.linkDistance(120)
+            //.linkDistance(function (l) { return l.link_length })
     
     tube = [];
     curveSplines = [];
@@ -40,15 +42,20 @@ class ParticleVis{
     scene;
     // When you change particles, change also temporal delay to number of particles (vertex shader)
     // number_particles = 20;
-    number_particles = 3;
+    number_particles = 1;
     courbure = 5;
     number_paths_particule = 1; 
 
     number_max_gates = 10;
-    links_opacity = 0;
+    roads_opacity = 1;
+    roads_color = 0x0000FF;
+
+    
+
     tube_width = 1;
 
     needUpdate = true;
+    shader;
 
     FPS = 60;
     /*********** FOR PARTICLES *************/
@@ -67,11 +74,17 @@ class ParticleVis{
         this.nodes = nodes;
         this.scene = interface_.scene;
         this.camera = interface_.camera;
-        this.load_vertex_shaders();
-        this.load_fragment_shaders();
+       
+        //this.load_vertex_shaders();
+        //this.load_fragment_shaders();
 
-        this.create();
-        
+        //SI PROBLEME AVEC TEMPORAL IL FAUT AUGMENTER LE NOMBRE DANS LE TABLEAU
+        //this.create();
+         this.shader = new Shader();
+         this.fragment_shader = this.shader.fragment;
+         this.vertex_shader = this.shader.vertex
+        //console.log(this.shader.fragment);
+
 
     }
     draw_map(projection){
@@ -107,57 +120,76 @@ class ParticleVis{
 
     }
     create(){
+        //console.log(this.links)
+        //console.log(this.links[0])
+        
 
-        this.d3cola 
+        this.d3cola.nodes(this.nodes);
+        this.d3cola.links(this.links);
 
-                .nodes(this.nodes)
-                .links(this.links)
-                .start()
 
-        console.log("DEBUT")
+        this.d3cola.linkDistance(function (l) { return l.link_length; })
+        //console.log(this.links)
+        this.d3cola.start();
+        // //console.log(this.links[0])
+        // console.log("DEBUT")
 
         
-        // var projection = d3.geo.mercator()
-        //             .scale(900)
-        //this.draw_map(projection);
+        // // var projection = d3.geo.mercator()
+        // //             .scale(900)
+        // //this.draw_map(projection);
 
         
         
-        // Cree mes labeles et noeuds a des places aleatoires
-        //this.createLabel();
+        // // Cree mes labels et noeuds a des places aleatoires
+        
         this.createNodes();
+        
+        
+        this.createTube();
+        
+        this.createLinks();
+        
+        //this.d3cola.linkDistance(function (l) { return l.link_length })
+       
+        
+
+        
+
+        
         //this.launch_network();
 
     }
-    launch_network(time, callback){
+    launch_network(time){
             //ADD SPINNER
             d3.select("#spinner").style("display","block");
             d3.select("#number_nodes").append("h1").text(this.links.length + " Links & "+this.nodes.length + " Nodes");
 
             window.setTimeout(()=>{  
                 //Stop le layout 
-                this.d3cola.stop()
-                this.createTube();
-                this.createLinks();
+                //console.log(this.nodes[0])
+                this.d3cola.stop();
+                //callback();
+                //this.nodes[0].x = 10;
+                //console.log(this.nodes[0])
                 
-                callback();
-                
-                
-
                 this.updateNodes();
                 //this.updateLabel();
+                this.createLabel();
                 this.updateLinks();
                 this.updateTube();
 
+                //this.change_nodes_for_images();
+                //this.updateLabel();
                 this.fit_all_particles_to_frequence_temporal_distrib();
-                
-
+            
                 this.createParticle();
                 d3.select("#spinner").style("display","none");
                 this.needUpdate = false;
                 console.log(this.nodes);
                 console.log(this.links);
                 console.log(this.scene);
+                
 
                 
 
@@ -202,58 +234,94 @@ class ParticleVis{
         createLabel(){
             var self = this;
 
+            
+
                 var loader = new THREE.FontLoader();
-				loader.load( 'font/helvetiker_bold.typeface.json', function ( font ) {
-                    console.log(self.nodes)
+				loader.load( 'helvetiker_bold.typeface.json', function ( font ) {
+                    //console.log(self.nodes[i].label)
                     var mesh = new THREE.Font();
                     for(var i=0 ; i<self.nodes.length ; i++)
                     {
-                        var textGeo = new THREE.TextGeometry( self.nodes[i].attr('label'), {
-                            font: font,
-                            size: 6,
-                            height: 5,
-                            curveSegments: 12,
-                            bevelThickness: 1,
-                            bevelSize: 5,
-                            bevelEnabled: false
-                        });
+                        if (self.nodes[i].label_name != null){
+                            //console.log("YOO", self.nodes[i].label_name)
+                            var textGeo = new THREE.TextGeometry( self.nodes[i].label_name, {
+                                font: font,
+                                size: 6,
+                                height: 5,
+                                curveSegments: 12,
+                                bevelThickness: 1,
+                                bevelSize: 5,
+                                bevelEnabled: false
+                            });
 
-                        var textMaterial = new THREE.MeshPhongMaterial( { color: 0xff0000 } );
-                        var mesh = new THREE.Mesh( textGeo, textMaterial );
-                        self.webGL_label.push(mesh);
+                            var textMaterial = new THREE.MeshPhongMaterial( { color: 0xff0000 } );
+                            var mesh = new THREE.Mesh( textGeo, textMaterial );
+                            
+                            self.webGL_label.push(mesh);
 
-                        mesh.position.set( i * 50,10,1);
-                        mesh.name = "label" ;
-                        console.log("CREATE")
-                        self.scene.add( mesh );
+                            mesh.position.set( i * 50,10,1);
+                            mesh.position.x = self.nodes[i].x + 30;
+                            mesh.position.y = self.nodes[i].y;
+                            //console.log(mesh.position.x, mesh.position.y)
+                            //console.log(self.nodes[i].x, self.nodes[i].y);
+                            mesh.name = "label" ;
+                            console.log("CREATE")
+                            self.scene.add( mesh );
+                        }
                     }
 				} );
         }
         createNodes(){
             // NODES
             var n;
-            console.log(this.scene)
-            for(var i=0 ; i<this.webGL_nodes.length ; i++){
-                this.scene.remove(this.webGL_nodes[i]);
-            }
+            //console.log(this.scene)
+            //for(var i=0 ; i<this.webGL_nodes.length ; i++){
+            //    this.scene.remove(this.webGL_nodes[i]);
+            //}
             this.webGL_nodes = [];
             //console.log('webGL_nodes', this.webGL_nodes.length)
             for(var i=0 ; i<this.nodes.length ; i++)
             {
+                //JE MET UN PX ET PY CAR LE LAYOUT TOURNE CONSTAMENT DONC EMPECHE MES NODES DE SE METTRE A JOUR
+                this.nodes[i].label_name = null;
+                // this.nodes[i].px = null;
+                // this.nodes[i].py = null;
+
                 var material = new THREE.MeshBasicMaterial({
-                    color: 0x0000ff,
+                    //color: 0x0000ff,
                     transparent:true
                 });
+                // instantiate a loader
                 var segments = 50 ;
                 var circleGeometry = new THREE.CircleGeometry(1, segments );
                 var circle = new THREE.Mesh( circleGeometry, material );
                 this.webGL_nodes.push(circle);
                 circle.scale.set(1,1, 1);
+                //circle.position.set(10,10, 1);
                 circle.name = "circle" ;
-                circle.userData = { id: this.nodes[i]._id, type:"node" };
+                circle.userData = { id: i, type: "node" };
                 this.scene.add( circle );
+                
             }
         } 
+        load_texture_nodes(index_node, path){
+            //console.log(index_node)
+            var self = this;
+            var loader = new THREE.TextureLoader();
+            loader.load(
+                    // resource URL
+                    path,
+                    function ( texture ) {
+                        var material = new THREE.MeshBasicMaterial( { map: texture} );
+                        //console.log("CA PASSE ICI", index_node)
+                        //console.log(self.webGL_nodes[index_node])
+                        self.webGL_nodes[index_node].material.map = material.map;
+                        //self.webGL_nodes[index_node].material.transparent = true;
+                        //self.webGL_nodes[index_node].material.opacity = 0;
+                        self.webGL_nodes[index_node].material.needsUpdate = true;
+                    },
+            );
+        }
         update_values(){
             this.updateNodes();
             this.updateLabel();
@@ -265,7 +333,7 @@ class ParticleVis{
                 //console.log("Waiting for the end of layout computing")
             }
             else{
-                this.updateParticle();
+                //this.updateParticle();
                 //console.log("Upate Particules") 
             }
         }
@@ -280,9 +348,19 @@ class ParticleVis{
         }
         updateNodes(){
             console.log("YOOO UPDATE NODES")
+            var self = this;
+            for(var i=0 ; i<self.nodes.length ; i++)
+            {   
+                if (self.nodes[i].px != null){self.nodes[i].x = self.nodes[i].px;}
+                if (self.nodes[i].py != null){self.nodes[i].y = self.nodes[i].py;}
+                self.webGL_nodes[i].position.set(self.nodes[i].x,self.nodes[i].y,1)
+            }
+        }
+        updateNodes_Original(){
+            console.log("YOOO UPDATE NODES")
             for(var i=0 ; i<this.nodes.length ; i++)
             {   
-                //console.log(this.nodes[i].x, -1 *this.nodes[i].y)
+                
                 this.webGL_nodes[i].position.set(this.nodes[i].x, this.nodes[i].y, 1)
             }
         }
@@ -290,8 +368,8 @@ class ParticleVis{
         updateLabel(){
             console.log("UPDATE LABEL")
             for(var i=0 ; i<this.webGL_label.length ; i++)
-            {   
-                
+            {       
+                console.log("LABEL", this.webGL_label[i])
                 this.webGL_label[i].position.x = this.nodes[i].x + 10;
                 this.webGL_label[i].position.y = this.nodes[i].y;
             }
@@ -385,15 +463,17 @@ class ParticleVis{
             var splineObject;
             var size;
             // LINKS
+            //console.log(this.links)
             for(var i=0 ; i<this.links.length ; i++)
             {
                 //this.links[i].particleSystems = [];
                 var octagon = new THREE.Object3D();
                 var vertices = [];
                 //console.log(this.links[i].source, this.links[i].target)
-                path[0] = {x:this.links[i].source.x, y:this.links[i].source.y}
-                path[1] = {x:this.links[i].target.x, y:this.links[i].target.y}
-                 
+                //path[0] = {x:this.links[i].source.x, y:this.links[i].source.y}
+                //path[1] = {x:this.links[i].target.x, y:this.links[i].target.y}
+                path[0] = {x:5, y:28}
+                path[1] = {x:12, y:35}
                 var x1 = path[0].x;
                 var y1 = path[0].y;
                 var x2 = path[1].x;
@@ -401,7 +481,8 @@ class ParticleVis{
                 //console.log(this.links[i]);
                 //var position = this.get_normal_position(x1, y1, x2, y2, 3, 1);
                 var position = this.get_normal_position_border(x1, y1, x2, y2, 3, 1);
-                
+                //console.log(position)
+                //console.log(x1, y1, x2, y2)
                 /* MES EDGES SONT DROITES */
                 var curve = new THREE.SplineCurve([
                         new THREE.Vector2(position[0].x, position[0].y),
@@ -419,33 +500,45 @@ class ParticleVis{
                         new THREE.Vector2(position[1].x, position[1].y),
                         new THREE.Vector2(position[0].x, position[0].y)        
                  ]);
+
                  var curve_result = curve.getSpacedPoints( 50 ).concat(curve2.getSpacedPoints( 100 )).concat(curve3.getSpacedPoints( 50 )).concat(curve4.getSpacedPoints( 100 )) ;
-                 //console.log("LENGTH", curve_result.length);       
+                 //console.log("1", this.links.length);           
+                 
+                 //console.log(curve_result)
                  var shape = new THREE.Shape(curve_result);
-                 var geometry2 = new THREE.ShapeGeometry( shape );
+                
+                //ICI BUG
+                 geometry = new THREE.ShapeGeometry( shape );
+                 //console.log(2)
+                 //console.log("3");
                  var material = new THREE.MeshBasicMaterial( { color: 0x3498db, opacity: 1, transparent: true } );
                  material.opacity = 1;
-
+                 
+                 
                 //var mesh = THREE.SceneUtils.createMultiMaterialObject( geometry, [ material] );
-                var mesh = new THREE.Mesh( geometry2,  material );
-
+                var mesh = new THREE.Mesh( geometry,  material );
+  
+                mesh.name = "tube"
                 octagon.name = "tube" + i;
                 octagon.userData = { type: "tube" , id :this.links[i]._id };
                 octagon.add(mesh);
 
-                
+
                 this.scene.add(octagon);
                 this.tube.push(octagon);
+                console.log("PUSH TUBE")
+ 
             }
         }
         createLinks(){
             var path = [];
             var geometry, p;
             var splineObject;
-
+            //console.log(this.links)
             // LINKS
             for(var i=0 ; i<this.links.length ; i++){
 
+                
                 this.links[i].particleSystems = [];
                 this.links[i].number_segmentation = 50;
                 this.links[i].number_segmentation_pattern_fitting = 50;
@@ -467,11 +560,19 @@ class ParticleVis{
                 this.links[i].temporal_distribution = [];
                 this.links[i].path_quadratic = [];
 
+                this.links[i].name = "links";
                 
                 this.links[i].width_tube = this.tube_width;
                 this.links[i].gates.push({object:"null", position:0})
 
                 var multi_line = new THREE.Object3D();
+
+                //ASSIGN RANDOM POSITION FOR THE BEGINNING OF MY APP
+                this.links[i].source.x = Math.random()*100; 
+                this.links[i].target.y = Math.random()*100; 
+                this.links[i].source.x = Math.random()*100; 
+                this.links[i].target.y = Math.random()*100; 
+
 
                 path[0] = {x:this.links[i].source.x, y:this.links[i].source.y}
                 path[1] = {x:this.links[i].target.x, y:this.links[i].target.y}
@@ -479,11 +580,11 @@ class ParticleVis{
                 var y1 = path[0].y;
                 var x2 = path[1].x;
                 var y2 = path[1].y;
-
+                
                 var distance = this.get_distance(x1, y1, x2, y2);
                 
                 //aCHanger pour 50 si l'on veut
-                this.links[i].number_segmentation = Math.floor(distance / 3);
+                this.links[i].number_segmentation = Math.floor(distance);
                 //console.log(this.links[i].number_segmentation);
 
                 //var position = this.get_normal_position(x1, y1, x2, y2, this.links[i].width_tube, this.number_paths_particule);
@@ -498,9 +599,9 @@ class ParticleVis{
                     ]);
                 this.links[i].spatial_distribution[0] = 0;
                 var curveSplineMaterial = new THREE.LineBasicMaterial( { 
-                    color : 0x2c3e50,
+                    color : this.roads_color,
                     linewidth:  1,
-                    opacity: this.links_opacity, 
+                    opacity: this.roads_opacity, 
                     transparent: true
                 });
 
@@ -520,9 +621,9 @@ class ParticleVis{
                         ]);
                     this.links[i].spatial_distribution[f] = 0;
                     var curveSplineMaterial = new THREE.LineBasicMaterial( { 
-                        color : 0x2c3e50,
-                        linewidth:  1,
-                        opacity: this.links_opacity, 
+                        color : this.roads_color,
+                        linewidth:  1.8,
+                        opacity: this.roads_opacity, 
                         transparent: true
                     });
 
@@ -535,6 +636,7 @@ class ParticleVis{
                 this.links[i].gate_infos = [{factor:1, position:0},{factor:1, position:this.links[i].number_segmentation}];
                 multi_line.renderOrder = 5;
                 multi_line.userData = {type: "link" , id: this.links[i]._id};
+                multi_line.name = "links";
                 this.curveSplines.push(multi_line)
                 this.links[i].userData = { id: this.links[i]._id , number_particles :0};
                 
@@ -555,10 +657,12 @@ class ParticleVis{
             }
         }
         updateLinks(){
-            console.log("UPDATE LINKS")
+                
             var path = [];
-            for(var i=0 ; i<this.links.length ; i++)
+            //console.log(this.curveSplines.length)
+            for(var i=0 ; i<this.links.length ; i+=1)
             {
+                
                 //console.log(this.curveSplines[i])
                 path[0] = {x:this.links[i].source.x, y:this.links[i].source.y}
                 path[1] = {x:this.links[i].target.x, y:this.links[i].target.y}
@@ -566,78 +670,57 @@ class ParticleVis{
                 var y1 = path[0].y;
                 var x2 = path[1].x;
                 var y2 = path[1].y;
-                
-                
+
                 var distance = this.get_distance(x1, y1, x2, y2);
-                
-                //aCHanger pour 50 si l'on veut
-                //Permet de faire un decoupage homogne de l'edge en fonction de la distance euclidienne
-                this.links[i].number_segmentation = Math.round(distance);
-                //console.log("NUMBER_PARTICLES1", this.links[i].number_particles)
-                // Permet d'ajuster le nombre de particules en fonction de la distance.
-                //this.links[i].number_particles = Math.round(this.links[i].coefficient_number_particles * Math.round(Math.round(distance / 3)/60));
-                
-                //console.log(this.links[i].number_particles, Math.round(Math.round(distance / 3)/15));
+                this.links[i].number_segmentation = Math.round(distance) * 5;
 
 
-                /******************** FOR THE MIDDLE LINE  ***********************/
-                var object = this.curveSplines[i].children[0];
-                var middle_point = this.get_middle_position_normal(this.links[i].source.x, this.links[i].source.y,this.links[i].target.x, this.links[i].target.y, i)
+                var middle_point = this.get_middle_position_normal(x1, y1, x2, y2, i)
                 var array = [new THREE.Vector2(this.links[i].source.x, this.links[i].source.y),
                         new THREE.Vector2(middle_point.x1, middle_point.y1),
                         new THREE.Vector2(middle_point.x2, middle_point.y2),
                         new THREE.Vector2(this.links[i].target.x, this.links[i].target.y)];
                 this.links[i].path_quadratic[0]= array;
                 var quadratic_path = [];
-                var pas = 1.0 /  this.links[i].number_segmentation;
+                var object = this.curveSplines[i].children[0];
+                /** IL FAUT QUE LA LONGUEUR SOIT EGALE AU NOMBRE DE VERTICES CREER DANS CREATE LINKS */
+                /** -1 CAR JE RAJOUTE LE POINT DE LA FIN POUR FERMER L BOUCLE */
+                var pas = 1.0 / (object.geometry.vertices.length - 1);
                 for (var k=0; k<1; k+=pas){
-                    quadratic_path.push(this.bezier(k, this.links[i].path_quadratic[0][0],this.links[i].path_quadratic[0][1],this.links[i].path_quadratic[0][2],this.links[i].path_quadratic[0][3]));
+                    quadratic_path.push(new THREE.Vector3( this.bezier(k, array[0],array[1], array[2], array[3]).x, this.bezier(k, array[0],array[1], array[2], array[3]).y, 0));
                 }
-                var curveSplineMaterial = new THREE.LineBasicMaterial( { 
-                    color : 0x2c3e50,
-                    linewidth:  1,
-                    opacity: this.links_opacity, 
-                    transparent: true
-                });
+                quadratic_path.push(new THREE.Vector3(x2, y2, 0));
+                var curveSplineMaterial = new THREE.LineBasicMaterial( { color : this.roads_color,linewidth:  1,opacity: this.roads_opacity, transparent: true});
                 var p = new THREE.Path( quadratic_path);//curve.getSpacedPoints( this.links[i].number_segmentation) );
-                var geometry = p.createPointsGeometry( this.links[i].number_segmentation );
+                var geometry = p.createPointsGeometry( 50 );
+                object.material = curveSplineMaterial; 
                 object.geometry.vertices = geometry.vertices;
-                object.geometry.verticesNeedUpdate = true; 
+                object.geometry.verticesNeedUpdate = true;
 
-                //Position of the border of the tube
+                /***** POUR LES LIENS EXTERIEURS */
                 var position = this.get_normal_position_border(x1, y1, x2, y2, this.links[i].width_tube, this.number_paths_particule);
-                
-
-                /************************** FOR THE OTHERS LINE **********************/
                 for(var j=0 , f = 1; j < position.length - 1; j+=2, f++)
                 {
                     var object = this.curveSplines[i].children[f];
+                    //console.log(object.geometry.vertices)
                     var points = []
-
-                    // Renvoi la position a 33% et 66%
                     var middle_point = this.get_middle_position_normal(position[j].x, position[j].y,position[j+1].x, position[j+1].y, i)
-
                     var array = [new THREE.Vector2(position[j].x, position[j].y),
                         new THREE.Vector2(middle_point.x1, middle_point.y1),
                         new THREE.Vector2(middle_point.x2, middle_point.y2),
                         new THREE.Vector2(position[j+1].x, position[j+1].y)];
                     this.links[i].path_quadratic[f]= array;
                     var quadratic_path = [];
-                    var pas = 1.0 /  this.links[i].number_segmentation;
-
+                    var pas = 1.0 / (object.geometry.vertices.length - 1);
+                    //console.log("PAS", pas , object.geometry.vertices.length)
                     for (var k=0; k<1; k+=pas){
-                        quadratic_path.push(this.bezier(k, this.links[i].path_quadratic[f][0],this.links[i].path_quadratic[f][1],this.links[i].path_quadratic[f][2],this.links[i].path_quadratic[f][3]));
+                        quadratic_path.push(this.bezier(k, array[0],array[1], array[2], array[3]));
                     }
-                    var curveSplineMaterial = new THREE.LineBasicMaterial( { 
-                        color : 0x2c3e50,
-                        linewidth:  1,
-                        opacity: this.links_opacity, 
-                        transparent: true
-                    });
-                    
+                    quadratic_path.push(new THREE.Vector3(array[3].x, array[3].y, 1));
+                    var curveSplineMaterial = new THREE.LineBasicMaterial( { color : this.roads_color,linewidth:  1,opacity: this.roads_opacity, transparent: true});
                     var p = new THREE.Path( quadratic_path);//curve.getSpacedPoints( this.links[i].number_segmentation) );
-                    var geometry = p.createPointsGeometry( this.links[i].number_segmentation );
-                    
+                    var geometry = p.createPointsGeometry(20);
+                    object.material = curveSplineMaterial; 
                     object.geometry.vertices = geometry.vertices;
                     object.geometry.verticesNeedUpdate = true; 
                 }
@@ -702,7 +785,7 @@ class ParticleVis{
             mesh.renderOrder = 9999;
             octagon.userData = { type: "tube" , id :link_id };
             octagon.add(mesh);
-
+            
             for (var a in geometry2.vertices) {
                  this.tube[link_id].children[0].geometry.vertices[a].x = geometry2.vertices[a].x;
                  this.tube[link_id].children[0].geometry.vertices[a].y = geometry2.vertices[a].y;
@@ -760,13 +843,18 @@ class ParticleVis{
                 var path = "path" + (i+1);
                 uniforms[path].value = this.links[link_id].curvePath[i];
             }*/
+            var path_quadratic = [];
+            for (var i = 0; i< this.links[link_id].path_quadratic.length; i++){
+                path_quadratic = path_quadratic.concat(this.links[link_id].path_quadratic[i]);
 
-            var path2 = [];
-            for (var i = 0; i< this.links[link_id].curvePath.length; i++){
-                path2 = path2.concat(this.links[link_id].curvePath[i]);
             }
-            uniforms.path_general.value = path2;
-            console.log("PATHS",uniforms.path_general)
+
+            // var path2 = [];
+            // for (var i = 0; i< this.links[link_id].curvePath.length; i++){
+            //     path2 = path2.concat(this.links[link_id].curvePath[i]);
+            // }
+            uniforms.path_quadratic.value = path_quadratic;
+            console.log("PATHS",uniforms.path_quadratic)
         }
         updateParticles_Texture(link_id,  value){
 
@@ -838,6 +926,20 @@ class ParticleVis{
                 }
             }
         }
+        /**** LORSQUE C'EST LE EN SPECIFICATION DE L'EDGE = [0,0,0,0,1,1]  ***/
+        array_SpatialDistribution_items(number, i){
+            var array = []
+            //console.log("SPATIAL_DISTRIBUTION", this.links[i].spatial_distribution)
+            /* JE FAIS CA CAR LE NOMBRE DE PARTICULES EST PROPORTIONNEL AU NOMBRE DU SPATIAL */
+            var array_length = number/ this.links[i].spatial_distribution.length;
+
+            for ( var k = 0; k< array_length; k ++ ){
+                array = array.concat(this.links[i].spatial_distribution);
+            }
+            return array;
+
+        }
+        /**** LORSQUE C'EST LE EN NOMBRE SUR EDGE = [4,2] ***/
         array_SpatialDistribution(spatial_distribution, indice){
 
             var f = 0;
@@ -846,7 +948,6 @@ class ParticleVis{
             var faisceau = 0;
             for ( var i = 0; i < spatial_distribution.length; i ++ ){
                 for ( var k = 0; k< spatial_distribution[i]; k ++ ){
-
                     array[particule_number] = faisceau ;
                     particule_number ++;
                 }
@@ -944,9 +1045,7 @@ class ParticleVis{
             console.log("Temporal",uniforms.temporal_delay)
 
         }
-        updateParticle(){
-            var count = 0;
-            var s,cs,t;
+        updateParticle(number_frame){
             var numParticles; 
             var my_frame = 0;
 
@@ -957,7 +1056,7 @@ class ParticleVis{
                 if (this.links[j].particleSystems.length != 0 && this.links[j].particleSystems.material.__webglShader != undefined){
 
                     var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
-                    uniforms.uTime.value += 1.0;
+                    uniforms.uTime.value = number_frame;
                     //uniforms.uTime.value = uniforms.uTime.value % 50;
                 }
             }
@@ -984,12 +1083,16 @@ class ParticleVis{
                 path_quadratic = path_quadratic.concat(this.links[link_id].path_quadratic[i]);
 
             }
+
+            var spatial = this.array_SpatialDistribution_items(particles, link_id);
+            console.log(temporal)
+            //console.log(path_quadratic)
             // for (var i = 0; i< path_quadratic.length; i++){
             //     this.draw_circle(path_quadratic[i].x,path_quadratic[i][1])
             //     console.log(path_quadratic[i].x,path_quadratic[i][1])
             // }
                             
-            //console.log()
+            //console.log(path_quadratic)
             /************** INITIAIZATION OF PARAMETER *************/
             //var temporal = Array.apply(null, Array(particles)).map(Number.prototype.valueOf,0);
             //var velocity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
@@ -1012,9 +1115,10 @@ class ParticleVis{
             var texture = new THREE.TextureLoader().load( this.links[link_id].texture );
             texture.minFilter = THREE.LinearMipMapLinearFilter;
 			texture.magFilter = THREE.LinearFilter;
-
             
+            //console.log("FINAL", temporal)
             
+            //console.log(number_segmentation_pattern_fitting)
             var uniforms = {
                 "path_quadratic" :  { type: "v2v", value: path_quadratic },
                 "temporal_delay" : { type: "iv1", value: temporal },
@@ -1039,13 +1143,16 @@ class ParticleVis{
 				texture: { value: texture, name:this.links[link_id].texture }
 
 			};
-            //console.log(uniforms.texture)
-            var path_length = 4 * this.number_paths_particule ;
+            
+            var path_length = ((2 * this.number_paths_particule) +1) * 4;
+
+            //console.log(this.links[link_id].temporal_distribution)
 			var shaderMaterial = new THREE.ShaderMaterial( {
 
 				uniforms:       uniforms,
 				vertexShader:   '#define path_length '+ path_length + 
-                '\n' +  self.vertex_shader,
+                '\n' + '#define real_number_particles '+ this.links[link_id].temporal_distribution.length + 
+                '\n' + self.vertex_shader,
 
 				fragmentShader: self.fragment_shader,
 
@@ -1072,7 +1179,7 @@ class ParticleVis{
 			var color = new THREE.Color();
 
 			for ( var i = 0, i3 = 0; i < particles; i ++, i3 += 3 ) {
-
+                //console.log(i)
                 /* Position des textures de particules */
                 positions[ i3 + 0 ] = 0* radius;
 				positions[ i3 + 1 ] = 0* radius;
@@ -1092,12 +1199,19 @@ class ParticleVis{
 
                 //Sert a localiser la particule sur le faisceau
                 //Ne sert a rien dans ce cas la.
-                id[i] = this.array_SpatialDistribution(this.links[link_id].spatial_distribution, i);
+                //id[i] = this.links[link_id].spatial_distribution[i];
+                
+                /* DANS LE CAS OU ON VEUT DEFINIR LE NOMBRE DIRECTEMENT SUR CHAQUE EDGE */
+                //console.log(spatial[i])
+                id[i] = spatial[i]
+
+                //console.log(this.links[link_id].spatial_distribution)
+                //console.log(this.array_SpatialDistribution(this.links[link_id].spatial_distribution, i))
                 //console.log(id[i])
                 //console.log(i%12);
 
 			}
-          
+            //console.log(id_particle)
 
 			geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
             //geometry.addAttribute( 'radius', new THREE.BufferAttribute( radius, 1 ) );
@@ -1128,7 +1242,7 @@ class ParticleVis{
             this.scene.add(this.particleSystems);
 
             //console.log("NUMBER_PARTICLES0", particles)
-            console.log("particle created");
+            //console.log("particle created");
             //console.log(this.particleSystems)
             return this.particleSystems;   
         }
@@ -1148,7 +1262,8 @@ class ParticleVis{
             var distance = euclidean_distance/this.courbure;
             var alpha = (y2-y1)/(x2-x1);
             var signe = -1;
-            if ( x2<x1 ){signe = 1;}
+            if ( y2<y1 ){signe = 1;}
+            //if ( x2<x1 ){signe = 1;}
 
             var x_middle = (((x2-x1)/segmentation)*divide) + x1;
             var y_middle = (((y2-y1)/segmentation)*divide) + y1;
@@ -1268,7 +1383,7 @@ class ParticleVis{
             var circleGeometry = new THREE.CircleGeometry(10, segments );
             var circle = new THREE.Mesh( circleGeometry, material );
 
-            circle.scale.set(1,1, 1);
+            circle.scale.set(0.5,0.5, 1);
             circle.name = "circle" ;
             circle.position.set(x,y, 1)
             this.scene.add( circle );   
@@ -1325,6 +1440,7 @@ class ParticleVis{
                 url: 'shaders/vertex.js',
                 success: function (data) {
                     self.vertex_shader = data;
+                    //console.log("data", data)
                 },
                 dataType: 'html'
             });
@@ -1393,7 +1509,8 @@ class ParticleVis{
             }
         }
         fit_all_particles_to_frequence_temporal_distrib(){
-            for(var i=0 ; i<this.links.length ; i++){   
+            for(var i=0 ; i<this.links.length ; i++){
+                //console.log("FIT I", i)   
                 this.fit_to_frequence_temporal_distrib(i);
             }
         }
@@ -1407,7 +1524,7 @@ class ParticleVis{
         
         fit_to_frequence_temporal_distrib(id){
             
-            //console.log("HEY")
+            //console.log("SEGMENTATION", this.links[id].number_segmentation)
             // temporal_distribution = [0, 0.5, 0.7];
             // Je recois une frequence exprimant quand j'envoi chaque pattern (exprimé en secondes)
             // J'ai 60 fps donc je multiplie par 60 pour avoir l'equivalent en frame
@@ -1421,19 +1538,22 @@ class ParticleVis{
             //console.log(frequence_patttern, temporal_distribution)
 
             //Je multiplie par frequence pattern pour partir d'une echelle sur [O,1] en entrée vers [0,-frequence_patttern]
-            //Négatif pour que ca parte vers l'arriere
+            // ƒNégatif pour que ca parte vers l'arriere
             // Divise par speed pour que cela soit proportionnel si l'on change la vitesse
             var temporal_dis = [];
             for (var i = 0;i<temporal_distribution.length; i++){
                 temporal_dis.push(temporal_distribution[i] * -frequence_patttern / speed);
             }
+            //console.log("TEMPORAL DIS", temporal_dis)
             //Motifs = Je prend la plus grande partie d'un lien
             //Si mon lien fait 130, je prend le multiple le plus haut de frequence pattern (si=80, je prend 160)
             var motifs = Math.ceil(this.links[id].number_segmentation/frequence_patttern)
+            //console.log("motifs",  motifs)
+            //console.log("temporal distrib",  this.links[id].temporal_distribution2)
             this.links[id].number_particles = motifs * temporal_distribution.length;
             
             this.links[id].number_segmentation_pattern_fitting = motifs*frequence_patttern;
-
+            //console.log("pattern_fitting", this.links[id].number_segmentation_pattern_fitting)
             //console.log()
             //console.log(this.links[id].number_particles,this.links[id].number_segmentation,  this.links[id].number_segmentation_pattern_fitting)
             
@@ -1446,17 +1566,24 @@ class ParticleVis{
                 //J'ajoute frequence pattern a chaque nouveau pattern
                 delay = -frequence_patttern * (k - 1)
                 //console.log(delay)
+                //console.log(temporal_distribution)
                 for(var j=0 ; j<temporal_distribution.length; j++){
                     //Pour chaque element du tableau donnée, j'ajoute frequence_pattern + le delay.
                     this.links[id].temporal_distribution[id_particle] = delay + temporal_dis[j];
+
+                    //console.log(delay + temporal_dis[j])
                     //console.log(this.links[id].temporal_distribution[id_particle])
                     total_for_pattern += delay +temporal_dis[j];
                     id_particle +=1;
                 }
             }       
-            //Le nombre de particule sur quelle edge          
-            this.links[id].spatial_distribution[0] = this.links[id].number_particles;
+            
+            //Le nombre de particule sur quelle edge  
+            //console.log(this.links[id].spatial_distribution)        
+            //this.links[id].spatial_distribution[0] = this.links[id].number_particles ;
+            //this.links[id].spatial_distribution[1] = this.links[id].number_particles/2;
             //console.log("TEMPORAL", id, this.links[id].temporal_distribution)
+            this.links[id].number_particles = this.links[id].temporal_distribution.length;
 
         }
         /* Get the maximum value of an attribute */
@@ -1491,6 +1618,19 @@ class ParticleVis{
             { 
                 this.webGL_nodes[i].material.color = color;
             }   
+        }
+        getNode_position(i){
+            return this.webGL_nodes[i].position;
+        }
+        updateNode_position(i, x, y){
+            var array_links = []
+            this.webGL_nodes[i].position.set(x, y,1);
+            for(var j=0 ; j<this.links.length ; j++)
+            {   var l = this.links[j];
+                if (l.source.id == i){l.source.x =x;l.source.y =y;array_links.push(j)}
+                if (l.target.id == i){l.target.x =x;l.target.y =y;array_links.push(j)}
+            } 
+            return array_links;
         }
         updateNodes_scale(scale){
             for(var i=0 ; i<this.nodes.length ; i++)
@@ -1559,14 +1699,20 @@ class ParticleVis{
             var array = [];
             for(var j=0 ; j<this.links.length ; j++)
             { 
-                array.push({"id" : j, "source":this.links[j].source.index, 
+                array.push({"id" : j, 
+                            "source":this.links[j].source.index, 
                             "target" : this.links[j].target.index, 
-                            "frequency_pattern" : this.links[j].attr("frequency_pattern"), 
-                            "speed" : this.links[j].attr("speed"), 
-                            "temporal_distribution" : this.links[j].attr("temporal_distribution"),
+                            "frequency" : this.links[j].frequency_pattern, 
+                            "speed" : this.links[j].speed, 
+                            "temporal" : this.links[j].temporal_distribution2,
                             "rank":[]})
+
             }
+            //console.log("ARRAY", array)
             return array;
             
         }
+
+
+    }
 }

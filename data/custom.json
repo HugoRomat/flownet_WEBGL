@@ -1,27 +1,43 @@
 {
   "nodes":[
-    	{
-            "id": 0, 
-            "iata": "JFK", 
-            "name": "John F Kennedy Intl", 
-            "city": "New York", 
-            "state": "NY", 
-            "country": "USA", 
-            "lat": "40.63975111", 
-            "long": "-73.77892556"
+        {
+            "id": 0,
+            "label": "capteur de vitesse",
+            "type": 1
+
         },
         {
-            "id": 1, 
-            "iata": "SFO", 
-            "name": "San Francisco International", 
-            "city": "San Francisco", 
-            "state": "CA", 
-            "country": "USA", 
-            "lat": "37.61900194", 
-            "long": "-122.3748433"
+            "id": 1,
+            "label": "capteur d'angle",
+            "type": 1
+        },
+        {
+            "id": 2,
+            "label": "capteur infrarouge",
+            "type": 1
         }
   ],
   "links":[
-    {"source":0,"target":1}
+        {
+            "id": 0,
+            "source": 1,
+            "target": 0,
+            "number_publication": 1,
+            "number_patent":3,
+            "number_litterature":4,
+            "frequence" : 0
+
+        },
+        {
+            "id": 1,
+            "source": 1,
+            "target": 2,
+            "number_publication": 22,
+            "number_patent":3,
+            "number_litterature":25,
+            "frequence" : 2
+
+        }
+
   ]
 }

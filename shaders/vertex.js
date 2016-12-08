@@ -31,7 +31,7 @@
             uniform vec2 path_quadratic[path_length];
 
             uniform int gate_position[10];
-            uniform int temporal_delay[20]; // NUMBER OF PARTICLES
+            uniform int temporal_delay[50]; // NUMBER OF PARTICLES
             uniform int varyingData;
 
             uniform vec3 gate_colors[10];
@@ -188,6 +188,7 @@
                 //4 car j'ai 4 variables : 0 33 66 100 pour faire ma courbe de bezier
                 highp int path_id = int(id) * (4);
 
+                //highp int path_id = 4;
                 //path = vec4(path_general[path_id + index].x , path_general[path_id + index].y ,1.0, 1.0);
 
                 //path_next = vec4(path_general[path_id + index +1].x, path_general[path_id + index +1].y ,1.0, 1.0);
@@ -219,7 +220,7 @@
 
 
 
-                mat4 my_matrice =  translation(path.x,path.y);
+                mat4 my_matrice =  translation(path.x + random,path.y+ random);
 
                 vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;
 

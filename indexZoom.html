@@ -4,17 +4,14 @@
     <meta charset="utf-8" />
     <title>confluent vs powergraph</title>
 
-  <script src="https://threejs.org/build/three.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-  <script src="https://d3js.org/d3.v3.min.js"></script>
-  <script src="https://cdn.rawgit.com/tgdwyer/WebCola/master/WebCola/cola.min.js"></script>
+    <script src="https://threejs.org/build/three.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://cdn.rawgit.com/tgdwyer/WebCola/master/WebCola/cola.min.js"></script>
 
-<!--    <script src="lib/three.min.js"></script>
-    <script src="lib/jquery.js"></script>
-    <script src="lib/d3.min.js"></script>
-    <script src="lib/cola.min.js"></script>
-  <script src="lib/topojson.v1.min.js"></script>-->
-	<script src="class/Sparkiz.js"></script>
+    <script src="lib/touch.js"></script>
+    <script src="lib/topojson.v1.min.js"></script>
+	  <script src="class/Sparkiz.js"></script>
     <style>
         div{
             float: left;
@@ -28,7 +25,6 @@
         margin: 0;
         padding: 0;
       }
-
 
     </style>
 
@@ -47,12 +43,12 @@
                    .scale(900)
                    .translate([1500,500]);
 
-    d3.json("data/data_speed.json", function(json) {
+    d3.json("data/data_expe_temporal.json", function(json) {
 
       var app = Sparkiz.force("#visFrame", 800,800,"#a6cee3", 0)
           .nodes(json.nodes)
           .links(json.links)
-          .layout("linkDistance", 130)
+          .layout("linkDistance", 90)
 
 
           .create()
@@ -70,25 +66,21 @@
           // .nodes_mapping("x", function(d, i) {return d.x; })
           // .nodes_mapping("y", function(d, i) {return d.y;  })
           // var coordinates = my_projection([nodes[i].attr('long'),nodes[i].attr('lat')]);
-          // // .particle_mapping("wiggling",5)
-          // .links_mapping("color", "grey")
-          .links_mapping("size", 2)
+          // .particle_mapping("wiggling",5)
+          .links_mapping("color", "grey")
+          .links_mapping("size", 3)
           //.links_mapping("size", 3)
-          .nodes_mapping("label", function(d, i) {return d.name; })
-          .roads_mapping("opacity", 1)
-          .roads_mapping("color", "#66c2a5")
-
+          //.nodes_mapping("label", function(d, i) {return d.label; })
           .nodes_mapping("size",  10)
           .nodes_mapping("color", "black")
 
 
           .particle_mapping("color", 'black')
-          .particle_mapping("size", 8)
-          .controls(true)
+          .particle_mapping("size", 12)
+
           //.particle_mapping("color", '#d53e4f')
           // .particle_mapping("size", function(d, i) {return d.size_message; })
           .particle_mapping("frequency_pattern", function(d, i) {return d.frequency; })
-          //.particle_mapping("spatial_distribution", function(d, i) {return d.spatial; })
           .particle_mapping("temporal_distribution", function(d, i) {return d.temporal; })
           .particle_mapping("velocity", function(d, i) {return d.speed; })
           // .particle_mapping("texture", "images/circle_texture.png")

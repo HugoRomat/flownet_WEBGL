@@ -9,7 +9,7 @@
         "noLib": false,
         "preserveConstEnums": true,
         "suppressImplicitAnyIndexErrors": true,
-        "out": "confluent.js",
+        "out": "Sparkiz.js",
         "watch": true
     },
     "files": [

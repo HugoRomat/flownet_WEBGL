@@ -15,13 +15,15 @@ class Visualisation {
         HEIGHT;// = window.innerHeight;
         div_element;
         bg_color = 0xffffff;
+        alpha;
         
 
-        constructor(div_element, width, height, bg_color){
+        constructor(div_element, width, height, bg_color, alpha){
             this.WIDTH = width;
             this.HEIGHT = height;
             this.div_element = div_element;
             this.bg_color = bg_color;
+            this.alpha = alpha;
             this.init();
         } 
         init(){
@@ -50,15 +52,19 @@ class Visualisation {
             this.light = new THREE.DirectionalLight(0xffffff);
             this.light.position.set(0, 1, 1).normalize();
 
-            this.renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true });
+
+
+            this.renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true, alpha: true });
             this.renderer.setSize(this.WIDTH,this.HEIGHT)
 
+
             //this.renderer.setClearColor( 0x34495e , 1);
-            this.renderer.setClearColor( this.bg_color , 1);
+            this.renderer.setClearColor( this.bg_color , this.alpha);
             this.renderer.sortObjects = true;
 
-            $(this.div_element).append(this.renderer.domElement);
-
+            //$(this.div_element).append(this.renderer.domElement);
+            var new_container = this.div_element.substring(1);
+            document.getElementById(new_container).appendChild(this.renderer.domElement);
             //console.log("HEY",this.div_element)
             
             this.raycaster = new THREE.Raycaster();

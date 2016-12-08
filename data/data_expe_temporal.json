@@ -1,0 +1,69 @@
+{
+	"directed": false,
+	"graph": {
+		"name": "Powerlaw-Cluster Graph"
+	},
+	"nodes": [{
+		"name": 0,
+		"id": 0
+	}, {
+		"name": 1,
+		"id": 1
+	},
+	{
+ 	"name": 2,
+ 	"id": 2
+ }, {
+	 "name": 3,
+	 "id": 3
+ }, {
+	 "name": 4,
+	 "id": 4
+ }],
+	"links": [{
+		"target": 1,
+		"temporal": [0.1,0.1,0.1, 0.4, 0.4, 0.4],
+		"spatial":  [0,   1,   2,   0,   1,   2],
+		"source": 0,
+		"frequency": 5,
+		"speed": 2,
+		"id": 0
+	},
+	{
+		"target": 1,
+		"temporal": [0.1,0.1,0.1, 0.4, 0.4, 0.4],
+		"spatial":  [0,   1,   2,   0,   1,   2],
+		"source": 2,
+		"frequency": 5,
+		"speed": 2,
+		"id": 1
+	},
+	{
+		"target": 1,
+		"temporal": [0.1,0.1,0.1, 0.4, 0.4, 0.4],
+		"spatial":  [0,   1,   2,   0,   1,   2],
+		"source": 3,
+		"frequency": 5,
+		"speed": 2,
+		"id": 2
+	},
+	{
+		"target": 0,
+		"temporal": [0.1,0.1,0.1, 0.4, 0.4, 0.4],
+		"spatial":  [0,   1,   2,   0,   1,   2],
+		"source": 3,
+		"frequency": 5,
+		"speed": 2,
+		"id": 3
+	},
+	{
+		"target": 3,
+		"temporal": [0.1,0.1,0.1, 0.4, 0.4, 0.4],
+		"spatial":  [0,   1,   2,   0,   1,   2],
+		"source": 4,
+		"frequency": 5,
+		"speed": 2,
+		"id": 4
+	}],
+	"multigraph": false
+}

@@ -3,86 +3,641 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var Main = (function () {
-    function Main(div, nodes, links, width, height, bg_color) {
-        this.frame = 0;
-        this.actual_frame = 0;
-        this.then = Date.now();
-        this.startTime = this.then;
-        this.fps = 60;
-        this.fpsInterval = 1000 / this.fps;
-        this.timerInterval = {};
-        this.links = links;
-        this.nodes = nodes;
-        console.log(this.links);
-        this.interface_ = new Visualisation(div, width, height, bg_color);
-        this.particleVis = new ParticleVis(this.nodes, this.links, this.interface_);
-        this._UI = new UI(this.particleVis, this.interface_.scene, this.interface_.camera, this.interface_.renderer, this.interface_.raycaster);
-        this.mapping = new Mapping(this.particleVis);
-        console.log("LAUNCH");
-        this.animate();
-    }
-    Main.prototype.stop_renderer = function () {
-        var self = this;
-        clearInterval(this.refreshIntervalId);
-        cancelAnimationFrame(this.refreshIntervalId);
-        this.refreshIntervalId = undefined;
-    };
-    Main.prototype.render = function () {
-        this.particleVis.update();
-        this.interface_.renderer.render(this.interface_.scene, this.interface_.camera);
-    };
-    Main.prototype.launch_animation = function (frame_rating) {
-        var self = this;
-        this.refreshIntervalId = setInterval(function () {
-            self.render();
-            self.frame++;
-        }, frame_rating);
-    };
-    Main.prototype.animate = function () {
-        var self = this;
-        this.refreshIntervalId = requestAnimationFrame(self.animate.bind(self));
-        self.render();
-        self.frame++;
-    };
-    Main.prototype.calculate_FPS = function () {
-        var self = this;
-        setInterval(function () {
-            var difference = self.frame - self.actual_frame;
-            console.log("FPS ", difference / 10);
-            self.particleVis.FPS = 1;
-            self.particleVis.fit_all_particles_to_frequence_temporal_distrib();
-            self.particleVis.updateParticles_TemporalDistribution3();
-            self.actual_frame = self.frame;
-        }, 10000);
-    };
-    Main.prototype.self_adjusting_timer = function () {
-        var self = this;
-        requestAnimationFrame(this.self_adjusting_timer.bind(this));
-        var now = Date.now();
-        var elapsed = now - this.then;
-        if (elapsed > this.fpsInterval) {
-            this.then = now - (elapsed % this.fpsInterval);
-            var sinceStart = now - this.startTime;
-            self.currentFPS = Math.round(1000 / (sinceStart / ++this.frame) * 100) / 100;
-            self.render();
+var Sparkiz;
+(function (Sparkiz) {
+    var Main = (function () {
+        function Main(div, nodes, links, width, height, bg_color, alpha) {
+            this.frame = 0;
+            this.actual_frame = 0;
+            this.then = Date.now();
+            this.startTime = this.then;
+            this.fps = 60;
+            this.fpsInterval = 1000 / this.fps;
+            this.delay_time_due_to_stop = Date.now();
+            this.timerInterval = {};
+            this.div = div;
+            this.links = links;
+            this.nodes = nodes;
+            console.log(this.links);
+            this.interface_ = new Visualisation(div, width, height, bg_color, alpha);
+            this.sparkiz = new Sparkiz.Sparkiz(this.nodes, this.links, this.interface_);
+            this._UI = new UI(this.sparkiz, this.interface_.scene, this.interface_.camera, this.interface_.renderer, this.interface_.raycaster);
+            this.mapping = new Mapping(this.sparkiz);
+            console.log("LAUNCH");
         }
-    };
-    Main.prototype.draw = function () {
-        requestAnimationFrame(this.draw.bind(this));
-        this.render();
-        this.frame++;
-        this.delta = (new Date().getTime() - this.then) / 1000;
-        this.then = new Date().getTime();
-    };
-    return Main;
-}());
-var Shaders = (function () {
-    function Shaders() {
-        this.fragment = "";
+        Main.prototype.stop_renderer = function () {
+            var self = this;
+            this.delay_time_due_to_stop = Date.now();
+            clearInterval(this.refreshIntervalId);
+            cancelAnimationFrame(this.refreshIntervalId);
+        };
+        Main.prototype.start_renderer = function () {
+            var delta = (new Date().getTime() - this.delay_time_due_to_stop);
+            this.then = this.then + delta;
+            clearInterval(this.refreshIntervalId);
+            cancelAnimationFrame(this.refreshIntervalId);
+            this.with_absolute_time();
+        };
+        Main.prototype.with_absolute_time = function () {
+            var self = this;
+            this.delay_time_due_to_stop = new Date().getTime();
+            this.delta = (new Date().getTime() - this.then) / 1000;
+            var number_frame = 60 * this.delta;
+            this.refreshIntervalId = requestAnimationFrame(self.with_absolute_time.bind(self));
+            self.render(number_frame);
+            self.frame++;
+        };
+        Main.prototype.render = function (number_frame) {
+            this.sparkiz.updateParticle(number_frame);
+            this.interface_.renderer.render(this.interface_.scene, this.interface_.camera);
+        };
+        Main.prototype.add_controls_anim = function () {
+            var self = this;
+            var play = document.createElement("button");
+            play.name = "play";
+            play.type = "button";
+            play.value = "play";
+            play.id = "play";
+            play.style.position = "absolute";
+            play.style.left = "0px";
+            play.innerHTML = "play";
+            var pause = document.createElement("button");
+            pause.name = "pause";
+            pause.type = "button";
+            pause.value = "pause";
+            pause.id = "pause";
+            pause.style.position = "absolute";
+            pause.style.left = "40px";
+            pause.innerHTML = "pause";
+            pause.onclick = function () { self.stop_renderer(); };
+            play.onclick = function () { self.start_renderer(); };
+            var new_container = self.div.substring(1);
+            document.getElementById(new_container).appendChild(play);
+            document.getElementById(new_container).appendChild(pause);
+        };
+        return Main;
+    }());
+    Sparkiz.Main = Main;
+})(Sparkiz || (Sparkiz = {}));
+var Sparkiz;
+(function (Sparkiz) {
+    function force(div, width, height, color, alpha) {
+        return new Force(div, width, height, color, alpha);
     }
-    return Shaders;
-}());
+    Sparkiz.force = force;
+    var Force = (function () {
+        function Force(div, width, height, color, alpha) {
+            this.viz = new Sparkiz.Main(div, null, null, width, height, color, alpha);
+            this.sparkiz = this.viz.sparkiz;
+            return this;
+        }
+        Force.prototype.nodes = function (nodes) {
+            console.log(this);
+            this.sparkiz.nodes = nodes;
+            return this;
+        };
+        Force.prototype.links = function (links) {
+            this.sparkiz.links = links;
+            for (var i = 0; i < this.sparkiz.links.length; i++)
+                this.sparkiz.links[i].link_length = 90;
+            return this;
+        };
+        Force.prototype.create = function () {
+            this.sparkiz.create();
+            return this;
+        };
+        Force.prototype.start = function (time) {
+            this.sparkiz.launch_network(time);
+            this.viz.with_absolute_time();
+            return this;
+        };
+        Force.prototype.network = function (visual_attr, amount) {
+        };
+        Force.prototype.controls = function (bool) {
+            if (bool == true)
+                this.viz.add_controls_anim();
+            return this;
+        };
+        Force.prototype.zoom = function (amount) {
+            this.viz._UI.mouse_event();
+            return this;
+        };
+        Force.prototype.particle_mapping = function (visual_attr, callback) {
+            var value;
+            switch (visual_attr) {
+                case "color":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'string') {
+                            value = new THREE.Color(arguments[1]);
+                        }
+                        else {
+                            var a = callback(this.sparkiz.links[i], i);
+                            value = new THREE.Color(a);
+                        }
+                        this.sparkiz.links[i].gate_colors[0] = value;
+                    }
+                    return this;
+                case "size":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'number') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.links[i], i);
+                        }
+                        this.sparkiz.links[i].size[0] = value;
+                    }
+                    return this;
+                case "temporal_distribution":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'array') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.links[i], i);
+                        }
+                        this.sparkiz.links[i].temporal_distribution2 = value;
+                    }
+                    return this;
+                case "spatial_distribution":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'array') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.links[i], i);
+                        }
+                        this.sparkiz.links[i].spatial_distribution = value;
+                        console.log(value);
+                    }
+                    return this;
+                case "frequency_pattern":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'number') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.links[i], i);
+                        }
+                        this.sparkiz.links[i].frequency_pattern = value;
+                    }
+                    return this;
+                case "velocity":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'number') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.links[i], i);
+                        }
+                        this.sparkiz.links[i].velocity[0] = value;
+                    }
+                    return this;
+                case "wiggling":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'number') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.links[i], i);
+                        }
+                        this.sparkiz.links[i].wiggling[0] = value;
+                    }
+                    return this;
+                case "texture":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'string') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.links[i], i);
+                        }
+                        this.sparkiz.load_particle_texture(i, value);
+                    }
+                    return this;
+            }
+        };
+        Force.prototype.roads_mapping = function (visual_attr, callback) {
+            var value;
+            switch (visual_attr) {
+                case "opacity":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'number') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.links[i], i);
+                        }
+                        this.sparkiz.roads_opacity = value;
+                    }
+                    return this;
+                case "color":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'string') {
+                            value = new THREE.Color(arguments[1]);
+                        }
+                        else {
+                            var a = callback(this.sparkiz.links[i], i);
+                            value = new THREE.Color(a);
+                        }
+                        this.sparkiz.roads_color = value;
+                    }
+                    return this;
+            }
+        };
+        Force.prototype.links_mapping = function (visual_attr, callback) {
+            var value;
+            switch (visual_attr) {
+                case "color":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'string') {
+                            value = new THREE.Color(arguments[1]);
+                        }
+                        else {
+                            var a = callback(this.sparkiz.links[i], i);
+                            value = new THREE.Color(a);
+                        }
+                        this.sparkiz.tube[i].children[0].material.color.setHex(value.getHex());
+                    }
+                    return this;
+                case "size":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'number') {
+                            value = arguments[1];
+                        }
+                        else {
+                            var value = callback(this.sparkiz.links[i], i);
+                        }
+                        this.sparkiz.set_tube_width(i, value);
+                    }
+                    return this;
+            }
+        };
+        Force.prototype.layout = function (visual_attr, callback) {
+            var value;
+            switch (visual_attr) {
+                case "linkDistance":
+                    for (var i = 0; i < this.sparkiz.links.length; i++) {
+                        if (typeof (arguments[1]) == 'number') {
+                            value = arguments[1];
+                        }
+                        else {
+                            var value = callback(this.sparkiz.links[i], i);
+                        }
+                        this.sparkiz.links[i].link_length = value;
+                    }
+                    return this;
+            }
+        };
+        Force.prototype.nodes_mapping = function (visual_attr, callback) {
+            var value;
+            switch (visual_attr) {
+                case "color":
+                    for (var i = 0; i < this.sparkiz.nodes.length; i++) {
+                        var color;
+                        if (typeof (arguments[1]) == 'string') {
+                            color = new THREE.Color(arguments[1]);
+                        }
+                        else {
+                            var a = callback(this.sparkiz.nodes[i], i);
+                            color = new THREE.Color(a);
+                        }
+                        this.sparkiz.webGL_nodes[i].material.color = color;
+                    }
+                    return this;
+                case "size":
+                    for (var i = 0; i < this.sparkiz.nodes.length; i++) {
+                        if (typeof (arguments[1]) == 'number') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.nodes[i], i);
+                        }
+                        this.sparkiz.webGL_nodes[i].scale.set(value, value, 1);
+                    }
+                    return this;
+                case "label":
+                    for (var i = 0; i < this.sparkiz.nodes.length; i++) {
+                        if (typeof (arguments[1]) == 'string') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.nodes[i], i);
+                        }
+                        this.sparkiz.nodes[i].label_name = value;
+                    }
+                    return this;
+                case "x":
+                    for (var i = 0; i < this.sparkiz.nodes.length; i++) {
+                        if (typeof (arguments[1]) == 'number' || typeof (arguments[1]) == 'string') {
+                            value = parseFloat(arguments[1]);
+                        }
+                        else {
+                            value = parseFloat(callback(this.sparkiz.nodes[i], i));
+                        }
+                        this.sparkiz.d3cola.stop();
+                        this.sparkiz.nodes[i].x = value;
+                        console.log("VALUE", value);
+                    }
+                    return this;
+                case "y":
+                    for (var i = 0; i < this.sparkiz.nodes.length; i++) {
+                        if (typeof (arguments[1]) == 'number' || typeof (arguments[1]) == 'string') {
+                            value = parseFloat(arguments[1]);
+                        }
+                        else {
+                            value = parseFloat(callback(this.sparkiz.nodes[i], i));
+                        }
+                        this.sparkiz.d3cola.stop();
+                        this.sparkiz.nodes[i].y = value;
+                    }
+                    return this;
+                case "image":
+                    for (var i = 0; i < this.sparkiz.nodes.length; i++) {
+                        if (typeof (arguments[1]) == 'string') {
+                            value = arguments[1];
+                        }
+                        else {
+                            value = callback(this.sparkiz.nodes[i], i);
+                        }
+                        this.sparkiz.load_texture_nodes(i, value);
+                    }
+                    return this;
+            }
+        };
+        return Force;
+    }());
+    Sparkiz.Force = Force;
+    var Shader = (function () {
+        function Shader() {
+            this.set_fragment();
+        }
+        Shader.prototype.set_fragment = function () {
+            this.fragment = "";
+            this.fragment += "uniform sampler2D texture;";
+            this.fragment += "    ";
+            this.fragment += "varying float distance_with_arrival;";
+            this.fragment += "varying float distance_with_departure;";
+            this.fragment += "varying float my_opacity;";
+            this.fragment += "varying vec3 vColor;";
+            this.fragment += "varying float vRotation;";
+            this.fragment += "varying float sprite_size;";
+            this.fragment += "";
+            this.fragment += "mat2 rotation(float x) {";
+            this.fragment += "vec2 line_1 = vec2(cos(x), -sin(x));";
+            this.fragment += "vec2 line_2 = vec2(sin(x), cos(x));";
+            this.fragment += "";
+            this.fragment += "return mat2(line_1,line_2); ";
+            this.fragment += "}";
+            this.fragment += "mat2 translation(float x, float y) {";
+            this.fragment += "vec2 line_1 = vec2(1.0,x);";
+            this.fragment += "vec2 line_2 = vec2(1.0,y);";
+            this.fragment += "";
+            this.fragment += "return mat2(line_1,line_2); ";
+            this.fragment += "}";
+            this.fragment += "mat2 changerEchelle(float sx, float sy) {";
+            this.fragment += "vec2 line_1 = vec2(sx, 0.0);";
+            this.fragment += "vec2 line_2 = vec2(0.0, sy);";
+            this.fragment += "";
+            this.fragment += "return mat2(line_1,line_2); ";
+            this.fragment += "}";
+            this.fragment += "void main() {";
+            this.fragment += "float mid = 0.5;";
+            this.fragment += "mat2 my_matrix = rotation(vRotation) ;";
+            this.fragment += "vec2 rotated =  my_matrix * vec2(gl_PointCoord.x - mid, gl_PointCoord.y - mid) ;";
+            this.fragment += "rotated.x = rotated.x + mid;";
+            this.fragment += "rotated.y = rotated.y + mid;";
+            this.fragment += "vec4 color = vec4(1.0,1.0,1.0, 1.0);";
+            this.fragment += "vec2 new_coord =  my_matrix * gl_PointCoord;";
+            this.fragment += "if (distance_with_arrival < (sprite_size \/ 2.0) * 1.0){";
+            this.fragment += "";
+            this.fragment += "if ( rotated.x > (distance_with_arrival \/ sprite_size)+0.5){color = vec4(1.0,1.0,1.0, 0.0);}";
+            this.fragment += "}";
+            this.fragment += "";
+            this.fragment += "if (distance_with_departure < (sprite_size \/ 2.0) * 1.0){";
+            this.fragment += "if ( rotated.x < 0.5-(distance_with_departure \/ sprite_size)){color = vec4(1.0,1.0,1.0, 0.0);}";
+            this.fragment += "}";
+            this.fragment += "vec4 rotatedTexture = texture2D( texture,  rotated) * color;";
+            this.fragment += "gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;";
+            this.fragment += "";
+            this.fragment += "}";
+            this.vertex = "";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "            uniform float time;";
+            this.vertex += "            uniform float uTime;";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "			attribute float id;";
+            this.vertex += "";
+            this.vertex += "     ";
+            this.vertex += "            attribute float id_particle;";
+            this.vertex += "			attribute vec3 customColor;";
+            this.vertex += "";
+            this.vertex += "            attribute float iteration;";
+            this.vertex += "";
+            this.vertex += "            uniform int particles_number;";
+            this.vertex += "";
+            this.vertex += "      ";
+            this.vertex += "";
+            this.vertex += "            uniform mat4 ProjectionMatrix;";
+            this.vertex += "";
+            this.vertex += "            uniform int number_segmentation;";
+            this.vertex += "";
+            this.vertex += "            varying float sprite_size;";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "            uniform vec2 path_quadratic[path_length];";
+            this.vertex += "";
+            this.vertex += "            uniform int gate_position[10];";
+            this.vertex += "            uniform int temporal_delay[real_number_particles]; ";
+            this.vertex += "            uniform int varyingData;";
+            this.vertex += "";
+            this.vertex += "            uniform vec3 gate_colors[10];";
+            this.vertex += "";
+            this.vertex += "            uniform float velocity[10];";
+            this.vertex += "            uniform float size[10];";
+            this.vertex += "            uniform float opacity[10];";
+            this.vertex += "            uniform float wiggling[10];";
+            this.vertex += "            uniform int number_segmentation_pattern_fitting;";
+            this.vertex += "";
+            this.vertex += "			      varying vec3 vColor;";
+            this.vertex += "            varying float my_opacity;";
+            this.vertex += "            varying float distance_with_arrival;";
+            this.vertex += "            varying float distance_with_departure;";
+            this.vertex += "            float actual_velocity;";
+            this.vertex += "";
+            this.vertex += "            varying float vRotation;";
+            this.vertex += "            int gate = 0;";
+            this.vertex += "";
+            this.vertex += "            int MOD(int a, int b){";
+            this.vertex += "";
+            this.vertex += "                int result = a \/ b;";
+            this.vertex += "                result = b * result;";
+            this.vertex += "                result = a - result;";
+            this.vertex += "                return result;";
+            this.vertex += "            }";
+            this.vertex += "            float rand(vec2 co){";
+            this.vertex += "                return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);";
+            this.vertex += "            }";
+            this.vertex += "            float distance(float x1, float y1, float x2, float y2){";
+            this.vertex += "";
+            this.vertex += "                float longueur = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));";
+            this.vertex += "                return longueur;";
+            this.vertex += "            }";
+            this.vertex += "            float noise(vec2 p){";
+            this.vertex += "                vec2 ip = floor(p);";
+            this.vertex += "                vec2 u = fract(p);";
+            this.vertex += "                u = u*u*(3.0-2.0*u);";
+            this.vertex += "";
+            this.vertex += "                float res = mix(";
+            this.vertex += "                    mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),";
+            this.vertex += "                    mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);";
+            this.vertex += "                return res*res;";
+            this.vertex += "            }";
+            this.vertex += "            vec2 bezier(int t,  vec2 p0,vec2 p1,vec2 p2,vec2 p3){";
+            this.vertex += "";
+            this.vertex += "                highp float timer = float(t);";
+            this.vertex += "";
+            this.vertex += "                highp float time = timer * 1.0\/(float(number_segmentation));";
+            this.vertex += "";
+            this.vertex += "                float cX = 3.0 * (p1.x - p0.x);";
+            this.vertex += "                float bX = 3.0 * (p2.x - p1.x) - cX;";
+            this.vertex += "                float aX = p3.x - p0.x - cX - bX;";
+            this.vertex += "";
+            this.vertex += "                float cY = 3.0 * (p1.y - p0.y);";
+            this.vertex += "                float bY = 3.0 * (p2.y - p1.y) - cY;";
+            this.vertex += "                float aY = p3.y - p0.y - cY - bY;";
+            this.vertex += "";
+            this.vertex += "                float x = (aX * pow(time, 3.0)) + (bX * pow(time, 2.0)) + (cX * time) + p0.x;";
+            this.vertex += "                float y = (aY * pow(time, 3.0)) + (bY * pow(time, 2.0)) + (cY * time) + p0.y;";
+            this.vertex += "";
+            this.vertex += "                vec2 result = vec2( x,y );";
+            this.vertex += "";
+            this.vertex += "                return result;";
+            this.vertex += "            }";
+            this.vertex += "            mat4 rotation(float x) {";
+            this.vertex += "              vec4 line_1 = vec4(cos(x), -sin(x), 0.0, 0.0);";
+            this.vertex += "              vec4 line_2 = vec4(sin(x), cos(x), 0.0, 0.0);";
+            this.vertex += "              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);";
+            this.vertex += "              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);";
+            this.vertex += "";
+            this.vertex += "              return mat4(line_1,line_2,line_3,line_4);";
+            this.vertex += "            }";
+            this.vertex += "            mat4 translation(float x, float y) {";
+            this.vertex += "              vec4 line_1 = vec4(1.0, 0.0, 0.0,  x);";
+            this.vertex += "              vec4 line_2 = vec4(0.0, 1.0, 0.0,  y);";
+            this.vertex += "              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);";
+            this.vertex += "              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);";
+            this.vertex += "";
+            this.vertex += "              return mat4(line_1,line_2,line_3,line_4);";
+            this.vertex += "            }";
+            this.vertex += "            mat4 changerEchelle(float sx, float sy) {";
+            this.vertex += "              vec4 line_1 = vec4(sx, 0.0, 0.0, 0.0);";
+            this.vertex += "              vec4 line_2 = vec4(0.0, sy, 0.0, 0.0);";
+            this.vertex += "              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);";
+            this.vertex += "              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);";
+            this.vertex += "";
+            this.vertex += "              return mat4(line_1,line_2,line_3,line_4);";
+            this.vertex += "            }";
+            this.vertex += "";
+            this.vertex += "			void main() {";
+            this.vertex += "";
+            this.vertex += "				        vColor = customColor;";
+            this.vertex += "				        vec3 newPosition = position;";
+            this.vertex += "                vec4 mvPosition;";
+            this.vertex += "				        float ANGLE = 90.0;";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "               ";
+            this.vertex += "                highp int id_faisceaux = int(id_particle);";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "                actual_velocity = velocity[0];";
+            this.vertex += "";
+            this.vertex += "           ";
+            this.vertex += "                float timer =  uTime;";
+            this.vertex += "                highp int my_time = int(timer);";
+            this.vertex += "";
+            this.vertex += "                int index_thorique = MOD(my_time, number_segmentation);";
+            this.vertex += "";
+            this.vertex += "                for(int i = 0; i < 9; i++){";
+            this.vertex += "                    if(index_thorique <= gate_position[i+1] && index_thorique > gate_position[i]){";
+            this.vertex += "                        gate = i;";
+            this.vertex += "                    }";
+            this.vertex += "";
+            this.vertex += "                    if(index_thorique >= gate_position[i+1] && index_thorique >= gate_position[i] &&";
+            this.vertex += "                        gate_position[i+1] == 0 && gate_position[i] != 0){";
+            this.vertex += "                        gate = i;";
+            this.vertex += "                    }";
+            this.vertex += "";
+            this.vertex += "                }";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "                vColor = vec3(gate_colors[gate].x ,gate_colors[gate].y, gate_colors[gate].z);";
+            this.vertex += "                my_opacity = opacity[gate];";
+            this.vertex += "";
+            this.vertex += "                highp int velo = int(actual_velocity);";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "                my_time = my_time + temporal_delay[id_faisceaux];";
+            this.vertex += "";
+            this.vertex += "                int index_old = MOD(my_time , number_segmentation_pattern_fitting);";
+            this.vertex += "";
+            this.vertex += "                float virtual_index = float(index_old);";
+            this.vertex += "                virtual_index = virtual_index * actual_velocity;";
+            this.vertex += "                highp int index = int(virtual_index);";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "                float random = noise(vec2( index , index )) * wiggling[gate];";
+            this.vertex += "";
+            this.vertex += "                vec4 path;";
+            this.vertex += "                vec4 path_next;";
+            this.vertex += "";
+            this.vertex += "                highp int path_id = int(id) * (4);";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "                path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);";
+            this.vertex += "                path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);";
+            this.vertex += "";
+            this.vertex += "                if (index >= number_segmentation  || index <= 0){my_opacity = 0.0;}";
+            this.vertex += "   ";
+            this.vertex += "                distance_with_arrival = distance(path.x, path.y, path_quadratic[path_id+3].x, path_quadratic[path_id+3].y);";
+            this.vertex += "                distance_with_departure = distance(path.x, path.y, path_quadratic[path_id].x, path_quadratic[path_id].y);";
+            this.vertex += " ";
+            this.vertex += "                float angle = atan(path_next.y - path.y, path_next.x - path.x );";
+            this.vertex += "                vRotation =  - angle;";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "                mat4 my_matrice =  translation(path.x + random,path.y+ random);";
+            this.vertex += "";
+            this.vertex += "                vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "                mvPosition =  modelViewMatrix * positionEchelle;";
+            this.vertex += "";
+            this.vertex += "                gl_PointSize = size[gate];";
+            this.vertex += "                sprite_size = gl_PointSize;";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "                gl_Position = projectionMatrix * mvPosition;";
+            this.vertex += "";
+            this.vertex += "";
+            this.vertex += "			}";
+            this.vertex += "";
+        };
+        return Shader;
+    }());
+    Sparkiz.Shader = Shader;
+})(Sparkiz || (Sparkiz = {}));
 var Mapping = (function () {
     function Mapping(confluentGraph) {
         this.particle_size_scale = d3.scale.linear().domain([0, 0]).range([20, 150]);
@@ -171,12 +726,13 @@ var Mapping = (function () {
     return Mapping;
 }());
 var Visualisation = (function () {
-    function Visualisation(div_element, width, height, bg_color) {
+    function Visualisation(div_element, width, height, bg_color, alpha) {
         this.bg_color = 0xffffff;
         this.WIDTH = width;
         this.HEIGHT = height;
         this.div_element = div_element;
         this.bg_color = bg_color;
+        this.alpha = alpha;
         this.init();
     }
     Visualisation.prototype.init = function () {
@@ -186,11 +742,12 @@ var Visualisation = (function () {
         this.scene = new THREE.Scene();
         this.light = new THREE.DirectionalLight(0xffffff);
         this.light.position.set(0, 1, 1).normalize();
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
         this.renderer.setSize(this.WIDTH, this.HEIGHT);
-        this.renderer.setClearColor(this.bg_color, 1);
+        this.renderer.setClearColor(this.bg_color, this.alpha);
         this.renderer.sortObjects = true;
-        $(this.div_element).append(this.renderer.domElement);
+        var new_container = this.div_element.substring(1);
+        document.getElementById(new_container).appendChild(this.renderer.domElement);
         this.raycaster = new THREE.Raycaster();
     };
     return Visualisation;
@@ -645,116 +1202,115 @@ var UI = (function () {
         this.slider1 = null;
         this.slider2 = null;
         this.gate = null;
+        this.temporary_object = null;
+        this.panOffset = [0, 0];
+        this.mouseStart = [500, 0];
         this.selected_object = [];
         this.ConfluentGraph = ConfluentGraph;
-        this.state_machine = { state: "nothing" };
-        this.mouse_raycaster = { position: new THREE.Vector2(), beginning: true };
+        this.state_machine = "hover";
+        this.mouse_raycaster = { position: new THREE.Vector2(), beginning: false };
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
         this.raycaster = raycaster;
-        this.mouse_event();
     }
-    UI.prototype.update_graph = function (link_id) {
-        this.delete_graph();
-        this.gate = new UIGate(this.ConfluentGraph, '#temporal_control', link_id);
-    };
-    UI.prototype.delete_graph = function () {
-        if (this.mouse.x < window.innerWidth - 300) {
-            d3.select("#temporal_control").selectAll("*").remove();
-            d3.select("#general").selectAll("*").remove();
+    UI.prototype.update = function () {
+        var self = this;
+        console.log(self.state_machine);
+        if (self.state_machine == "drag" && self.temporary_object != undefined) {
+            if (self.temporary_object.name == "circle") {
+                var pos = self.ConfluentGraph.getNode_position(self.temporary_object.userData.id);
+                var x = pos.x + self.panOffset[0] / self.camera.zoom;
+                var y = pos.y - self.panOffset[1] / self.camera.zoom;
+                var link_id = self.ConfluentGraph.updateNode_position(self.temporary_object.userData.id, x, y);
+                self.ConfluentGraph.updateTube();
+                self.ConfluentGraph.updateLinks();
+                for (var i = 0; i < link_id.length; i++) {
+                    console.log(i);
+                    self.ConfluentGraph.updateParticles_Paths(link_id[i]);
+                }
+                self.panOffset = [0, 0];
+            }
+        }
+        if (self.state_machine == "drag" && self.temporary_object == undefined) {
+            if (self.temporary_object == undefined) {
+                self.camera.position.x = self.camera.position.x - self.panOffset[0] / self.camera.zoom;
+                self.camera.position.y = self.camera.position.y + self.panOffset[1] / self.camera.zoom;
+                self.panOffset = [0, 0];
+            }
         }
     };
-    UI.prototype.onclick_reduce_side_bar = function () {
-        d3.select("#icon_reduce_bar")
-            .on("click", function () {
-            var active = d3.select(this).attr("active");
-            if (active == "false") {
-                d3.select(this).selectAll("*").remove();
-                d3.select(this).append("span").attr("class", "fa fa-chevron-circle-left");
-                d3.select('#sliderDiv').style("transform", "translate(250px, 0px)");
-                d3.select(this).attr("active", "true");
-            }
-            else {
-                d3.select(this).selectAll("*").remove();
-                d3.select(this).append("span").attr("class", "fa fa-chevron-circle-right");
-                d3.select('#sliderDiv').style("transform", "translate(0px, 0px)");
-                d3.select(this).attr("active", "false");
-            }
-        });
-    };
-    UI.prototype.get_top_bar_actions = function () {
-        var self = this;
-        $("#bar_position").click(function () {
-            self.state_machine.state = "position_bar";
-            console.log("MODE ", self.state_machine.state);
-            console.log(self.ConfluentGraph.links);
-        });
-        $("#mouse").click(function () {
-            self.state_machine.state = "click_infos";
-            console.log("MODE ", self.state_machine.state);
-        });
-        $("#zoom_in").click(function () {
-            event.preventDefault();
-            self.camera.zoom -= 0.1;
-            self.camera.updateProjectionMatrix();
-        });
-        $("#zoom_out").click(function () {
-            event.preventDefault();
-            self.camera.zoom += 0.1;
-            self.camera.updateProjectionMatrix();
-        });
-    };
+    UI.prototype.zoom = function () { };
     UI.prototype.mouse_event = function () {
         var self = this;
-        var mouseStart = [];
+        console.log(self);
+        window.addEventListener("mousedown", mouseDown, false);
+        window.addEventListener("mouseup", mouseUp, false);
+        window.addEventListener("mousemove", mouseMove, false);
+        window.addEventListener("mousewheel", mouseWheel, false);
+        self.mouseStart = [500, 0];
         var cameraStart = [];
-        var panOffset = [];
         var isMouseDown = false;
         function mouseDown(event) {
+            event.preventDefault();
+            event.stopPropagation();
             self.mouse.x = event.clientX;
             self.mouse.y = event.clientY;
-            console.log(event.clientX);
-            mouseStart = [event.clientX, event.clientY];
-            cameraStart = [self.camera.position.x, self.camera.position.y];
+            self.mouseStart = [event.clientX, event.clientY];
+            self.state_machine = "down";
+            self.mouse_raycaster.position.x = (event.clientX / self.renderer.domElement.clientWidth) * 2 - 1;
+            self.mouse_raycaster.position.y = -(event.clientY / self.renderer.domElement.clientHeight) * 2 + 1;
             isMouseDown = true;
-        }
-        function mouseUp(event) {
-            isMouseDown = false;
+            self.temporary_object = self.get_intersections();
+            console.log(self.temporary_object);
+            self.update();
         }
         function mouseMove(event) {
-            if (isMouseDown) {
-                panOffset = [event.clientX - mouseStart[0], event.clientY - mouseStart[1]];
-                self.camera.position.x = cameraStart[0] - panOffset[0] / self.camera.zoom;
-                self.camera.position.y = cameraStart[1] + panOffset[1] / self.camera.zoom;
+            if (self.state_machine == "down") {
+                self.state_machine = "drag";
             }
+            if (self.state_machine == "drag") {
+                event.preventDefault();
+                event.stopPropagation();
+                self.panOffset = [event.clientX - self.mouseStart[0], event.clientY - self.mouseStart[1]];
+                self.mouseStart = [event.clientX, event.clientY];
+            }
+            if (self.state_machine == "hover") {
+                self.mouse_raycaster.position.x = (event.clientX / self.renderer.domElement.clientWidth) * 2 - 1;
+                self.mouse_raycaster.position.y = -(event.clientY / self.renderer.domElement.clientHeight) * 2 + 1;
+                self.temporary_object = self.get_intersections();
+            }
+            self.update();
+        }
+        function mouseUp(event) {
+            console.log("HEY");
+            if (self.state_machine == "drag") {
+                self.state_machine = "drop";
+            }
+            if (self.state_machine == "down") {
+                self.state_machine = "hover";
+            }
+            self.update();
         }
         function mouseWheel(event) {
+            console.log("update");
             event.preventDefault();
             self.camera.zoom += event.wheelDelta / 1000;
             self.camera.updateProjectionMatrix();
             self.ConfluentGraph.updateLabel_scale(self.camera.zoom);
         }
-        function onMouseMove(event) {
-            console.log("HEY");
-            if (event.clientX < window.innerWidth - 300) {
-                self.mouse_raycaster.beginning = false;
-                event.preventDefault();
-                self.mouse_raycaster.position.x = (event.clientX / self.renderer.domElement.clientWidth) * 2 - 1;
-                self.mouse_raycaster.position.y = -(event.clientY / self.renderer.domElement.clientHeight) * 2 + 1;
-            }
-        }
     };
     UI.prototype.get_intersections = function () {
         var self = this;
+        var object;
         if (self.mouse_raycaster.beginning == false) {
             self.raycaster.setFromCamera(self.mouse_raycaster.position, self.camera);
             var intersects = self.raycaster.intersectObjects(self.scene.children, true);
             if (intersects.length != 0) {
-                var object = intersects[0].object;
+                object = intersects[0].object;
                 var type = object.parent.userData.type;
                 var id = object.parent.userData.id;
-                switch (self.state_machine.state) {
+                switch (self.state_machine) {
                     case "click_infos":
                         if (type == "tube" || type == "link") {
                             self.update_graph(object.parent.userData.id);
@@ -779,18 +1335,19 @@ var UI = (function () {
                         break;
                     case "hover_tube":
                         if (type == "tube") {
-                            console.log(object);
                             object.material.color.set(0xE6E6E6);
                             self.ConfluentGraph.links[id].width_tube = 5;
                             self.ConfluentGraph.updateTube();
                         }
-                        else { }
+                    case "hoverNodes":
+                        self.temporary_object = object;
                         break;
                 }
             }
             else {
             }
         }
+        return object;
     };
     UI.prototype.coloriate_tube = function (id) {
         var self = this;
@@ -841,6 +1398,56 @@ var UI = (function () {
         circle.name = "circle";
         circle.position.set(x, y, 1);
         this.scene.add(circle);
+    };
+    UI.prototype.update_graph = function (link_id) {
+        this.delete_graph();
+        this.gate = new UIGate(this.ConfluentGraph, '#temporal_control', link_id);
+    };
+    UI.prototype.delete_graph = function () {
+        if (this.mouse.x < window.innerWidth - 300) {
+            d3.select("#temporal_control").selectAll("*").remove();
+            d3.select("#general").selectAll("*").remove();
+        }
+    };
+    UI.prototype.onclick_reduce_side_bar = function () {
+        d3.select("#icon_reduce_bar")
+            .on("click", function () {
+            var active = d3.select(this).attr("active");
+            if (active == "false") {
+                d3.select(this).selectAll("*").remove();
+                d3.select(this).append("span").attr("class", "fa fa-chevron-circle-left");
+                d3.select('#sliderDiv').style("transform", "translate(250px, 0px)");
+                d3.select(this).attr("active", "true");
+            }
+            else {
+                d3.select(this).selectAll("*").remove();
+                d3.select(this).append("span").attr("class", "fa fa-chevron-circle-right");
+                d3.select('#sliderDiv').style("transform", "translate(0px, 0px)");
+                d3.select(this).attr("active", "false");
+            }
+        });
+    };
+    UI.prototype.get_top_bar_actions = function () {
+        var self = this;
+        $("#bar_position").click(function () {
+            self.state_machine.state = "position_bar";
+            console.log("MODE ", self.state_machine.state);
+            console.log(self.ConfluentGraph.links);
+        });
+        $("#mouse").click(function () {
+            self.state_machine.state = "click_infos";
+            console.log("MODE ", self.state_machine.state);
+        });
+        $("#zoom_in").click(function () {
+            event.preventDefault();
+            self.camera.zoom -= 0.1;
+            self.camera.updateProjectionMatrix();
+        });
+        $("#zoom_out").click(function () {
+            event.preventDefault();
+            self.camera.zoom += 0.1;
+            self.camera.updateProjectionMatrix();
+        });
     };
     return UI;
 }());
@@ -3981,1053 +4588,1106 @@ var cola;
     }
     cola.d3adaptor = d3adaptor;
 })(cola || (cola = {}));
-var ParticleVis = (function () {
-    function ParticleVis(nodes, links, interface_) {
-        this.labelNodes = [];
-        this.labelLinks = [];
-        this.webGL_nodes = [];
-        this.webGL_label = [];
-        this.d3cola = cola.d3adaptor()
-            .avoidOverlaps(false)
-            .linkDistance(100);
-        this.tube = [];
-        this.curveSplines = [];
-        this.number_particles = 3;
-        this.courbure = 5;
-        this.number_paths_particule = 1;
-        this.number_max_gates = 10;
-        this.links_opacity = 0;
-        this.tube_width = 1;
-        this.needUpdate = true;
-        this.FPS = 60;
-        this.links = links;
-        this.nodes = nodes;
-        this.scene = interface_.scene;
-        this.camera = interface_.camera;
-        this.load_vertex_shaders();
-        this.load_fragment_shaders();
-        this.create();
-    }
-    ParticleVis.prototype.draw_map = function (projection) {
-        var array = [];
-        var self = this;
-        d3.json("./data/us.json", function (error, us) {
-            var us_counties = topojson.feature(us, us.objects.land);
-            var land = us_counties.geometry.coordinates;
-            for (var i = 0; i < land.length; i++) {
-                array = [];
-                for (var j = 0; j < land[i].length; j++) {
-                    var country = land[i][j];
-                    for (var k = 1; k < country.length - 1; k++) {
-                        var x = country[k][0];
-                        var y = country[k][1];
-                        var coordinates = projection([x, y]);
-                        var vector = new THREE.Vector2(coordinates[0], -coordinates[1]);
-                        array.push(vector);
+var Sparkiz;
+(function (Sparkiz_1) {
+    var Sparkiz = (function () {
+        function Sparkiz(nodes, links, interface_) {
+            this.webGL_nodes = [];
+            this.webGL_label = [];
+            this.d3cola = cola.d3adaptor()
+                .avoidOverlaps(false);
+            this.tube = [];
+            this.curveSplines = [];
+            this.number_particles = 1;
+            this.courbure = 5;
+            this.number_paths_particule = 1;
+            this.number_max_gates = 10;
+            this.roads_opacity = 1;
+            this.roads_color = 0x0000FF;
+            this.tube_width = 1;
+            this.needUpdate = true;
+            this.FPS = 60;
+            this.links = links;
+            this.nodes = nodes;
+            this.scene = interface_.scene;
+            this.camera = interface_.camera;
+            this.shader = new Sparkiz_1.Shader();
+            this.fragment_shader = this.shader.fragment;
+            this.vertex_shader = this.shader.vertex;
+        }
+        Sparkiz.prototype.draw_map = function (projection) {
+            var array = [];
+            var self = this;
+            d3.json("./data/us.json", function (error, us) {
+                var us_counties = topojson.feature(us, us.objects.land);
+                var land = us_counties.geometry.coordinates;
+                for (var i = 0; i < land.length; i++) {
+                    array = [];
+                    for (var j = 0; j < land[i].length; j++) {
+                        var country = land[i][j];
+                        for (var k = 1; k < country.length - 1; k++) {
+                            var x = country[k][0];
+                            var y = country[k][1];
+                            var coordinates = projection([x, y]);
+                            var vector = new THREE.Vector2(coordinates[0], -coordinates[1]);
+                            array.push(vector);
+                        }
+                    }
+                    var curve = new THREE.SplineCurve(array);
+                    var shape = new THREE.Shape(curve.getSpacedPoints(150));
+                    var geometry = new THREE.ShapeGeometry(shape);
+                    var material = new THREE.MeshLambertMaterial({ color: 0x3498db, opacity: 0.1, transparent: true });
+                    var mesh = new THREE.Mesh(geometry, material);
+                    self.scene.add(mesh);
+                }
+            });
+        };
+        Sparkiz.prototype.create = function () {
+            this.d3cola.nodes(this.nodes);
+            this.d3cola.links(this.links);
+            this.d3cola.linkDistance(function (l) { return l.link_length; });
+            this.d3cola.start();
+            this.createNodes();
+            this.createTube();
+            this.createLinks();
+        };
+        Sparkiz.prototype.launch_network = function (time) {
+            var _this = this;
+            d3.select("#spinner").style("display", "block");
+            d3.select("#number_nodes").append("h1").text(this.links.length + " Links & " + this.nodes.length + " Nodes");
+            window.setTimeout(function () {
+                _this.d3cola.stop();
+                _this.updateNodes();
+                _this.createLabel();
+                _this.updateLinks();
+                _this.updateTube();
+                _this.fit_all_particles_to_frequence_temporal_distrib();
+                _this.createParticle();
+                d3.select("#spinner").style("display", "none");
+                _this.needUpdate = false;
+                console.log(_this.nodes);
+                console.log(_this.links);
+                console.log(_this.scene);
+            }, time);
+            console.log("FINISH UPDATE");
+        };
+        Sparkiz.prototype.create_gates = function (id, segment, x1, y1, x2, y2) {
+            var material = new THREE.LineBasicMaterial({
+                color: 0x0000ff,
+                linewidth: 3,
+                opacity: 1,
+                transparent: true
+            });
+            material.opacity = 0.4;
+            var geometry = new THREE.Geometry();
+            geometry.vertices.push(new THREE.Vector3(x1, y1, 0));
+            geometry.vertices.push(new THREE.Vector3(x2, y2, 0));
+            var line = new THREE.Line(geometry, material);
+            var _number = this.links[id].gates.length;
+            this.links[id].gates.push({ object: line, position: segment });
+            var array = this.links[id].gate_infos;
+            array.splice(array.length - 1, 0, { factor: 1, position: segment });
+            this.scene.add(line);
+        };
+        Sparkiz.prototype.updateLabel_scale = function (scale) {
+            console.log("UPDATE SCALE LABEL");
+            for (var i = 0; i < this.webGL_label.length; i++) {
+                this.webGL_label[i].scale.set(1 / scale, 1 / scale, 1 / scale);
+            }
+        };
+        Sparkiz.prototype.createLabel = function () {
+            var self = this;
+            var loader = new THREE.FontLoader();
+            loader.load('helvetiker_bold.typeface.json', function (font) {
+                var mesh = new THREE.Font();
+                for (var i = 0; i < self.nodes.length; i++) {
+                    if (self.nodes[i].label_name != null) {
+                        var textGeo = new THREE.TextGeometry(self.nodes[i].label_name, {
+                            font: font,
+                            size: 6,
+                            height: 5,
+                            curveSegments: 12,
+                            bevelThickness: 1,
+                            bevelSize: 5,
+                            bevelEnabled: false
+                        });
+                        var textMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
+                        var mesh = new THREE.Mesh(textGeo, textMaterial);
+                        self.webGL_label.push(mesh);
+                        mesh.position.set(i * 50, 10, 1);
+                        mesh.position.x = self.nodes[i].x + 30;
+                        mesh.position.y = self.nodes[i].y;
+                        mesh.name = "label";
+                        console.log("CREATE");
+                        self.scene.add(mesh);
                     }
                 }
-                var curve = new THREE.SplineCurve(array);
-                var shape = new THREE.Shape(curve.getSpacedPoints(150));
-                var geometry = new THREE.ShapeGeometry(shape);
-                var material = new THREE.MeshLambertMaterial({ color: 0x3498db, opacity: 0.1, transparent: true });
-                var mesh = new THREE.Mesh(geometry, material);
-                self.scene.add(mesh);
-            }
-        });
-    };
-    ParticleVis.prototype.create = function () {
-        this.d3cola
-            .nodes(this.nodes)
-            .links(this.links)
-            .start();
-        console.log("DEBUT");
-        this.createNodes();
-    };
-    ParticleVis.prototype.launch_network = function (time, callback) {
-        var _this = this;
-        d3.select("#spinner").style("display", "block");
-        d3.select("#number_nodes").append("h1").text(this.links.length + " Links & " + this.nodes.length + " Nodes");
-        window.setTimeout(function () {
-            _this.d3cola.stop();
-            _this.createTube();
-            _this.createLinks();
-            callback();
-            _this.updateNodes();
-            _this.updateLinks();
-            _this.updateTube();
-            _this.fit_all_particles_to_frequence_temporal_distrib();
-            _this.createParticle();
-            d3.select("#spinner").style("display", "none");
-            _this.needUpdate = false;
-            console.log(_this.nodes);
-            console.log(_this.links);
-            console.log(_this.scene);
-        }, time);
-        console.log("FINISH UPDATE");
-    };
-    ParticleVis.prototype.create_gates = function (id, segment, x1, y1, x2, y2) {
-        var material = new THREE.LineBasicMaterial({
-            color: 0x0000ff,
-            linewidth: 3,
-            opacity: 1,
-            transparent: true
-        });
-        material.opacity = 0.4;
-        var geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(x1, y1, 0));
-        geometry.vertices.push(new THREE.Vector3(x2, y2, 0));
-        var line = new THREE.Line(geometry, material);
-        var _number = this.links[id].gates.length;
-        this.links[id].gates.push({ object: line, position: segment });
-        var array = this.links[id].gate_infos;
-        array.splice(array.length - 1, 0, { factor: 1, position: segment });
-        this.scene.add(line);
-    };
-    ParticleVis.prototype.updateLabel_scale = function (scale) {
-        console.log("UPDATE SCALE LABEL");
-        for (var i = 0; i < this.webGL_label.length; i++) {
-            this.webGL_label[i].scale.set(1 / scale, 1 / scale, 1 / scale);
-        }
-    };
-    ParticleVis.prototype.createLabel = function () {
-        var self = this;
-        var loader = new THREE.FontLoader();
-        loader.load('font/helvetiker_bold.typeface.json', function (font) {
-            console.log(self.nodes);
-            var mesh = new THREE.Font();
-            for (var i = 0; i < self.nodes.length; i++) {
-                var textGeo = new THREE.TextGeometry(self.nodes[i].attr('label'), {
-                    font: font,
-                    size: 6,
-                    height: 5,
-                    curveSegments: 12,
-                    bevelThickness: 1,
-                    bevelSize: 5,
-                    bevelEnabled: false
+            });
+        };
+        Sparkiz.prototype.createNodes = function () {
+            var n;
+            this.webGL_nodes = [];
+            for (var i = 0; i < this.nodes.length; i++) {
+                this.nodes[i].label_name = null;
+                var material = new THREE.MeshBasicMaterial({
+                    transparent: true
                 });
-                var textMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
-                var mesh = new THREE.Mesh(textGeo, textMaterial);
-                self.webGL_label.push(mesh);
-                mesh.position.set(i * 50, 10, 1);
-                mesh.name = "label";
-                console.log("CREATE");
-                self.scene.add(mesh);
+                var segments = 50;
+                var circleGeometry = new THREE.CircleGeometry(1, segments);
+                var circle = new THREE.Mesh(circleGeometry, material);
+                this.webGL_nodes.push(circle);
+                circle.scale.set(1, 1, 1);
+                circle.name = "circle";
+                circle.userData = { id: i, type: "node" };
+                this.scene.add(circle);
             }
-        });
-    };
-    ParticleVis.prototype.createNodes = function () {
-        var n;
-        console.log(this.scene);
-        for (var i = 0; i < this.webGL_nodes.length; i++) {
-            this.scene.remove(this.webGL_nodes[i]);
-        }
-        this.webGL_nodes = [];
-        for (var i = 0; i < this.nodes.length; i++) {
-            var material = new THREE.MeshBasicMaterial({
-                color: 0x0000ff,
-                transparent: true
+        };
+        Sparkiz.prototype.load_texture_nodes = function (index_node, path) {
+            var self = this;
+            var loader = new THREE.TextureLoader();
+            loader.load(path, function (texture) {
+                var material = new THREE.MeshBasicMaterial({ map: texture });
+                self.webGL_nodes[index_node].material.map = material.map;
+                self.webGL_nodes[index_node].material.needsUpdate = true;
             });
-            var segments = 50;
-            var circleGeometry = new THREE.CircleGeometry(1, segments);
-            var circle = new THREE.Mesh(circleGeometry, material);
-            this.webGL_nodes.push(circle);
-            circle.scale.set(1, 1, 1);
-            circle.name = "circle";
-            circle.userData = { id: this.nodes[i]._id, type: "node" };
-            this.scene.add(circle);
-        }
-    };
-    ParticleVis.prototype.update_values = function () {
-        this.updateNodes();
-        this.updateLabel();
-        this.updateLinks();
-        this.updateTube();
-    };
-    ParticleVis.prototype.update = function () {
-        if (this.needUpdate == true) {
-        }
-        else {
-            this.updateParticle();
-        }
-    };
-    ParticleVis.prototype.createParticle = function () {
-        for (var j = 0; j < this.links.length; j++) {
-            this.createParticles_webgl(this.links[j].number_particles, this.links[j].id);
-        }
-    };
-    ParticleVis.prototype.updateNodes = function () {
-        console.log("YOOO UPDATE NODES");
-        for (var i = 0; i < this.nodes.length; i++) {
-            this.webGL_nodes[i].position.set(this.nodes[i].x, this.nodes[i].y, 1);
-        }
-    };
-    ParticleVis.prototype.updateLabel = function () {
-        console.log("UPDATE LABEL");
-        for (var i = 0; i < this.webGL_label.length; i++) {
-            this.webGL_label[i].position.x = this.nodes[i].x + 10;
-            this.webGL_label[i].position.y = this.nodes[i].y;
-        }
-    };
-    ParticleVis.prototype.updateTube = function () {
-        console.log("UPDATE TUBE");
-        var p, splineObject;
-        var path = [];
-        for (var i = 0; i < this.tube.length; i++) {
-            path[0] = { x: this.links[i].source.x, y: this.links[i].source.y };
-            path[1] = { x: this.links[i].target.x, y: this.links[i].target.y };
-            var x1 = path[0].x;
-            var y1 = path[0].y;
-            var x2 = path[1].x;
-            var y2 = path[1].y;
-            var object = this.tube[i].children[0];
-            var position = this.get_normal_position_border(x1, y1, x2, y2, this.links[i].width_tube, 1);
-            var curve = new THREE.SplineCurve([
-                new THREE.Vector2(position[0].x, position[0].y),
-                new THREE.Vector2(position[2].x, position[2].y)
-            ]);
-            var middle_point = this.get_middle_position_normal(position[2].x, position[2].y, position[3].x, position[3].y, i);
-            var point1 = new THREE.Vector2(middle_point.x1, middle_point.y1);
-            var point2 = new THREE.Vector2(middle_point.x2, middle_point.y2);
-            var quadratic_path1 = [];
-            var pas = 1.0 / this.links[i].number_segmentation;
-            for (var k = 0; k < 1; k += 0.01) {
-                quadratic_path1.push(this.bezier(k, position[2], point1, point2, position[3]));
+        };
+        Sparkiz.prototype.update_values = function () {
+            this.updateNodes();
+            this.updateLabel();
+            this.updateLinks();
+            this.updateTube();
+        };
+        Sparkiz.prototype.update = function () {
+            if (this.needUpdate == true) {
             }
-            var curve3 = new THREE.SplineCurve([
-                new THREE.Vector2(position[3].x, position[3].y),
-                new THREE.Vector2(position[1].x, position[1].y)
-            ]);
-            var middle_point = this.get_middle_position_normal(position[0].x, position[0].y, position[1].x, position[1].y, i);
-            var point1 = new THREE.Vector2(middle_point.x1, middle_point.y1);
-            var point2 = new THREE.Vector2(middle_point.x2, middle_point.y2);
-            var quadratic_path2 = [];
-            for (var k = 0; k < 1; k += 0.01) {
-                quadratic_path2.push(this.bezier(k, position[0], point1, point2, position[1]));
+            else {
             }
-            quadratic_path2 = quadratic_path2.reverse();
-            var curve_result = curve.getSpacedPoints(50).concat(quadratic_path1).concat(curve3.getSpacedPoints(50)).concat(quadratic_path2);
-            if (curve_result.length > 2100) {
-                alert("DOit updater la taille du tableau contenant les vertices dans tube");
+        };
+        Sparkiz.prototype.createParticle = function () {
+            for (var j = 0; j < this.links.length; j++) {
+                this.createParticles_webgl(this.links[j].number_particles, this.links[j].id);
             }
-            var shape = new THREE.Shape(curve_result);
-            var geometry2 = new THREE.ShapeGeometry(shape);
-            for (var a in geometry2.vertices) {
-                this.tube[i].children[0].geometry.vertices[a].x = geometry2.vertices[a].x;
-                this.tube[i].children[0].geometry.vertices[a].y = geometry2.vertices[a].y;
+        };
+        Sparkiz.prototype.updateNodes = function () {
+            console.log("YOOO UPDATE NODES");
+            var self = this;
+            for (var i = 0; i < self.nodes.length; i++) {
+                if (self.nodes[i].px != null) {
+                    self.nodes[i].x = self.nodes[i].px;
+                }
+                if (self.nodes[i].py != null) {
+                    self.nodes[i].y = self.nodes[i].py;
+                }
+                self.webGL_nodes[i].position.set(self.nodes[i].x, self.nodes[i].y, 1);
             }
-            this.tube[i].children[0].geometry.faces = geometry2.faces;
-            this.tube[i].children[0].geometry.computeBoundingSphere();
-            this.tube[i].children[0].geometry.verticesNeedUpdate = true;
-            this.tube[i].children[0].geometry.elementsNeedUpdate = true;
-            this.tube[i].children[0].geometry.morphTargetsNeedUpdate = true;
-            this.tube[i].children[0].geometry.uvsNeedUpdate = true;
-            this.tube[i].children[0].geometry.normalsNeedUpdate = true;
-            this.tube[i].children[0].geometry.colorsNeedUpdate = true;
-            this.tube[i].children[0].geometry.tangentsNeedUpdate = true;
-            object.geometry.verticesNeedUpdate = true;
-            object.geometry.__dirtyVertices = true;
-            object.geometry.dynamic = true;
-        }
-    };
-    ParticleVis.prototype.createTube = function () {
-        var path = [];
-        var geometry, p;
-        var splineObject;
-        var size;
-        for (var i = 0; i < this.links.length; i++) {
-            var octagon = new THREE.Object3D();
-            var vertices = [];
-            path[0] = { x: this.links[i].source.x, y: this.links[i].source.y };
-            path[1] = { x: this.links[i].target.x, y: this.links[i].target.y };
-            var x1 = path[0].x;
-            var y1 = path[0].y;
-            var x2 = path[1].x;
-            var y2 = path[1].y;
-            var position = this.get_normal_position_border(x1, y1, x2, y2, 3, 1);
-            var curve = new THREE.SplineCurve([
-                new THREE.Vector2(position[0].x, position[0].y),
-                new THREE.Vector2(position[2].x, position[2].y)
-            ]);
-            var curve2 = new THREE.SplineCurve([
-                new THREE.Vector2(position[2].x, position[2].y),
-                new THREE.Vector2(position[3].x, position[3].y)
-            ]);
-            var curve3 = new THREE.SplineCurve([
-                new THREE.Vector2(position[3].x, position[3].y),
-                new THREE.Vector2(position[1].x, position[1].y)
-            ]);
-            var curve4 = new THREE.SplineCurve([
-                new THREE.Vector2(position[1].x, position[1].y),
-                new THREE.Vector2(position[0].x, position[0].y)
-            ]);
-            var curve_result = curve.getSpacedPoints(50).concat(curve2.getSpacedPoints(100)).concat(curve3.getSpacedPoints(50)).concat(curve4.getSpacedPoints(100));
-            var shape = new THREE.Shape(curve_result);
-            var geometry2 = new THREE.ShapeGeometry(shape);
-            var material = new THREE.MeshBasicMaterial({ color: 0x3498db, opacity: 1, transparent: true });
-            material.opacity = 1;
-            var mesh = new THREE.Mesh(geometry2, material);
-            octagon.name = "tube" + i;
-            octagon.userData = { type: "tube", id: this.links[i]._id };
-            octagon.add(mesh);
-            this.scene.add(octagon);
-            this.tube.push(octagon);
-        }
-    };
-    ParticleVis.prototype.createLinks = function () {
-        var path = [];
-        var geometry, p;
-        var splineObject;
-        for (var i = 0; i < this.links.length; i++) {
-            this.links[i].particleSystems = [];
-            this.links[i].number_segmentation = 50;
-            this.links[i].number_segmentation_pattern_fitting = 50;
-            this.links[i].spatial_distribution = [];
-            this.links[i].temporal_distribution2 = [0.0];
-            this.links[i].velocity = [];
-            this.links[i].opacity = [];
-            this.links[i].wiggling = [];
-            this.links[i].size = [];
-            this.links[i].gate_position = [];
-            this.links[i].gate_colors = [];
-            this.links[i].texture = "images/rectangle_texture.png";
-            this.links[i].number_particles = this.number_particles;
-            this.links[i].coefficient_number_particles = 1;
-            this.links[i].gates = [];
-            this.links[i].id = i;
-            this.links[i].frequency_pattern = 1.0;
-            this.links[i].temporal_distribution = [];
-            this.links[i].path_quadratic = [];
-            this.links[i].width_tube = this.tube_width;
-            this.links[i].gates.push({ object: "null", position: 0 });
-            var multi_line = new THREE.Object3D();
-            path[0] = { x: this.links[i].source.x, y: this.links[i].source.y };
-            path[1] = { x: this.links[i].target.x, y: this.links[i].target.y };
-            var x1 = path[0].x;
-            var y1 = path[0].y;
-            var x2 = path[1].x;
-            var y2 = path[1].y;
-            var distance = this.get_distance(x1, y1, x2, y2);
-            this.links[i].number_segmentation = Math.floor(distance / 3);
-            var position = this.get_normal_position_border(x1, y1, x2, y2, this.links[i].width_tube, this.number_paths_particule);
-            var points = [];
-            var curve = new THREE.SplineCurve([
-                new THREE.Vector2(this.links[i].source.x, this.links[i].source.y),
-                new THREE.Vector2(this.links[i].target.x, this.links[i].target.y),
-            ]);
-            this.links[i].spatial_distribution[0] = 0;
-            var curveSplineMaterial = new THREE.LineBasicMaterial({
-                color: 0x2c3e50,
-                linewidth: 1,
-                opacity: this.links_opacity,
-                transparent: true
-            });
-            p = new THREE.Path(curve.getSpacedPoints(this.links[i].number_segmentation));
-            geometry = p.createPointsGeometry(this.links[i].number_segmentation);
-            splineObject = new THREE.Line(geometry, curveSplineMaterial);
-            multi_line.add(splineObject);
-            for (var j = 0, f = 1; j < position.length - 1; j += 2, f++) {
+        };
+        Sparkiz.prototype.updateNodes_Original = function () {
+            console.log("YOOO UPDATE NODES");
+            for (var i = 0; i < this.nodes.length; i++) {
+                this.webGL_nodes[i].position.set(this.nodes[i].x, this.nodes[i].y, 1);
+            }
+        };
+        Sparkiz.prototype.updateLabel = function () {
+            console.log("UPDATE LABEL");
+            for (var i = 0; i < this.webGL_label.length; i++) {
+                console.log("LABEL", this.webGL_label[i]);
+                this.webGL_label[i].position.x = this.nodes[i].x + 10;
+                this.webGL_label[i].position.y = this.nodes[i].y;
+            }
+        };
+        Sparkiz.prototype.updateTube = function () {
+            console.log("UPDATE TUBE");
+            var p, splineObject;
+            var path = [];
+            for (var i = 0; i < this.tube.length; i++) {
+                path[0] = { x: this.links[i].source.x, y: this.links[i].source.y };
+                path[1] = { x: this.links[i].target.x, y: this.links[i].target.y };
+                var x1 = path[0].x;
+                var y1 = path[0].y;
+                var x2 = path[1].x;
+                var y2 = path[1].y;
+                var object = this.tube[i].children[0];
+                var position = this.get_normal_position_border(x1, y1, x2, y2, this.links[i].width_tube, 1);
+                var curve = new THREE.SplineCurve([
+                    new THREE.Vector2(position[0].x, position[0].y),
+                    new THREE.Vector2(position[2].x, position[2].y)
+                ]);
+                var middle_point = this.get_middle_position_normal(position[2].x, position[2].y, position[3].x, position[3].y, i);
+                var point1 = new THREE.Vector2(middle_point.x1, middle_point.y1);
+                var point2 = new THREE.Vector2(middle_point.x2, middle_point.y2);
+                var quadratic_path1 = [];
+                var pas = 1.0 / this.links[i].number_segmentation;
+                for (var k = 0; k < 1; k += 0.01) {
+                    quadratic_path1.push(this.bezier(k, position[2], point1, point2, position[3]));
+                }
+                var curve3 = new THREE.SplineCurve([
+                    new THREE.Vector2(position[3].x, position[3].y),
+                    new THREE.Vector2(position[1].x, position[1].y)
+                ]);
+                var middle_point = this.get_middle_position_normal(position[0].x, position[0].y, position[1].x, position[1].y, i);
+                var point1 = new THREE.Vector2(middle_point.x1, middle_point.y1);
+                var point2 = new THREE.Vector2(middle_point.x2, middle_point.y2);
+                var quadratic_path2 = [];
+                for (var k = 0; k < 1; k += 0.01) {
+                    quadratic_path2.push(this.bezier(k, position[0], point1, point2, position[1]));
+                }
+                quadratic_path2 = quadratic_path2.reverse();
+                var curve_result = curve.getSpacedPoints(50).concat(quadratic_path1).concat(curve3.getSpacedPoints(50)).concat(quadratic_path2);
+                if (curve_result.length > 2100) {
+                    alert("DOit updater la taille du tableau contenant les vertices dans tube");
+                }
+                var shape = new THREE.Shape(curve_result);
+                var geometry2 = new THREE.ShapeGeometry(shape);
+                for (var a in geometry2.vertices) {
+                    this.tube[i].children[0].geometry.vertices[a].x = geometry2.vertices[a].x;
+                    this.tube[i].children[0].geometry.vertices[a].y = geometry2.vertices[a].y;
+                }
+                this.tube[i].children[0].geometry.faces = geometry2.faces;
+                this.tube[i].children[0].geometry.computeBoundingSphere();
+                this.tube[i].children[0].geometry.verticesNeedUpdate = true;
+                this.tube[i].children[0].geometry.elementsNeedUpdate = true;
+                this.tube[i].children[0].geometry.morphTargetsNeedUpdate = true;
+                this.tube[i].children[0].geometry.uvsNeedUpdate = true;
+                this.tube[i].children[0].geometry.normalsNeedUpdate = true;
+                this.tube[i].children[0].geometry.colorsNeedUpdate = true;
+                this.tube[i].children[0].geometry.tangentsNeedUpdate = true;
+                object.geometry.verticesNeedUpdate = true;
+                object.geometry.__dirtyVertices = true;
+                object.geometry.dynamic = true;
+            }
+        };
+        Sparkiz.prototype.createTube = function () {
+            var path = [];
+            var geometry, p;
+            var splineObject;
+            var size;
+            for (var i = 0; i < this.links.length; i++) {
+                var octagon = new THREE.Object3D();
+                var vertices = [];
+                path[0] = { x: 5, y: 28 };
+                path[1] = { x: 12, y: 35 };
+                var x1 = path[0].x;
+                var y1 = path[0].y;
+                var x2 = path[1].x;
+                var y2 = path[1].y;
+                var position = this.get_normal_position_border(x1, y1, x2, y2, 3, 1);
+                var curve = new THREE.SplineCurve([
+                    new THREE.Vector2(position[0].x, position[0].y),
+                    new THREE.Vector2(position[2].x, position[2].y)
+                ]);
+                var curve2 = new THREE.SplineCurve([
+                    new THREE.Vector2(position[2].x, position[2].y),
+                    new THREE.Vector2(position[3].x, position[3].y)
+                ]);
+                var curve3 = new THREE.SplineCurve([
+                    new THREE.Vector2(position[3].x, position[3].y),
+                    new THREE.Vector2(position[1].x, position[1].y)
+                ]);
+                var curve4 = new THREE.SplineCurve([
+                    new THREE.Vector2(position[1].x, position[1].y),
+                    new THREE.Vector2(position[0].x, position[0].y)
+                ]);
+                var curve_result = curve.getSpacedPoints(50).concat(curve2.getSpacedPoints(100)).concat(curve3.getSpacedPoints(50)).concat(curve4.getSpacedPoints(100));
+                var shape = new THREE.Shape(curve_result);
+                geometry = new THREE.ShapeGeometry(shape);
+                var material = new THREE.MeshBasicMaterial({ color: 0x3498db, opacity: 1, transparent: true });
+                material.opacity = 1;
+                var mesh = new THREE.Mesh(geometry, material);
+                mesh.name = "tube";
+                octagon.name = "tube" + i;
+                octagon.userData = { type: "tube", id: this.links[i]._id };
+                octagon.add(mesh);
+                this.scene.add(octagon);
+                this.tube.push(octagon);
+                console.log("PUSH TUBE");
+            }
+        };
+        Sparkiz.prototype.createLinks = function () {
+            var path = [];
+            var geometry, p;
+            var splineObject;
+            for (var i = 0; i < this.links.length; i++) {
+                this.links[i].particleSystems = [];
+                this.links[i].number_segmentation = 50;
+                this.links[i].number_segmentation_pattern_fitting = 50;
+                this.links[i].spatial_distribution = [];
+                this.links[i].temporal_distribution2 = [0.0];
+                this.links[i].velocity = [];
+                this.links[i].opacity = [];
+                this.links[i].wiggling = [];
+                this.links[i].size = [];
+                this.links[i].gate_position = [];
+                this.links[i].gate_colors = [];
+                this.links[i].texture = "images/rectangle_texture.png";
+                this.links[i].number_particles = this.number_particles;
+                this.links[i].coefficient_number_particles = 1;
+                this.links[i].gates = [];
+                this.links[i].id = i;
+                this.links[i].frequency_pattern = 1.0;
+                this.links[i].temporal_distribution = [];
+                this.links[i].path_quadratic = [];
+                this.links[i].name = "links";
+                this.links[i].width_tube = this.tube_width;
+                this.links[i].gates.push({ object: "null", position: 0 });
+                var multi_line = new THREE.Object3D();
+                this.links[i].source.x = Math.random() * 100;
+                this.links[i].target.y = Math.random() * 100;
+                this.links[i].source.x = Math.random() * 100;
+                this.links[i].target.y = Math.random() * 100;
+                path[0] = { x: this.links[i].source.x, y: this.links[i].source.y };
+                path[1] = { x: this.links[i].target.x, y: this.links[i].target.y };
+                var x1 = path[0].x;
+                var y1 = path[0].y;
+                var x2 = path[1].x;
+                var y2 = path[1].y;
+                var distance = this.get_distance(x1, y1, x2, y2);
+                this.links[i].number_segmentation = Math.floor(distance);
+                var position = this.get_normal_position_border(x1, y1, x2, y2, this.links[i].width_tube, this.number_paths_particule);
                 var points = [];
                 var curve = new THREE.SplineCurve([
-                    new THREE.Vector2(position[j].x, position[j].y),
-                    new THREE.Vector2(position[j + 1].x, position[j + 1].y),
+                    new THREE.Vector2(this.links[i].source.x, this.links[i].source.y),
+                    new THREE.Vector2(this.links[i].target.x, this.links[i].target.y),
                 ]);
-                this.links[i].spatial_distribution[f] = 0;
+                this.links[i].spatial_distribution[0] = 0;
                 var curveSplineMaterial = new THREE.LineBasicMaterial({
-                    color: 0x2c3e50,
+                    color: this.roads_color,
                     linewidth: 1,
-                    opacity: this.links_opacity,
+                    opacity: this.roads_opacity,
                     transparent: true
                 });
                 p = new THREE.Path(curve.getSpacedPoints(this.links[i].number_segmentation));
                 geometry = p.createPointsGeometry(this.links[i].number_segmentation);
                 splineObject = new THREE.Line(geometry, curveSplineMaterial);
                 multi_line.add(splineObject);
+                for (var j = 0, f = 1; j < position.length - 1; j += 2, f++) {
+                    var points = [];
+                    var curve = new THREE.SplineCurve([
+                        new THREE.Vector2(position[j].x, position[j].y),
+                        new THREE.Vector2(position[j + 1].x, position[j + 1].y),
+                    ]);
+                    this.links[i].spatial_distribution[f] = 0;
+                    var curveSplineMaterial = new THREE.LineBasicMaterial({
+                        color: this.roads_color,
+                        linewidth: 1.8,
+                        opacity: this.roads_opacity,
+                        transparent: true
+                    });
+                    p = new THREE.Path(curve.getSpacedPoints(this.links[i].number_segmentation));
+                    geometry = p.createPointsGeometry(this.links[i].number_segmentation);
+                    splineObject = new THREE.Line(geometry, curveSplineMaterial);
+                    multi_line.add(splineObject);
+                }
+                this.links[i].gate_infos = [{ factor: 1, position: 0 }, { factor: 1, position: this.links[i].number_segmentation }];
+                multi_line.renderOrder = 5;
+                multi_line.userData = { type: "link", id: this.links[i]._id };
+                multi_line.name = "links";
+                this.curveSplines.push(multi_line);
+                this.links[i].userData = { id: this.links[i]._id, number_particles: 0 };
+                this.links[i].temporal_distribution = Array.apply(null, Array(this.number_particles)).map(Number.prototype.valueOf, 0);
+                this.links[i].velocity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
+                this.links[i].opacity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
+                this.links[i].wiggling = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 0.0);
+                this.links[i].size = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 40.0);
+                this.links[i].gate_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                for (var j = 0; j < this.number_max_gates; j++) {
+                    this.links[i].gate_colors.push(new THREE.Vector3(1.0, 1.0, 1.0));
+                }
+                this.scene.add(multi_line);
             }
-            this.links[i].gate_infos = [{ factor: 1, position: 0 }, { factor: 1, position: this.links[i].number_segmentation }];
-            multi_line.renderOrder = 5;
-            multi_line.userData = { type: "link", id: this.links[i]._id };
-            this.curveSplines.push(multi_line);
-            this.links[i].userData = { id: this.links[i]._id, number_particles: 0 };
-            this.links[i].temporal_distribution = Array.apply(null, Array(this.number_particles)).map(Number.prototype.valueOf, 0);
-            this.links[i].velocity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
-            this.links[i].opacity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
-            this.links[i].wiggling = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 0.0);
-            this.links[i].size = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 40.0);
-            this.links[i].gate_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-            for (var j = 0; j < this.number_max_gates; j++) {
-                this.links[i].gate_colors.push(new THREE.Vector3(1.0, 1.0, 1.0));
-            }
-            this.scene.add(multi_line);
-        }
-    };
-    ParticleVis.prototype.updateLinks = function () {
-        console.log("UPDATE LINKS");
-        var path = [];
-        for (var i = 0; i < this.links.length; i++) {
-            path[0] = { x: this.links[i].source.x, y: this.links[i].source.y };
-            path[1] = { x: this.links[i].target.x, y: this.links[i].target.y };
-            var x1 = path[0].x;
-            var y1 = path[0].y;
-            var x2 = path[1].x;
-            var y2 = path[1].y;
-            var distance = this.get_distance(x1, y1, x2, y2);
-            this.links[i].number_segmentation = Math.round(distance);
-            var object = this.curveSplines[i].children[0];
-            var middle_point = this.get_middle_position_normal(this.links[i].source.x, this.links[i].source.y, this.links[i].target.x, this.links[i].target.y, i);
-            var array = [new THREE.Vector2(this.links[i].source.x, this.links[i].source.y),
-                new THREE.Vector2(middle_point.x1, middle_point.y1),
-                new THREE.Vector2(middle_point.x2, middle_point.y2),
-                new THREE.Vector2(this.links[i].target.x, this.links[i].target.y)];
-            this.links[i].path_quadratic[0] = array;
-            var quadratic_path = [];
-            var pas = 1.0 / this.links[i].number_segmentation;
-            for (var k = 0; k < 1; k += pas) {
-                quadratic_path.push(this.bezier(k, this.links[i].path_quadratic[0][0], this.links[i].path_quadratic[0][1], this.links[i].path_quadratic[0][2], this.links[i].path_quadratic[0][3]));
-            }
-            var curveSplineMaterial = new THREE.LineBasicMaterial({
-                color: 0x2c3e50,
-                linewidth: 1,
-                opacity: this.links_opacity,
-                transparent: true
-            });
-            var p = new THREE.Path(quadratic_path);
-            var geometry = p.createPointsGeometry(this.links[i].number_segmentation);
-            object.geometry.vertices = geometry.vertices;
-            object.geometry.verticesNeedUpdate = true;
-            var position = this.get_normal_position_border(x1, y1, x2, y2, this.links[i].width_tube, this.number_paths_particule);
-            for (var j = 0, f = 1; j < position.length - 1; j += 2, f++) {
-                var object = this.curveSplines[i].children[f];
-                var points = [];
-                var middle_point = this.get_middle_position_normal(position[j].x, position[j].y, position[j + 1].x, position[j + 1].y, i);
-                var array = [new THREE.Vector2(position[j].x, position[j].y),
+        };
+        Sparkiz.prototype.updateLinks = function () {
+            var path = [];
+            for (var i = 0; i < this.links.length; i += 1) {
+                path[0] = { x: this.links[i].source.x, y: this.links[i].source.y };
+                path[1] = { x: this.links[i].target.x, y: this.links[i].target.y };
+                var x1 = path[0].x;
+                var y1 = path[0].y;
+                var x2 = path[1].x;
+                var y2 = path[1].y;
+                var distance = this.get_distance(x1, y1, x2, y2);
+                this.links[i].number_segmentation = Math.round(distance) * 5;
+                var middle_point = this.get_middle_position_normal(x1, y1, x2, y2, i);
+                var array = [new THREE.Vector2(this.links[i].source.x, this.links[i].source.y),
                     new THREE.Vector2(middle_point.x1, middle_point.y1),
                     new THREE.Vector2(middle_point.x2, middle_point.y2),
-                    new THREE.Vector2(position[j + 1].x, position[j + 1].y)];
-                this.links[i].path_quadratic[f] = array;
+                    new THREE.Vector2(this.links[i].target.x, this.links[i].target.y)];
+                this.links[i].path_quadratic[0] = array;
                 var quadratic_path = [];
-                var pas = 1.0 / this.links[i].number_segmentation;
+                var object = this.curveSplines[i].children[0];
+                var pas = 1.0 / (object.geometry.vertices.length - 1);
                 for (var k = 0; k < 1; k += pas) {
-                    quadratic_path.push(this.bezier(k, this.links[i].path_quadratic[f][0], this.links[i].path_quadratic[f][1], this.links[i].path_quadratic[f][2], this.links[i].path_quadratic[f][3]));
+                    quadratic_path.push(new THREE.Vector3(this.bezier(k, array[0], array[1], array[2], array[3]).x, this.bezier(k, array[0], array[1], array[2], array[3]).y, 0));
                 }
-                var curveSplineMaterial = new THREE.LineBasicMaterial({
-                    color: 0x2c3e50,
-                    linewidth: 1,
-                    opacity: this.links_opacity,
-                    transparent: true
-                });
+                quadratic_path.push(new THREE.Vector3(x2, y2, 0));
+                var curveSplineMaterial = new THREE.LineBasicMaterial({ color: this.roads_color, linewidth: 1, opacity: this.roads_opacity, transparent: true });
                 var p = new THREE.Path(quadratic_path);
-                var geometry = p.createPointsGeometry(this.links[i].number_segmentation);
+                var geometry = p.createPointsGeometry(50);
+                object.material = curveSplineMaterial;
                 object.geometry.vertices = geometry.vertices;
                 object.geometry.verticesNeedUpdate = true;
-            }
-        }
-    };
-    ParticleVis.prototype.updateTube_width_gate = function (link_id, gate, value) {
-        var self = this;
-        var array_gates = this.links[link_id].gate_infos;
-        var array_tube = [];
-        for (var i = 0; i < 2; i++) {
-            var array_spline = [];
-            for (var j = 0; j < array_gates.length; j++) {
-                var position = this.get_normal_position(this.links[link_id].source.x, this.links[link_id].source.y, this.links[link_id].target.x, this.links[link_id].target.y, array_gates[j].position, this.links[link_id].width_tube * array_gates[j].factor, 1);
-                array_spline.push(new THREE.Vector2(position[i].x, position[i].y));
-            }
-            var curve = new THREE.SplineCurve(array_spline);
-            var p = new THREE.Path(curve.getSpacedPoints(50));
-            var geometry = p.createPointsGeometry(50);
-            var array_vertices = [];
-            for (var j = 0; j < geometry.vertices.length; j++) {
-                array_vertices.push(new THREE.Vector2(geometry.vertices[j].x, geometry.vertices[j].y));
-            }
-            array_tube.push(array_vertices);
-        }
-        array_tube[0].reverse();
-        var curve1 = new THREE.SplineCurve([
-            new THREE.Vector2(array_tube[0][50].x, array_tube[0][50].y),
-            new THREE.Vector2(array_tube[1][0].x, array_tube[1][0].y)
-        ]);
-        var curve2 = new THREE.SplineCurve([
-            new THREE.Vector2(array_tube[1][50].x, array_tube[1][50].y),
-            new THREE.Vector2(array_tube[0][0].x, array_tube[0][0].y)
-        ]);
-        var curve_result = curve1.getSpacedPoints(50).concat(array_tube[1]).concat(curve2.getSpacedPoints(50)).concat(array_tube[0]);
-        console.log(curve_result);
-        var octagon = new THREE.Object3D();
-        octagon.name = "tube" + link_id;
-        var object = this.tube[link_id].id;
-        var shape = new THREE.Shape(curve_result);
-        var geometry2 = new THREE.ShapeGeometry(shape);
-        var material = new THREE.MeshLambertMaterial({ color: 0x3498db, opacity: 1 });
-        material.transparent = true;
-        material.opacity = 1;
-        var mesh = new THREE.Mesh(geometry2, material);
-        mesh.material.depthTest = false;
-        mesh.renderOrder = 9999;
-        octagon.userData = { type: "tube", id: link_id };
-        octagon.add(mesh);
-        for (var a in geometry2.vertices) {
-            this.tube[link_id].children[0].geometry.vertices[a].x = geometry2.vertices[a].x;
-            this.tube[link_id].children[0].geometry.vertices[a].y = geometry2.vertices[a].y;
-        }
-        this.tube[link_id].children[0].geometry.faces = geometry2.faces;
-        this.tube[link_id].children[0].geometry.computeBoundingSphere();
-        this.tube[link_id].children[0].geometry.verticesNeedUpdate = true;
-        this.tube[link_id].children[0].geometry.elementsNeedUpdate = true;
-        this.tube[link_id].children[0].geometry.morphTargetsNeedUpdate = true;
-        this.tube[link_id].children[0].geometry.uvsNeedUpdate = true;
-        this.tube[link_id].children[0].geometry.normalsNeedUpdate = true;
-        this.tube[link_id].children[0].geometry.colorsNeedUpdate = true;
-        this.tube[link_id].children[0].geometry.tangentsNeedUpdate = true;
-    };
-    ParticleVis.prototype.updateLinks_width_gate = function (link_id, gate, value) {
-        var array_gates = this.links[link_id].gate_infos;
-        array_gates[gate].factor = value;
-        for (var i = 0; i < 12; i++) {
-            var array_spline = [];
-            for (var j = 0; j < array_gates.length; j++) {
-                var position = this.get_normal_position(this.links[link_id].source.x, this.links[link_id].source.y, this.links[link_id].target.x, this.links[link_id].target.y, array_gates[j].position, this.links[link_id].width_tube * array_gates[j].factor, this.number_paths_particule);
-                array_spline.push(position[i]);
-            }
-            var object = this.curveSplines[link_id].children[i];
-            var curve = new THREE.SplineCurve(array_spline);
-            var p = new THREE.Path(curve.getSpacedPoints(50));
-            var geometry = p.createPointsGeometry(50);
-            object.geometry.vertices = geometry.vertices;
-            object.geometry.verticesNeedUpdate = true;
-            this.links[link_id].curvePath[i] = curve.getSpacedPoints(50);
-        }
-        this.updateParticles_Paths(link_id);
-    };
-    ParticleVis.prototype.updateParticles_Paths = function (link_id) {
-        var number_particles = this.links[link_id].userData.number_particles;
-        var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
-        var path2 = [];
-        for (var i = 0; i < this.links[link_id].curvePath.length; i++) {
-            path2 = path2.concat(this.links[link_id].curvePath[i]);
-        }
-        uniforms.path_general.value = path2;
-        console.log("PATHS", uniforms.path_general);
-    };
-    ParticleVis.prototype.updateParticles_Texture = function (link_id, value) {
-        var number_particles = this.links[link_id].userData.number_particles;
-        var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
-        uniforms.texture.value = new THREE.TextureLoader().load("images/" + value);
-        uniforms.texture.name = value;
-        console.log("TEXTURE", uniforms.texture.value);
-    };
-    ParticleVis.prototype.updateParticles_Velocity = function (link_id, gate, value) {
-        var number_particles = this.links[link_id].userData.number_particles;
-        var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
-        uniforms.velocity.value[gate] = value;
-        console.log("VELOCITY", uniforms.velocity.value);
-    };
-    ParticleVis.prototype.updateParticles_Wiggling = function (link_id, gate, value) {
-        var number_particles = this.links[link_id].userData.number_particles;
-        var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
-        uniforms.wiggling.value[gate] = value;
-        console.log("WIGGLING", uniforms.wiggling.value);
-    };
-    ParticleVis.prototype.updateParticles_Zoom = function (value) {
-        for (var i = 0; i < this.links.length; i++) {
-            var uniforms = this.links[i].particleSystems.material.__webglShader.uniforms;
-            console.log(uniforms);
-            console.log(value);
-            uniforms.ProjectionMatrix.value = value;
-        }
-    };
-    ParticleVis.prototype.updateParticles_Opacity = function (link_id, gate, value) {
-        var number_particles = this.links[link_id].userData.number_particles;
-        var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
-        uniforms.opacity.value[gate] = value;
-        console.log("OPACITY", uniforms.opacity.value);
-    };
-    ParticleVis.prototype.updateParticles_Size = function (link_id, gate, value) {
-        var number_particles = this.links[link_id].userData.number_particles;
-        var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
-        uniforms.size.value[gate] = value;
-        console.log("SIZE", uniforms.size.value);
-    };
-    ParticleVis.prototype.updateParticles_SpatialDistribution = function (spatial_distribution, link) {
-        console.log(spatial_distribution);
-        var f = 0;
-        for (var j = 0; j < this.links.length; j++) {
-            if (this.links[j]._id == link) {
-                var particule_number = 0;
-                var faisceau = 0;
-                for (var i = 0; i < spatial_distribution.length; i++) {
-                    for (var k = 0; k < spatial_distribution[i]; k++) {
-                        this.links[j].particleSystems.geometry.attributes.id.array[particule_number] = faisceau;
-                        particule_number++;
+                var position = this.get_normal_position_border(x1, y1, x2, y2, this.links[i].width_tube, this.number_paths_particule);
+                for (var j = 0, f = 1; j < position.length - 1; j += 2, f++) {
+                    var object = this.curveSplines[i].children[f];
+                    var points = [];
+                    var middle_point = this.get_middle_position_normal(position[j].x, position[j].y, position[j + 1].x, position[j + 1].y, i);
+                    var array = [new THREE.Vector2(position[j].x, position[j].y),
+                        new THREE.Vector2(middle_point.x1, middle_point.y1),
+                        new THREE.Vector2(middle_point.x2, middle_point.y2),
+                        new THREE.Vector2(position[j + 1].x, position[j + 1].y)];
+                    this.links[i].path_quadratic[f] = array;
+                    var quadratic_path = [];
+                    var pas = 1.0 / (object.geometry.vertices.length - 1);
+                    for (var k = 0; k < 1; k += pas) {
+                        quadratic_path.push(this.bezier(k, array[0], array[1], array[2], array[3]));
                     }
-                    faisceau++;
+                    quadratic_path.push(new THREE.Vector3(array[3].x, array[3].y, 1));
+                    var curveSplineMaterial = new THREE.LineBasicMaterial({ color: this.roads_color, linewidth: 1, opacity: this.roads_opacity, transparent: true });
+                    var p = new THREE.Path(quadratic_path);
+                    var geometry = p.createPointsGeometry(20);
+                    object.material = curveSplineMaterial;
+                    object.geometry.vertices = geometry.vertices;
+                    object.geometry.verticesNeedUpdate = true;
                 }
-                this.links[j].particleSystems.geometry.attributes.id.needsUpdate = true;
             }
-        }
-    };
-    ParticleVis.prototype.array_SpatialDistribution = function (spatial_distribution, indice) {
-        var f = 0;
-        var array = Array.apply(null, Array(spatial_distribution.length)).map(Number.prototype.valueOf, 0.0);
-        var particule_number = 0;
-        var faisceau = 0;
-        for (var i = 0; i < spatial_distribution.length; i++) {
-            for (var k = 0; k < spatial_distribution[i]; k++) {
-                array[particule_number] = faisceau;
-                particule_number++;
-            }
-            faisceau++;
-        }
-        return array[indice];
-    };
-    ParticleVis.prototype.updateParticles_number_segmentation_pattern_fitting = function () {
-        for (var j = 0; j < this.links.length; j++) {
-            var number_particles = this.links[j].userData.number_particles;
-            var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
-            uniforms.temporal_delay.value = this.links[j].number_segmentation_pattern_fitting;
-        }
-    };
-    ParticleVis.prototype.updateParticles_TemporalDistribution3 = function () {
-        for (var j = 0; j < this.links.length; j++) {
-            var number_particles = this.links[j].userData.number_particles;
-            var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
-            for (var i = 0; i < this.links[j].temporal_distribution.length; i++) {
-                uniforms.temporal_delay.value[i] = this.links[j].temporal_distribution[i];
-            }
-        }
-    };
-    ParticleVis.prototype.updateParticles_TemporalDistribution = function (temporal_distribution, link, number_values) {
-        var number_particles = this.links[link].userData.number_particles;
-        var uniforms = this.links[link].particleSystems.material.__webglShader.uniforms;
-        for (var i = 0; i < temporal_distribution.length; i++) {
-            uniforms.temporal_delay.value[i] = Math.floor(-temporal_distribution[i]);
-        }
-    };
-    ParticleVis.prototype.updateParticles_TemporalDistribution2 = function (temporal_distribution, link, number_values) {
-        var f = 0;
-        var number_particles = this.links[link].userData.number_particles;
-        var uniforms = this.links[link].particleSystems.material.__webglShader.uniforms;
-        var links_number = 0;
-        for (var i = 0; i < temporal_distribution.length; i++) {
-            for (var k = 0; k < temporal_distribution[i]; k++) {
-                var temporal = (-50 / number_values) * i;
-                uniforms.temporal_delay.value[links_number] = Math.floor(temporal);
-                links_number++;
-            }
-        }
-    };
-    ParticleVis.prototype.updateParticles_Color = function (id_link, color, gate) {
-        var number_particles = this.links[id_link].userData.number_particles;
-        var uniforms = this.links[id_link].particleSystems.material.__webglShader.uniforms;
-        var indice = 0;
-        uniforms.gate_colors.value[gate] = new THREE.Vector3(color.r, color.g, color.b);
-    };
-    ParticleVis.prototype.updateParticles_Gates = function (id_link, gate) {
-        var uniforms = this.links[id_link].particleSystems.material.__webglShader.uniforms;
-        var indice = 0;
-        for (var j = 1; j < uniforms.gate_position.value.length; j++) {
-            if (uniforms.gate_position.value[j] == 0) {
-                uniforms.gate_position.value[j] = gate;
-                break;
-            }
-        }
-        console.log("GATE", uniforms.gate_position);
-        console.log("Temporal", uniforms.temporal_delay);
-    };
-    ParticleVis.prototype.updateParticle = function () {
-        var count = 0;
-        var s, cs, t;
-        var numParticles;
-        var my_frame = 0;
-        for (var j = 0; j < this.links.length; j++) {
-            if (this.links[j].particleSystems.length != 0 && this.links[j].particleSystems.material.__webglShader != undefined) {
-                var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
-                uniforms.uTime.value += 1.0;
-            }
-        }
-    };
-    ParticleVis.prototype.createParticles_webgl = function (particles, link_id) {
-        console.log("CREATE PARTICLES", particles, link_id);
-        var self = this;
-        var temporal = this.links[link_id].temporal_distribution;
-        var velocity = this.links[link_id].velocity;
-        var opacity = this.links[link_id].opacity;
-        var wiggling = this.links[link_id].wiggling;
-        var size = this.links[link_id].size;
-        var gate_position = this.links[link_id].gate_position;
-        var gate_colors = this.links[link_id].gate_colors;
-        var number_segmentation = this.links[link_id].number_segmentation;
-        var number_segmentation_pattern_fitting = this.links[link_id].number_segmentation_pattern_fitting;
-        var path_quadratic = [];
-        for (var i = 0; i < this.links[link_id].path_quadratic.length; i++) {
-            path_quadratic = path_quadratic.concat(this.links[link_id].path_quadratic[i]);
-        }
-        var texture = new THREE.TextureLoader().load(this.links[link_id].texture);
-        texture.minFilter = THREE.LinearMipMapLinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        var uniforms = {
-            "path_quadratic": { type: "v2v", value: path_quadratic },
-            "temporal_delay": { type: "iv1", value: temporal },
-            "velocity": { type: "fv1", value: velocity },
-            "size": { type: "fv1", value: size },
-            "opacity": { type: "fv1", value: opacity },
-            "wiggling": { type: "fv1", value: wiggling },
-            "gate_position": { type: "iv1", value: gate_position },
-            "gate_colors": { type: "v3v", value: gate_colors },
-            "particles_number": { type: "iv1", value: particles },
-            "number_segmentation": { type: "iv1", value: number_segmentation },
-            "number_segmentation_pattern_fitting": { type: "iv1", value: number_segmentation_pattern_fitting },
-            uTime: { type: "f", value: 1.0 },
-            time: { value: 1.0 },
-            delta: { value: 0.0 },
-            "ProjectionMatrix": { type: "m4", value: self.camera.projectionMatrix },
-            texture: { value: texture, name: this.links[link_id].texture }
         };
-        var path_length = 4 * this.number_paths_particule;
-        var shaderMaterial = new THREE.ShaderMaterial({
-            uniforms: uniforms,
-            vertexShader: '#define path_length ' + path_length +
-                '\n' + self.vertex_shader,
-            fragmentShader: self.fragment_shader,
-            transparent: true
-        });
-        var radius = 50;
-        var geometry = new THREE.BufferGeometry();
-        var positions = new Float32Array(particles * 3);
-        var colors = new Float32Array(particles * 3);
-        var my_velocity = new Float32Array(particles);
-        var id = new Float32Array(particles);
-        var id_particle = new Float32Array(particles);
-        var paths = new Float32Array(particles * 4);
-        var iterations = new Float32Array(particles);
-        var color = new THREE.Color();
-        for (var i = 0, i3 = 0; i < particles; i++, i3 += 3) {
-            positions[i3 + 0] = 0 * radius;
-            positions[i3 + 1] = 0 * radius;
-            positions[i3 + 2] = 0 * radius;
-            colors[i3 + 0] = 1;
-            colors[i3 + 1] = 1;
-            colors[i3 + 2] = 0;
-            my_velocity[i] = 1.0;
-            iterations[i] = 0.0;
-            id_particle[i] = i;
-            id[i] = this.array_SpatialDistribution(this.links[link_id].spatial_distribution, i);
-        }
-        geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.addAttribute('customColor', new THREE.BufferAttribute(colors, 3));
-        geometry.addAttribute('actual_velocity', new THREE.BufferAttribute(my_velocity, 1));
-        geometry.addAttribute('id', new THREE.BufferAttribute(id, 1));
-        geometry.addAttribute('id_particle', new THREE.BufferAttribute(id_particle, 1));
-        geometry.addAttribute('iteration', new THREE.BufferAttribute(iterations, 1));
-        this.particleSystems = new THREE.Points(geometry, shaderMaterial);
-        this.particleSystems.name = "particle_system" + link_id;
-        this.links[link_id].particleSystems = this.particleSystems;
-        this.links[link_id].userData.number_particles = particles;
-        this.particleSystems.frustumCulled = false;
-        this.scene.add(this.particleSystems);
-        console.log("particle created");
-        return this.particleSystems;
-    };
-    ParticleVis.prototype.delete_entity_by_type = function (tag_data) {
-        for (var i = 0; i < this.scene.children.length; i++) {
-            var object = this.scene.children[i];
-            if (object.userData.type == tag_data) {
-                this.scene.remove(object);
+        Sparkiz.prototype.updateTube_width_gate = function (link_id, gate, value) {
+            var self = this;
+            var array_gates = this.links[link_id].gate_infos;
+            var array_tube = [];
+            for (var i = 0; i < 2; i++) {
+                var array_spline = [];
+                for (var j = 0; j < array_gates.length; j++) {
+                    var position = this.get_normal_position(this.links[link_id].source.x, this.links[link_id].source.y, this.links[link_id].target.x, this.links[link_id].target.y, array_gates[j].position, this.links[link_id].width_tube * array_gates[j].factor, 1);
+                    array_spline.push(new THREE.Vector2(position[i].x, position[i].y));
+                }
+                var curve = new THREE.SplineCurve(array_spline);
+                var p = new THREE.Path(curve.getSpacedPoints(50));
+                var geometry = p.createPointsGeometry(50);
+                var array_vertices = [];
+                for (var j = 0; j < geometry.vertices.length; j++) {
+                    array_vertices.push(new THREE.Vector2(geometry.vertices[j].x, geometry.vertices[j].y));
+                }
+                array_tube.push(array_vertices);
             }
-        }
-    };
-    ParticleVis.prototype.get_middle_position_normal = function (x1, y1, x2, y2, link_id) {
-        var segmentation = this.links[link_id].number_segmentation;
-        var divide = Math.round(segmentation / 3);
-        var euclidean_distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-        var distance = euclidean_distance / this.courbure;
-        var alpha = (y2 - y1) / (x2 - x1);
-        var signe = -1;
-        if (x2 < x1) {
-            signe = 1;
-        }
-        var x_middle = (((x2 - x1) / segmentation) * divide) + x1;
-        var y_middle = (((y2 - y1) / segmentation) * divide) + y1;
-        var alpha_normal = (x1 - x2) / (y2 - y1);
-        var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
-        var X1 = x_middle + (signe * Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2))));
-        var Y1 = alpha_normal * (X1) + ordonne_origine_normal;
-        var x_middle = (((x2 - x1) / segmentation) * divide * 2) + x1;
-        var y_middle = (((y2 - y1) / segmentation) * divide * 2) + y1;
-        var alpha_normal = (x1 - x2) / (y2 - y1);
-        var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
-        var X2 = x_middle + (signe * Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2))));
-        var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
-        return { x1: X1, y1: Y1, x2: X2, y2: Y2 };
-    };
-    ParticleVis.prototype.get_normal_position = function (x1, y1, x2, y2, gate, distance, _number) {
-        var fix_distance = distance;
-        var array = [];
-        var alpha = (y2 - y1) / (x2 - x1);
-        var x_middle = (((x2 - x1) / 50) * gate) + x1;
-        var y_middle = (((y2 - y1) / 50) * gate) + y1;
-        var alpha_normal = (x1 - x2) / (y2 - y1);
-        var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
-        for (var i = 0; i < _number; i++) {
-            var X1 = x_middle + Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
-            var Y1 = alpha_normal * (X1) + ordonne_origine_normal;
-            array.push({ x: X1, y: Y1 });
-            var X2 = x_middle - Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
-            var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
-            array.push({ x: X2, y: Y2 });
-            distance = distance - (fix_distance / this.number_paths_particule);
-        }
-        return array;
-    };
-    ParticleVis.prototype.get_normal_position_border = function (x1, y1, x2, y2, distance, _number) {
-        var fix_distance = distance;
-        var array = [];
-        var alpha = (y2 - y1) / (x2 - x1);
-        var alpha_normal = (x1 - x2) / (y2 - y1);
-        for (var i = 0; i < _number; i++) {
-            var x_middle = x1;
-            var y_middle = y1;
-            var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
-            var X1 = x_middle + Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
-            var Y1 = alpha_normal * (X1) + ordonne_origine_normal;
-            var X2 = x_middle - Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
-            var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
-            var x_middle = x2;
-            var y_middle = y2;
+            array_tube[0].reverse();
+            var curve1 = new THREE.SplineCurve([
+                new THREE.Vector2(array_tube[0][50].x, array_tube[0][50].y),
+                new THREE.Vector2(array_tube[1][0].x, array_tube[1][0].y)
+            ]);
+            var curve2 = new THREE.SplineCurve([
+                new THREE.Vector2(array_tube[1][50].x, array_tube[1][50].y),
+                new THREE.Vector2(array_tube[0][0].x, array_tube[0][0].y)
+            ]);
+            var curve_result = curve1.getSpacedPoints(50).concat(array_tube[1]).concat(curve2.getSpacedPoints(50)).concat(array_tube[0]);
+            console.log(curve_result);
+            var octagon = new THREE.Object3D();
+            octagon.name = "tube" + link_id;
+            var object = this.tube[link_id].id;
+            var shape = new THREE.Shape(curve_result);
+            var geometry2 = new THREE.ShapeGeometry(shape);
+            var material = new THREE.MeshLambertMaterial({ color: 0x3498db, opacity: 1 });
+            material.transparent = true;
+            material.opacity = 1;
+            var mesh = new THREE.Mesh(geometry2, material);
+            mesh.material.depthTest = false;
+            mesh.renderOrder = 9999;
+            octagon.userData = { type: "tube", id: link_id };
+            octagon.add(mesh);
+            for (var a in geometry2.vertices) {
+                this.tube[link_id].children[0].geometry.vertices[a].x = geometry2.vertices[a].x;
+                this.tube[link_id].children[0].geometry.vertices[a].y = geometry2.vertices[a].y;
+            }
+            this.tube[link_id].children[0].geometry.faces = geometry2.faces;
+            this.tube[link_id].children[0].geometry.computeBoundingSphere();
+            this.tube[link_id].children[0].geometry.verticesNeedUpdate = true;
+            this.tube[link_id].children[0].geometry.elementsNeedUpdate = true;
+            this.tube[link_id].children[0].geometry.morphTargetsNeedUpdate = true;
+            this.tube[link_id].children[0].geometry.uvsNeedUpdate = true;
+            this.tube[link_id].children[0].geometry.normalsNeedUpdate = true;
+            this.tube[link_id].children[0].geometry.colorsNeedUpdate = true;
+            this.tube[link_id].children[0].geometry.tangentsNeedUpdate = true;
+        };
+        Sparkiz.prototype.updateLinks_width_gate = function (link_id, gate, value) {
+            var array_gates = this.links[link_id].gate_infos;
+            array_gates[gate].factor = value;
+            for (var i = 0; i < 12; i++) {
+                var array_spline = [];
+                for (var j = 0; j < array_gates.length; j++) {
+                    var position = this.get_normal_position(this.links[link_id].source.x, this.links[link_id].source.y, this.links[link_id].target.x, this.links[link_id].target.y, array_gates[j].position, this.links[link_id].width_tube * array_gates[j].factor, this.number_paths_particule);
+                    array_spline.push(position[i]);
+                }
+                var object = this.curveSplines[link_id].children[i];
+                var curve = new THREE.SplineCurve(array_spline);
+                var p = new THREE.Path(curve.getSpacedPoints(50));
+                var geometry = p.createPointsGeometry(50);
+                object.geometry.vertices = geometry.vertices;
+                object.geometry.verticesNeedUpdate = true;
+                this.links[link_id].curvePath[i] = curve.getSpacedPoints(50);
+            }
+            this.updateParticles_Paths(link_id);
+        };
+        Sparkiz.prototype.updateParticles_Paths = function (link_id) {
+            var number_particles = this.links[link_id].userData.number_particles;
+            var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
+            var path_quadratic = [];
+            for (var i = 0; i < this.links[link_id].path_quadratic.length; i++) {
+                path_quadratic = path_quadratic.concat(this.links[link_id].path_quadratic[i]);
+            }
+            uniforms.path_quadratic.value = path_quadratic;
+            console.log("PATHS", uniforms.path_quadratic);
+        };
+        Sparkiz.prototype.updateParticles_Texture = function (link_id, value) {
+            var number_particles = this.links[link_id].userData.number_particles;
+            var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
+            uniforms.texture.value = new THREE.TextureLoader().load("images/" + value);
+            uniforms.texture.name = value;
+            console.log("TEXTURE", uniforms.texture.value);
+        };
+        Sparkiz.prototype.updateParticles_Velocity = function (link_id, gate, value) {
+            var number_particles = this.links[link_id].userData.number_particles;
+            var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
+            uniforms.velocity.value[gate] = value;
+            console.log("VELOCITY", uniforms.velocity.value);
+        };
+        Sparkiz.prototype.updateParticles_Wiggling = function (link_id, gate, value) {
+            var number_particles = this.links[link_id].userData.number_particles;
+            var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
+            uniforms.wiggling.value[gate] = value;
+            console.log("WIGGLING", uniforms.wiggling.value);
+        };
+        Sparkiz.prototype.updateParticles_Zoom = function (value) {
+            for (var i = 0; i < this.links.length; i++) {
+                var uniforms = this.links[i].particleSystems.material.__webglShader.uniforms;
+                console.log(uniforms);
+                console.log(value);
+                uniforms.ProjectionMatrix.value = value;
+            }
+        };
+        Sparkiz.prototype.updateParticles_Opacity = function (link_id, gate, value) {
+            var number_particles = this.links[link_id].userData.number_particles;
+            var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
+            uniforms.opacity.value[gate] = value;
+            console.log("OPACITY", uniforms.opacity.value);
+        };
+        Sparkiz.prototype.updateParticles_Size = function (link_id, gate, value) {
+            var number_particles = this.links[link_id].userData.number_particles;
+            var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
+            uniforms.size.value[gate] = value;
+            console.log("SIZE", uniforms.size.value);
+        };
+        Sparkiz.prototype.updateParticles_SpatialDistribution = function (spatial_distribution, link) {
+            console.log(spatial_distribution);
+            var f = 0;
+            for (var j = 0; j < this.links.length; j++) {
+                if (this.links[j]._id == link) {
+                    var particule_number = 0;
+                    var faisceau = 0;
+                    for (var i = 0; i < spatial_distribution.length; i++) {
+                        for (var k = 0; k < spatial_distribution[i]; k++) {
+                            this.links[j].particleSystems.geometry.attributes.id.array[particule_number] = faisceau;
+                            particule_number++;
+                        }
+                        faisceau++;
+                    }
+                    this.links[j].particleSystems.geometry.attributes.id.needsUpdate = true;
+                }
+            }
+        };
+        Sparkiz.prototype.array_SpatialDistribution_items = function (number, i) {
+            var array = [];
+            var array_length = number / this.links[i].spatial_distribution.length;
+            for (var k = 0; k < array_length; k++) {
+                array = array.concat(this.links[i].spatial_distribution);
+            }
+            return array;
+        };
+        Sparkiz.prototype.array_SpatialDistribution = function (spatial_distribution, indice) {
+            var f = 0;
+            var array = Array.apply(null, Array(spatial_distribution.length)).map(Number.prototype.valueOf, 0.0);
+            var particule_number = 0;
+            var faisceau = 0;
+            for (var i = 0; i < spatial_distribution.length; i++) {
+                for (var k = 0; k < spatial_distribution[i]; k++) {
+                    array[particule_number] = faisceau;
+                    particule_number++;
+                }
+                faisceau++;
+            }
+            return array[indice];
+        };
+        Sparkiz.prototype.updateParticles_number_segmentation_pattern_fitting = function () {
+            for (var j = 0; j < this.links.length; j++) {
+                var number_particles = this.links[j].userData.number_particles;
+                var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
+                uniforms.temporal_delay.value = this.links[j].number_segmentation_pattern_fitting;
+            }
+        };
+        Sparkiz.prototype.updateParticles_TemporalDistribution3 = function () {
+            for (var j = 0; j < this.links.length; j++) {
+                var number_particles = this.links[j].userData.number_particles;
+                var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
+                for (var i = 0; i < this.links[j].temporal_distribution.length; i++) {
+                    uniforms.temporal_delay.value[i] = this.links[j].temporal_distribution[i];
+                }
+            }
+        };
+        Sparkiz.prototype.updateParticles_TemporalDistribution = function (temporal_distribution, link, number_values) {
+            var number_particles = this.links[link].userData.number_particles;
+            var uniforms = this.links[link].particleSystems.material.__webglShader.uniforms;
+            for (var i = 0; i < temporal_distribution.length; i++) {
+                uniforms.temporal_delay.value[i] = Math.floor(-temporal_distribution[i]);
+            }
+        };
+        Sparkiz.prototype.updateParticles_TemporalDistribution2 = function (temporal_distribution, link, number_values) {
+            var f = 0;
+            var number_particles = this.links[link].userData.number_particles;
+            var uniforms = this.links[link].particleSystems.material.__webglShader.uniforms;
+            var links_number = 0;
+            for (var i = 0; i < temporal_distribution.length; i++) {
+                for (var k = 0; k < temporal_distribution[i]; k++) {
+                    var temporal = (-50 / number_values) * i;
+                    uniforms.temporal_delay.value[links_number] = Math.floor(temporal);
+                    links_number++;
+                }
+            }
+        };
+        Sparkiz.prototype.updateParticles_Color = function (id_link, color, gate) {
+            var number_particles = this.links[id_link].userData.number_particles;
+            var uniforms = this.links[id_link].particleSystems.material.__webglShader.uniforms;
+            var indice = 0;
+            uniforms.gate_colors.value[gate] = new THREE.Vector3(color.r, color.g, color.b);
+        };
+        Sparkiz.prototype.updateParticles_Gates = function (id_link, gate) {
+            var uniforms = this.links[id_link].particleSystems.material.__webglShader.uniforms;
+            var indice = 0;
+            for (var j = 1; j < uniforms.gate_position.value.length; j++) {
+                if (uniforms.gate_position.value[j] == 0) {
+                    uniforms.gate_position.value[j] = gate;
+                    break;
+                }
+            }
+            console.log("GATE", uniforms.gate_position);
+            console.log("Temporal", uniforms.temporal_delay);
+        };
+        Sparkiz.prototype.updateParticle = function (number_frame) {
+            var numParticles;
+            var my_frame = 0;
+            for (var j = 0; j < this.links.length; j++) {
+                if (this.links[j].particleSystems.length != 0 && this.links[j].particleSystems.material.__webglShader != undefined) {
+                    var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
+                    uniforms.uTime.value = number_frame;
+                }
+            }
+        };
+        Sparkiz.prototype.createParticles_webgl = function (particles, link_id) {
+            console.log("CREATE PARTICLES", particles, link_id);
+            var self = this;
+            var temporal = this.links[link_id].temporal_distribution;
+            var velocity = this.links[link_id].velocity;
+            var opacity = this.links[link_id].opacity;
+            var wiggling = this.links[link_id].wiggling;
+            var size = this.links[link_id].size;
+            var gate_position = this.links[link_id].gate_position;
+            var gate_colors = this.links[link_id].gate_colors;
+            var number_segmentation = this.links[link_id].number_segmentation;
+            var number_segmentation_pattern_fitting = this.links[link_id].number_segmentation_pattern_fitting;
+            var path_quadratic = [];
+            for (var i = 0; i < this.links[link_id].path_quadratic.length; i++) {
+                path_quadratic = path_quadratic.concat(this.links[link_id].path_quadratic[i]);
+            }
+            var spatial = this.array_SpatialDistribution_items(particles, link_id);
+            console.log(temporal);
+            var texture = new THREE.TextureLoader().load(this.links[link_id].texture);
+            texture.minFilter = THREE.LinearMipMapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            var uniforms = {
+                "path_quadratic": { type: "v2v", value: path_quadratic },
+                "temporal_delay": { type: "iv1", value: temporal },
+                "velocity": { type: "fv1", value: velocity },
+                "size": { type: "fv1", value: size },
+                "opacity": { type: "fv1", value: opacity },
+                "wiggling": { type: "fv1", value: wiggling },
+                "gate_position": { type: "iv1", value: gate_position },
+                "gate_colors": { type: "v3v", value: gate_colors },
+                "particles_number": { type: "iv1", value: particles },
+                "number_segmentation": { type: "iv1", value: number_segmentation },
+                "number_segmentation_pattern_fitting": { type: "iv1", value: number_segmentation_pattern_fitting },
+                uTime: { type: "f", value: 1.0 },
+                time: { value: 1.0 },
+                delta: { value: 0.0 },
+                "ProjectionMatrix": { type: "m4", value: self.camera.projectionMatrix },
+                texture: { value: texture, name: this.links[link_id].texture }
+            };
+            var path_length = ((2 * this.number_paths_particule) + 1) * 4;
+            var shaderMaterial = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: '#define path_length ' + path_length +
+                    '\n' + '#define real_number_particles ' + this.links[link_id].temporal_distribution.length +
+                    '\n' + self.vertex_shader,
+                fragmentShader: self.fragment_shader,
+                transparent: true
+            });
+            var radius = 50;
+            var geometry = new THREE.BufferGeometry();
+            var positions = new Float32Array(particles * 3);
+            var colors = new Float32Array(particles * 3);
+            var my_velocity = new Float32Array(particles);
+            var id = new Float32Array(particles);
+            var id_particle = new Float32Array(particles);
+            var paths = new Float32Array(particles * 4);
+            var iterations = new Float32Array(particles);
+            var color = new THREE.Color();
+            for (var i = 0, i3 = 0; i < particles; i++, i3 += 3) {
+                positions[i3 + 0] = 0 * radius;
+                positions[i3 + 1] = 0 * radius;
+                positions[i3 + 2] = 0 * radius;
+                colors[i3 + 0] = 1;
+                colors[i3 + 1] = 1;
+                colors[i3 + 2] = 0;
+                my_velocity[i] = 1.0;
+                iterations[i] = 0.0;
+                id_particle[i] = i;
+                id[i] = spatial[i];
+            }
+            geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.addAttribute('customColor', new THREE.BufferAttribute(colors, 3));
+            geometry.addAttribute('actual_velocity', new THREE.BufferAttribute(my_velocity, 1));
+            geometry.addAttribute('id', new THREE.BufferAttribute(id, 1));
+            geometry.addAttribute('id_particle', new THREE.BufferAttribute(id_particle, 1));
+            geometry.addAttribute('iteration', new THREE.BufferAttribute(iterations, 1));
+            this.particleSystems = new THREE.Points(geometry, shaderMaterial);
+            this.particleSystems.name = "particle_system" + link_id;
+            this.links[link_id].particleSystems = this.particleSystems;
+            this.links[link_id].userData.number_particles = particles;
+            this.particleSystems.frustumCulled = false;
+            this.scene.add(this.particleSystems);
+            return this.particleSystems;
+        };
+        Sparkiz.prototype.delete_entity_by_type = function (tag_data) {
+            for (var i = 0; i < this.scene.children.length; i++) {
+                var object = this.scene.children[i];
+                if (object.userData.type == tag_data) {
+                    this.scene.remove(object);
+                }
+            }
+        };
+        Sparkiz.prototype.get_middle_position_normal = function (x1, y1, x2, y2, link_id) {
+            var segmentation = this.links[link_id].number_segmentation;
+            var divide = Math.round(segmentation / 3);
+            var euclidean_distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            var distance = euclidean_distance / this.courbure;
+            var alpha = (y2 - y1) / (x2 - x1);
+            var signe = -1;
+            if (y2 < y1) {
+                signe = 1;
+            }
+            var x_middle = (((x2 - x1) / segmentation) * divide) + x1;
+            var y_middle = (((y2 - y1) / segmentation) * divide) + y1;
             var alpha_normal = (x1 - x2) / (y2 - y1);
             var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
-            var X3 = x_middle + Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
-            var Y3 = alpha_normal * (X3) + ordonne_origine_normal;
-            var X4 = x_middle - Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
-            var Y4 = alpha_normal * (X4) + ordonne_origine_normal;
-            array.push({ x: X1, y: Y1 });
-            array.push({ x: X3, y: Y3 });
-            array.push({ x: X2, y: Y2 });
-            array.push({ x: X4, y: Y4 });
-            distance = distance - ((fix_distance * 2) / ((this.number_paths_particule * 2) - 1));
-        }
-        return array;
-    };
-    ParticleVis.prototype.draw_circle = function (x, y) {
-        var material = new THREE.MeshBasicMaterial({
-            color: 0x4286f4
-        });
-        var segments = 50;
-        var circleGeometry = new THREE.CircleGeometry(10, segments);
-        var circle = new THREE.Mesh(circleGeometry, material);
-        circle.scale.set(1, 1, 1);
-        circle.name = "circle";
-        circle.position.set(x, y, 1);
-        this.scene.add(circle);
-    };
-    ParticleVis.prototype.hslToRgb = function (h, s, l) {
-        var r, g, b;
-        if (s == 0) {
-            r = g = b = l;
-        }
-        else {
-            var hue2rgb = function hue2rgb(p, q, t) {
-                if (t < 0)
-                    t += 1;
-                if (t > 1)
-                    t -= 1;
-                if (t < 1 / 6)
-                    return p + (q - p) * 6 * t;
-                if (t < 1 / 2)
-                    return q;
-                if (t < 2 / 3)
-                    return p + (q - p) * (2 / 3 - t) * 6;
-                return p;
-            };
-            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            var p = 2 * l - q;
-            r = hue2rgb(p, q, h + 1 / 3);
-            g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1 / 3);
-        }
-        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
-    };
-    ParticleVis.prototype.getColor = function (percent) {
-        var r = percent < 50 ? 255 : Math.floor(255 - (percent * 2 - 100) * 255 / 100);
-        var g = percent > 50 ? 255 : Math.floor((percent * 2) * 255 / 100);
-        if (r < 0) {
-            return new THREE.Vector3(1, 0, 0);
-        }
-        return new THREE.Vector3(r / 255.0, g / 255.0, 0);
-    };
-    ParticleVis.prototype.load_vertex_shaders = function () {
-        var self = this;
-        $.ajax({
-            async: false,
-            url: 'shaders/vertex.js',
-            success: function (data) {
-                self.vertex_shader = data;
-            },
-            dataType: 'html'
-        });
-    };
-    ParticleVis.prototype.load_fragment_shaders = function () {
-        var self = this;
-        $.ajax({
-            async: false,
-            url: "shaders/fragment.js",
-            success: function (data) {
-                self.fragment_shader = data;
-            },
-            dataType: 'html'
-        });
-    };
-    ParticleVis.prototype.get_middle = function (x1, y1, x2, y2) {
-        var middle_X = ((x2 - x1) / 2) + x1;
-        var middle_Y = ((y2 - y1) / 2) + y1;
-        return { x: middle_X, y: middle_Y };
-    };
-    ParticleVis.prototype.get_distance = function (x1, y1, x2, y2) {
-        var a = x1 - x2;
-        var b = y1 - y2;
-        var c = Math.sqrt(a * a + b * b);
-        return c;
-    };
-    ParticleVis.prototype.fit_temporal_distribution = function (link_id) {
-        var delay = 0;
-        var iteration = (this.links[link_id].number_segmentation) / this.links[link_id].number_particles;
-        for (var j = 0; j < this.links[link_id].number_particles; j++) {
-            this.links[link_id].temporal_distribution[j] = delay;
-            delay += iteration;
-        }
-        this.links[link_id].spatial_distribution[0] = this.links[link_id].number_particles;
-    };
-    ParticleVis.prototype.fit_all_temporal_distribution = function () {
-        for (var i = 0; i < this.links.length; i++) {
+            var X1 = x_middle + (signe * Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2))));
+            var Y1 = alpha_normal * (X1) + ordonne_origine_normal;
+            var x_middle = (((x2 - x1) / segmentation) * divide * 2) + x1;
+            var y_middle = (((y2 - y1) / segmentation) * divide * 2) + y1;
+            var alpha_normal = (x1 - x2) / (y2 - y1);
+            var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
+            var X2 = x_middle + (signe * Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2))));
+            var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
+            return { x1: X1, y1: Y1, x2: X2, y2: Y2 };
+        };
+        Sparkiz.prototype.get_normal_position = function (x1, y1, x2, y2, gate, distance, _number) {
+            var fix_distance = distance;
+            var array = [];
+            var alpha = (y2 - y1) / (x2 - x1);
+            var x_middle = (((x2 - x1) / 50) * gate) + x1;
+            var y_middle = (((y2 - y1) / 50) * gate) + y1;
+            var alpha_normal = (x1 - x2) / (y2 - y1);
+            var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
+            for (var i = 0; i < _number; i++) {
+                var X1 = x_middle + Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
+                var Y1 = alpha_normal * (X1) + ordonne_origine_normal;
+                array.push({ x: X1, y: Y1 });
+                var X2 = x_middle - Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
+                var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
+                array.push({ x: X2, y: Y2 });
+                distance = distance - (fix_distance / this.number_paths_particule);
+            }
+            return array;
+        };
+        Sparkiz.prototype.get_normal_position_border = function (x1, y1, x2, y2, distance, _number) {
+            var fix_distance = distance;
+            var array = [];
+            var alpha = (y2 - y1) / (x2 - x1);
+            var alpha_normal = (x1 - x2) / (y2 - y1);
+            for (var i = 0; i < _number; i++) {
+                var x_middle = x1;
+                var y_middle = y1;
+                var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
+                var X1 = x_middle + Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
+                var Y1 = alpha_normal * (X1) + ordonne_origine_normal;
+                var X2 = x_middle - Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
+                var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
+                var x_middle = x2;
+                var y_middle = y2;
+                var alpha_normal = (x1 - x2) / (y2 - y1);
+                var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
+                var X3 = x_middle + Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
+                var Y3 = alpha_normal * (X3) + ordonne_origine_normal;
+                var X4 = x_middle - Math.sqrt(Math.pow(distance, 2) / (1 + Math.pow(alpha_normal, 2)));
+                var Y4 = alpha_normal * (X4) + ordonne_origine_normal;
+                array.push({ x: X1, y: Y1 });
+                array.push({ x: X3, y: Y3 });
+                array.push({ x: X2, y: Y2 });
+                array.push({ x: X4, y: Y4 });
+                distance = distance - ((fix_distance * 2) / ((this.number_paths_particule * 2) - 1));
+            }
+            return array;
+        };
+        Sparkiz.prototype.draw_circle = function (x, y) {
+            var material = new THREE.MeshBasicMaterial({
+                color: 0x4286f4
+            });
+            var segments = 50;
+            var circleGeometry = new THREE.CircleGeometry(10, segments);
+            var circle = new THREE.Mesh(circleGeometry, material);
+            circle.scale.set(0.5, 0.5, 1);
+            circle.name = "circle";
+            circle.position.set(x, y, 1);
+            this.scene.add(circle);
+        };
+        Sparkiz.prototype.hslToRgb = function (h, s, l) {
+            var r, g, b;
+            if (s == 0) {
+                r = g = b = l;
+            }
+            else {
+                var hue2rgb = function hue2rgb(p, q, t) {
+                    if (t < 0)
+                        t += 1;
+                    if (t > 1)
+                        t -= 1;
+                    if (t < 1 / 6)
+                        return p + (q - p) * 6 * t;
+                    if (t < 1 / 2)
+                        return q;
+                    if (t < 2 / 3)
+                        return p + (q - p) * (2 / 3 - t) * 6;
+                    return p;
+                };
+                var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                var p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1 / 3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1 / 3);
+            }
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        };
+        Sparkiz.prototype.getColor = function (percent) {
+            var r = percent < 50 ? 255 : Math.floor(255 - (percent * 2 - 100) * 255 / 100);
+            var g = percent > 50 ? 255 : Math.floor((percent * 2) * 255 / 100);
+            if (r < 0) {
+                return new THREE.Vector3(1, 0, 0);
+            }
+            return new THREE.Vector3(r / 255.0, g / 255.0, 0);
+        };
+        Sparkiz.prototype.load_vertex_shaders = function () {
+            var self = this;
+            $.ajax({
+                async: false,
+                url: 'shaders/vertex.js',
+                success: function (data) {
+                    self.vertex_shader = data;
+                },
+                dataType: 'html'
+            });
+        };
+        Sparkiz.prototype.load_fragment_shaders = function () {
+            var self = this;
+            $.ajax({
+                async: false,
+                url: "shaders/fragment.js",
+                success: function (data) {
+                    self.fragment_shader = data;
+                },
+                dataType: 'html'
+            });
+        };
+        Sparkiz.prototype.get_middle = function (x1, y1, x2, y2) {
+            var middle_X = ((x2 - x1) / 2) + x1;
+            var middle_Y = ((y2 - y1) / 2) + y1;
+            return { x: middle_X, y: middle_Y };
+        };
+        Sparkiz.prototype.get_distance = function (x1, y1, x2, y2) {
+            var a = x1 - x2;
+            var b = y1 - y2;
+            var c = Math.sqrt(a * a + b * b);
+            return c;
+        };
+        Sparkiz.prototype.fit_temporal_distribution = function (link_id) {
             var delay = 0;
-            var iteration = (this.links[i].number_segmentation) / this.links[i].number_particles;
-            for (var j = 0; j < this.links[i].number_particles; j++) {
-                this.links[i].temporal_distribution[j] = delay;
+            var iteration = (this.links[link_id].number_segmentation) / this.links[link_id].number_particles;
+            for (var j = 0; j < this.links[link_id].number_particles; j++) {
+                this.links[link_id].temporal_distribution[j] = delay;
                 delay += iteration;
             }
-            this.links[i].spatial_distribution[0] = this.links[i].number_particles;
-        }
-    };
-    ParticleVis.prototype.fit_all_particles_to_frequence_temporal_distrib = function () {
-        for (var i = 0; i < this.links.length; i++) {
-            this.fit_to_frequence_temporal_distrib(i);
-        }
-    };
-    ParticleVis.prototype.fit_to_frequence_temporal_distrib = function (id) {
-        var frequence_patttern = this.links[id].frequency_pattern;
-        var temporal_distribution = this.links[id].temporal_distribution2;
-        var speed = this.links[id].velocity[0];
-        frequence_patttern = this.FPS * frequence_patttern;
-        var temporal_dis = [];
-        for (var i = 0; i < temporal_distribution.length; i++) {
-            temporal_dis.push(temporal_distribution[i] * -frequence_patttern / speed);
-        }
-        var motifs = Math.ceil(this.links[id].number_segmentation / frequence_patttern);
-        this.links[id].number_particles = motifs * temporal_distribution.length;
-        this.links[id].number_segmentation_pattern_fitting = motifs * frequence_patttern;
-        var total_for_pattern = 0;
-        var id_particle = 0;
-        var delay = 0;
-        for (var k = 1; k < motifs + 1; k++) {
-            total_for_pattern = 0;
-            delay = -frequence_patttern * (k - 1);
-            for (var j = 0; j < temporal_distribution.length; j++) {
-                this.links[id].temporal_distribution[id_particle] = delay + temporal_dis[j];
-                total_for_pattern += delay + temporal_dis[j];
-                id_particle += 1;
+            this.links[link_id].spatial_distribution[0] = this.links[link_id].number_particles;
+        };
+        Sparkiz.prototype.fit_all_temporal_distribution = function () {
+            for (var i = 0; i < this.links.length; i++) {
+                var delay = 0;
+                var iteration = (this.links[i].number_segmentation) / this.links[i].number_particles;
+                for (var j = 0; j < this.links[i].number_particles; j++) {
+                    this.links[i].temporal_distribution[j] = delay;
+                    delay += iteration;
+                }
+                this.links[i].spatial_distribution[0] = this.links[i].number_particles;
             }
-        }
-        this.links[id].spatial_distribution[0] = this.links[id].number_particles;
-    };
-    ParticleVis.prototype.get_max_of_attributes = function (attribute_name) {
-        var max_value = this.links[0].attr(attribute_name);
-        for (var i = 1; i < this.links.length; i++) {
-            var attr_value = this.links[i].attr(attribute_name);
-            if (attr_value > max_value) {
-                max_value = attr_value;
+        };
+        Sparkiz.prototype.fit_all_particles_to_frequence_temporal_distrib = function () {
+            for (var i = 0; i < this.links.length; i++) {
+                this.fit_to_frequence_temporal_distrib(i);
             }
-        }
-        return max_value;
-    };
-    ParticleVis.prototype.get_min_of_attributes = function (attribute_name) {
-        var min_value = this.links[0].attr(attribute_name);
-        for (var i = 1; i < this.links.length; i++) {
-            var attr_value = this.links[i].attr(attribute_name);
-            if (attr_value < min_value) {
-                min_value = attr_value;
+        };
+        Sparkiz.prototype.fit_to_frequence_temporal_distrib = function (id) {
+            var frequence_patttern = this.links[id].frequency_pattern;
+            var temporal_distribution = this.links[id].temporal_distribution2;
+            var speed = this.links[id].velocity[0];
+            frequence_patttern = this.FPS * frequence_patttern;
+            var temporal_dis = [];
+            for (var i = 0; i < temporal_distribution.length; i++) {
+                temporal_dis.push(temporal_distribution[i] * -frequence_patttern / speed);
             }
-        }
-        return min_value;
-    };
-    ParticleVis.prototype.updateNumber_of_particles = function (i, coefficient) {
-        this.links[i].coefficient_number_particles = coefficient;
-    };
-    ParticleVis.prototype.updateNode_color = function (i, color) {
-        this.webGL_nodes[i].material.color = color;
-    };
-    ParticleVis.prototype.updateNodes_color = function (color) {
-        for (var i = 0; i < this.nodes.length; i++) {
+            var motifs = Math.ceil(this.links[id].number_segmentation / frequence_patttern);
+            this.links[id].number_particles = motifs * temporal_distribution.length;
+            this.links[id].number_segmentation_pattern_fitting = motifs * frequence_patttern;
+            var total_for_pattern = 0;
+            var id_particle = 0;
+            var delay = 0;
+            for (var k = 1; k < motifs + 1; k++) {
+                total_for_pattern = 0;
+                delay = -frequence_patttern * (k - 1);
+                for (var j = 0; j < temporal_distribution.length; j++) {
+                    this.links[id].temporal_distribution[id_particle] = delay + temporal_dis[j];
+                    total_for_pattern += delay + temporal_dis[j];
+                    id_particle += 1;
+                }
+            }
+            this.links[id].number_particles = this.links[id].temporal_distribution.length;
+        };
+        Sparkiz.prototype.get_max_of_attributes = function (attribute_name) {
+            var max_value = this.links[0].attr(attribute_name);
+            for (var i = 1; i < this.links.length; i++) {
+                var attr_value = this.links[i].attr(attribute_name);
+                if (attr_value > max_value) {
+                    max_value = attr_value;
+                }
+            }
+            return max_value;
+        };
+        Sparkiz.prototype.get_min_of_attributes = function (attribute_name) {
+            var min_value = this.links[0].attr(attribute_name);
+            for (var i = 1; i < this.links.length; i++) {
+                var attr_value = this.links[i].attr(attribute_name);
+                if (attr_value < min_value) {
+                    min_value = attr_value;
+                }
+            }
+            return min_value;
+        };
+        Sparkiz.prototype.updateNumber_of_particles = function (i, coefficient) {
+            this.links[i].coefficient_number_particles = coefficient;
+        };
+        Sparkiz.prototype.updateNode_color = function (i, color) {
             this.webGL_nodes[i].material.color = color;
-        }
-    };
-    ParticleVis.prototype.updateNodes_scale = function (scale) {
-        for (var i = 0; i < this.nodes.length; i++) {
+        };
+        Sparkiz.prototype.updateNodes_color = function (color) {
+            for (var i = 0; i < this.nodes.length; i++) {
+                this.webGL_nodes[i].material.color = color;
+            }
+        };
+        Sparkiz.prototype.getNode_position = function (i) {
+            return this.webGL_nodes[i].position;
+        };
+        Sparkiz.prototype.updateNode_position = function (i, x, y) {
+            var array_links = [];
+            this.webGL_nodes[i].position.set(x, y, 1);
+            for (var j = 0; j < this.links.length; j++) {
+                var l = this.links[j];
+                if (l.source.id == i) {
+                    l.source.x = x;
+                    l.source.y = y;
+                    array_links.push(j);
+                }
+                if (l.target.id == i) {
+                    l.target.x = x;
+                    l.target.y = y;
+                    array_links.push(j);
+                }
+            }
+            return array_links;
+        };
+        Sparkiz.prototype.updateNodes_scale = function (scale) {
+            for (var i = 0; i < this.nodes.length; i++) {
+                this.webGL_nodes[i].scale.set(scale, scale, scale);
+            }
+        };
+        Sparkiz.prototype.updateNode_scale = function (i, scale) {
             this.webGL_nodes[i].scale.set(scale, scale, scale);
-        }
-    };
-    ParticleVis.prototype.updateNode_scale = function (i, scale) {
-        this.webGL_nodes[i].scale.set(scale, scale, scale);
-    };
-    ParticleVis.prototype.set_tube_width = function (id, width) {
-        this.links[id].width_tube = width;
-    };
-    ParticleVis.prototype.set_tube_color = function (id, color, opacity) {
-        color = color.replace("#", "0x");
-        this.tube[id].children[0].material.color.setHex(color);
-        this.tube[id].children[0].material.opacity = opacity;
-    };
-    ParticleVis.prototype.set_tubes_color = function (color) {
-        for (var i = 0; i < this.links.length; i++) {
-            this.tube[i].children[0].material.color.setHex(color);
-        }
-    };
-    ParticleVis.prototype.set_tubes_width = function (width) {
-        for (var i = 0; i < this.links.length; i++) {
-            this.links[i].width_tube = width;
-        }
-    };
-    ParticleVis.prototype.set_links_color = function (id, opacity) {
-        for (var j = 0; j < this.curveSplines[id].children.length; j++) {
-            this.curveSplines[id].children[j].material.opacity = opacity;
-        }
-    };
-    ParticleVis.prototype.load_particle_texture = function (link_id, value) {
-        this.links[link_id].texture = value;
-    };
-    ParticleVis.prototype.bezier = function (t, p0, p1, p2, p3) {
-        var cX = 3 * (p1.x - p0.x), bX = 3 * (p2.x - p1.x) - cX, aX = p3.x - p0.x - cX - bX;
-        var cY = 3 * (p1.y - p0.y), bY = 3 * (p2.y - p1.y) - cY, aY = p3.y - p0.y - cY - bY;
-        var x = (aX * Math.pow(t, 3)) + (bX * Math.pow(t, 2)) + (cX * t) + p0.x;
-        var y = (aY * Math.pow(t, 3)) + (bY * Math.pow(t, 2)) + (cY * t) + p0.y;
-        return { x: x, y: y };
-    };
-    ParticleVis.prototype.get_nodes = function () {
-        var array = [];
-        for (var j = 0; j < this.nodes.length; j++) {
-            array.push({ "x": this.nodes[j].x, "y": -this.nodes[j].y, "fixed": true });
-        }
-        return array;
-    };
-    ParticleVis.prototype.get_links = function () {
-        var array = [];
-        for (var j = 0; j < this.links.length; j++) {
-            array.push({ "id": j, "source": this.links[j].source.index,
-                "target": this.links[j].target.index,
-                "frequency_pattern": this.links[j].attr("frequency_pattern"),
-                "speed": this.links[j].attr("speed"),
-                "temporal_distribution": this.links[j].attr("temporal_distribution"),
-                "rank": [] });
-        }
-        return array;
-    };
-    return ParticleVis;
-}());
+        };
+        Sparkiz.prototype.set_tube_width = function (id, width) {
+            this.links[id].width_tube = width;
+        };
+        Sparkiz.prototype.set_tube_color = function (id, color, opacity) {
+            color = color.replace("#", "0x");
+            this.tube[id].children[0].material.color.setHex(color);
+            this.tube[id].children[0].material.opacity = opacity;
+        };
+        Sparkiz.prototype.set_tubes_color = function (color) {
+            for (var i = 0; i < this.links.length; i++) {
+                this.tube[i].children[0].material.color.setHex(color);
+            }
+        };
+        Sparkiz.prototype.set_tubes_width = function (width) {
+            for (var i = 0; i < this.links.length; i++) {
+                this.links[i].width_tube = width;
+            }
+        };
+        Sparkiz.prototype.set_links_color = function (id, opacity) {
+            for (var j = 0; j < this.curveSplines[id].children.length; j++) {
+                this.curveSplines[id].children[j].material.opacity = opacity;
+            }
+        };
+        Sparkiz.prototype.load_particle_texture = function (link_id, value) {
+            this.links[link_id].texture = value;
+        };
+        Sparkiz.prototype.bezier = function (t, p0, p1, p2, p3) {
+            var cX = 3 * (p1.x - p0.x), bX = 3 * (p2.x - p1.x) - cX, aX = p3.x - p0.x - cX - bX;
+            var cY = 3 * (p1.y - p0.y), bY = 3 * (p2.y - p1.y) - cY, aY = p3.y - p0.y - cY - bY;
+            var x = (aX * Math.pow(t, 3)) + (bX * Math.pow(t, 2)) + (cX * t) + p0.x;
+            var y = (aY * Math.pow(t, 3)) + (bY * Math.pow(t, 2)) + (cY * t) + p0.y;
+            return { x: x, y: y };
+        };
+        Sparkiz.prototype.get_nodes = function () {
+            var array = [];
+            for (var j = 0; j < this.nodes.length; j++) {
+                array.push({ "x": this.nodes[j].x, "y": -this.nodes[j].y, "fixed": true });
+            }
+            return array;
+        };
+        Sparkiz.prototype.get_links = function () {
+            var array = [];
+            for (var j = 0; j < this.links.length; j++) {
+                array.push({ "id": j,
+                    "source": this.links[j].source.index,
+                    "target": this.links[j].target.index,
+                    "frequency": this.links[j].frequency_pattern,
+                    "speed": this.links[j].speed,
+                    "temporal": this.links[j].temporal_distribution2,
+                    "rank": [] });
+            }
+            return array;
+        };
+        return Sparkiz;
+    }());
+    Sparkiz_1.Sparkiz = Sparkiz;
+})(Sparkiz || (Sparkiz = {}));

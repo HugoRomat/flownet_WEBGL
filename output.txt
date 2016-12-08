@@ -1,0 +1,250 @@
+
+Running node-supervisor with
+  program 'hello.js'
+  --watch '.'
+  --extensions 'node,js'
+  --exec 'node'
+
+Starting child process with 'node hello.js'
+Watching directory '/Users/TKM_user/Documents/SVN/projects/library_particleVis' for changes.
+Press rs for restarting the process.
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
+Program node hello.js exited with code 1
+
+Starting child process with 'node hello.js'
