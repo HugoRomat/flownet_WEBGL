@@ -16,7 +16,6 @@ class Visualisation {
         div_element;
         bg_color = 0xffffff;
         alpha;
-        
 
         constructor(div_element, width, height, bg_color, alpha){
             this.WIDTH = width;
@@ -55,6 +54,7 @@ class Visualisation {
 
 
             this.renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true, alpha: true });
+            
             this.renderer.setSize(this.WIDTH,this.HEIGHT)
 
 

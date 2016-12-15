@@ -66,7 +66,6 @@
                 
 
                 vec4 rotatedTexture = texture2D( texture,  rotated) * color;
-
                 gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;
 
 

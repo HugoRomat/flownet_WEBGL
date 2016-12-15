@@ -118,12 +118,54 @@ var Sparkiz;
                 this.viz.add_controls_anim();
             return this;
         };
-        Force.prototype.zoom = function (amount) {
-            this.viz._UI.mouse_event();
+        Force.prototype.zoom = function (bool) {
+            if (bool == true)
+                this.viz._UI.mouse_event();
             return this;
         };
         Force.prototype.particle_mapping = function (visual_attr, callback) {
             var value;
+            if (visual_attr.slice(0, 6) == 'color_') {
+                var gates_id = visual_attr.slice(6);
+                for (var i = 0; i < this.sparkiz.links.length; i++) {
+                    if (typeof (arguments[1]) == 'string') {
+                        value = new THREE.Color(arguments[1]);
+                    }
+                    else {
+                        var a = callback(this.sparkiz.links[i], i);
+                        value = new THREE.Color(a);
+                    }
+                    this.sparkiz.links[i].gate_colors[gates_id] = value;
+                }
+                return this;
+            }
+            if (visual_attr.slice(0, 5) == 'size_') {
+                var gates_id = visual_attr.slice(5);
+                for (var i = 0; i < this.sparkiz.links.length; i++) {
+                    if (typeof (arguments[1]) == 'number') {
+                        value = arguments[1];
+                    }
+                    else {
+                        var a = callback(this.sparkiz.links[i], i);
+                    }
+                    this.sparkiz.links[i].size[gates_id] = value;
+                }
+                return this;
+            }
+            if (visual_attr.slice(0, 9) == 'velocity_') {
+                console.log("VELOCITY");
+                var gates_id = visual_attr.slice(9);
+                for (var i = 0; i < this.sparkiz.links.length; i++) {
+                    if (typeof (arguments[1]) == 'number') {
+                        value = arguments[1];
+                    }
+                    else {
+                        var a = callback(this.sparkiz.links[i], i);
+                    }
+                    this.sparkiz.links[i].gate_velocity[gates_id] = value;
+                }
+                return this;
+            }
             switch (visual_attr) {
                 case "color":
                     for (var i = 0; i < this.sparkiz.links.length; i++) {
@@ -134,7 +176,8 @@ var Sparkiz;
                             var a = callback(this.sparkiz.links[i], i);
                             value = new THREE.Color(a);
                         }
-                        this.sparkiz.links[i].gate_colors[0] = value;
+                        for (var k = 0; k < 10; k++)
+                            this.sparkiz.links[i].gate_colors[k] = value;
                     }
                     return this;
                 case "size":
@@ -145,12 +188,13 @@ var Sparkiz;
                         else {
                             value = callback(this.sparkiz.links[i], i);
                         }
-                        this.sparkiz.links[i].size[0] = value;
+                        for (var k = 0; k < 10; k++)
+                            this.sparkiz.links[i].size[k] = value;
                     }
                     return this;
                 case "temporal_distribution":
                     for (var i = 0; i < this.sparkiz.links.length; i++) {
-                        if (typeof (arguments[1]) == 'array') {
+                        if (arguments[1] instanceof Array) {
                             value = arguments[1];
                         }
                         else {
@@ -161,7 +205,7 @@ var Sparkiz;
                     return this;
                 case "spatial_distribution":
                     for (var i = 0; i < this.sparkiz.links.length; i++) {
-                        if (typeof (arguments[1]) == 'array') {
+                        if (arguments[1] instanceof Array) {
                             value = arguments[1];
                         }
                         else {
@@ -190,7 +234,8 @@ var Sparkiz;
                         else {
                             value = callback(this.sparkiz.links[i], i);
                         }
-                        this.sparkiz.links[i].velocity[0] = value;
+                        for (var k = 0; k < 10; k++)
+                            this.sparkiz.links[i].gate_velocity[k] = value;
                     }
                     return this;
                 case "wiggling":
@@ -313,7 +358,7 @@ var Sparkiz;
                         else {
                             value = callback(this.sparkiz.nodes[i], i);
                         }
-                        this.sparkiz.webGL_nodes[i].scale.set(value, value, 1);
+                        this.sparkiz.webGL_nodes[i].scale.set(value, value, value);
                     }
                     return this;
                 case "label":
@@ -325,6 +370,52 @@ var Sparkiz;
                             value = callback(this.sparkiz.nodes[i], i);
                         }
                         this.sparkiz.nodes[i].label_name = value;
+                    }
+                    return this;
+                case "label_size":
+                    for (var i = 0; i < this.sparkiz.nodes.length; i++) {
+                        if (typeof (arguments[1]) == 'number' || typeof (arguments[1]) == 'string') {
+                            value = parseFloat(arguments[1]);
+                        }
+                        else {
+                            value = parseFloat(callback(this.sparkiz.nodes[i], i));
+                        }
+                        this.sparkiz.nodes[i].label_size = value;
+                    }
+                    return this;
+                case "label_x":
+                    for (var i = 0; i < this.sparkiz.nodes.length; i++) {
+                        if (typeof (arguments[1]) == 'number' || typeof (arguments[1]) == 'string') {
+                            value = parseFloat(arguments[1]);
+                        }
+                        else {
+                            value = parseFloat(callback(this.sparkiz.nodes[i], i));
+                        }
+                        this.sparkiz.nodes[i].label_x = value;
+                    }
+                    return this;
+                case "label_y":
+                    for (var i = 0; i < this.sparkiz.nodes.length; i++) {
+                        if (typeof (arguments[1]) == 'number' || typeof (arguments[1]) == 'string') {
+                            value = parseFloat(arguments[1]);
+                        }
+                        else {
+                            value = parseFloat(callback(this.sparkiz.nodes[i], i));
+                        }
+                        this.sparkiz.nodes[i].label_y = value;
+                    }
+                    return this;
+                case "label_color":
+                    for (var i = 0; i < this.sparkiz.nodes.length; i++) {
+                        var color;
+                        if (typeof (arguments[1]) == 'string') {
+                            color = new THREE.Color(arguments[1]);
+                        }
+                        else {
+                            var a = callback(this.sparkiz.nodes[i], i);
+                            color = new THREE.Color(a);
+                        }
+                        this.sparkiz.nodes[i].label_color = color;
                     }
                     return this;
                 case "x":
@@ -425,213 +516,221 @@ var Sparkiz;
             this.vertex += "";
             this.vertex += "";
             this.vertex += "";
-            this.vertex += "            uniform float time;";
-            this.vertex += "            uniform float uTime;";
+            this.vertex += "uniform float time;";
+            this.vertex += "uniform float uTime;";
             this.vertex += "";
+            this.vertex += "varying float size_fadding;";
             this.vertex += "";
-            this.vertex += "			attribute float id;";
+            this.vertex += "attribute float id;";
             this.vertex += "";
-            this.vertex += "     ";
-            this.vertex += "            attribute float id_particle;";
-            this.vertex += "			attribute vec3 customColor;";
             this.vertex += "";
-            this.vertex += "            attribute float iteration;";
+            this.vertex += "attribute float id_particle;";
+            this.vertex += "attribute vec3 customColor;";
             this.vertex += "";
-            this.vertex += "            uniform int particles_number;";
+            this.vertex += "attribute float iteration;";
             this.vertex += "";
-            this.vertex += "      ";
+            this.vertex += "uniform int particles_number;";
             this.vertex += "";
-            this.vertex += "            uniform mat4 ProjectionMatrix;";
             this.vertex += "";
-            this.vertex += "            uniform int number_segmentation;";
+            this.vertex += "uniform mat4 ProjectionMatrix;";
             this.vertex += "";
-            this.vertex += "            varying float sprite_size;";
+            this.vertex += "uniform int number_segmentation;";
             this.vertex += "";
+            this.vertex += "varying float sprite_size;";
             this.vertex += "";
-            this.vertex += "            uniform vec2 path_quadratic[path_length];";
             this.vertex += "";
-            this.vertex += "            uniform int gate_position[10];";
-            this.vertex += "            uniform int temporal_delay[real_number_particles]; ";
-            this.vertex += "            uniform int varyingData;";
             this.vertex += "";
-            this.vertex += "            uniform vec3 gate_colors[10];";
+            this.vertex += "uniform vec2 path_quadratic[path_length];";
             this.vertex += "";
-            this.vertex += "            uniform float velocity[10];";
-            this.vertex += "            uniform float size[10];";
-            this.vertex += "            uniform float opacity[10];";
-            this.vertex += "            uniform float wiggling[10];";
-            this.vertex += "            uniform int number_segmentation_pattern_fitting;";
+            this.vertex += "uniform int gate_position[10];";
+            this.vertex += "uniform int temporal_delay[real_number_particles];";
+            this.vertex += "uniform int varyingData;";
             this.vertex += "";
-            this.vertex += "			      varying vec3 vColor;";
-            this.vertex += "            varying float my_opacity;";
-            this.vertex += "            varying float distance_with_arrival;";
-            this.vertex += "            varying float distance_with_departure;";
-            this.vertex += "            float actual_velocity;";
+            this.vertex += "uniform vec3 gate_colors[10];";
             this.vertex += "";
-            this.vertex += "            varying float vRotation;";
-            this.vertex += "            int gate = 0;";
+            this.vertex += "uniform float velocity[10];";
+            this.vertex += "uniform float size[10];";
+            this.vertex += "uniform float opacity[10];";
+            this.vertex += "uniform float wiggling[10];";
+            this.vertex += "uniform int number_segmentation_pattern_fitting;";
             this.vertex += "";
-            this.vertex += "            int MOD(int a, int b){";
+            this.vertex += "varying vec3 vColor;";
+            this.vertex += "varying float my_opacity;";
+            this.vertex += "varying float distance_with_arrival;";
+            this.vertex += "varying float distance_with_departure;";
+            this.vertex += "float actual_velocity;";
             this.vertex += "";
-            this.vertex += "                int result = a \/ b;";
-            this.vertex += "                result = b * result;";
-            this.vertex += "                result = a - result;";
-            this.vertex += "                return result;";
-            this.vertex += "            }";
-            this.vertex += "            float rand(vec2 co){";
-            this.vertex += "                return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);";
-            this.vertex += "            }";
-            this.vertex += "            float distance(float x1, float y1, float x2, float y2){";
+            this.vertex += "varying float vRotation;";
+            this.vertex += "int gate = 0;";
             this.vertex += "";
-            this.vertex += "                float longueur = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));";
-            this.vertex += "                return longueur;";
-            this.vertex += "            }";
-            this.vertex += "            float noise(vec2 p){";
-            this.vertex += "                vec2 ip = floor(p);";
-            this.vertex += "                vec2 u = fract(p);";
-            this.vertex += "                u = u*u*(3.0-2.0*u);";
+            this.vertex += "int MOD(int a, int b){";
             this.vertex += "";
-            this.vertex += "                float res = mix(";
-            this.vertex += "                    mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),";
-            this.vertex += "                    mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);";
-            this.vertex += "                return res*res;";
-            this.vertex += "            }";
-            this.vertex += "            vec2 bezier(int t,  vec2 p0,vec2 p1,vec2 p2,vec2 p3){";
+            this.vertex += "int result = a \/ b;";
+            this.vertex += "result = b * result;";
+            this.vertex += "result = a - result;";
+            this.vertex += "return result;";
+            this.vertex += "}";
+            this.vertex += "float rand(vec2 co){";
+            this.vertex += "return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);";
+            this.vertex += "}";
+            this.vertex += "float distance(float x1, float y1, float x2, float y2){";
             this.vertex += "";
-            this.vertex += "                highp float timer = float(t);";
+            this.vertex += "float longueur = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));";
+            this.vertex += "return longueur;";
+            this.vertex += "}";
+            this.vertex += "float fadeSize(float actualSize, float nextSize, int steps, int index){ ";
             this.vertex += "";
-            this.vertex += "                highp float time = timer * 1.0\/(float(number_segmentation));";
+            this.vertex += "float temporarySize = ((nextSize - actualSize)\/ float(steps)) * float(index);";
+            this.vertex += "return actualSize + temporarySize;";
             this.vertex += "";
-            this.vertex += "                float cX = 3.0 * (p1.x - p0.x);";
-            this.vertex += "                float bX = 3.0 * (p2.x - p1.x) - cX;";
-            this.vertex += "                float aX = p3.x - p0.x - cX - bX;";
+            this.vertex += "}";
+            this.vertex += "vec3 fadeRGB(vec3 oldColor, vec3 newColor, int steps, int index){";
             this.vertex += "";
-            this.vertex += "                float cY = 3.0 * (p1.y - p0.y);";
-            this.vertex += "                float bY = 3.0 * (p2.y - p1.y) - cY;";
-            this.vertex += "                float aY = p3.y - p0.y - cY - bY;";
+            this.vertex += "vec3 my_color;";
+            this.vertex += "float redStepAmount = ((newColor.x - oldColor.x) \/ float(steps)) * float(index);";
+            this.vertex += "float greenStepAmount = ((newColor.y - oldColor.y) \/ float(steps)) * float(index);";
+            this.vertex += "float blueStepAmount = ((newColor.z - oldColor.z) \/ float(steps)) * float(index);";
             this.vertex += "";
-            this.vertex += "                float x = (aX * pow(time, 3.0)) + (bX * pow(time, 2.0)) + (cX * time) + p0.x;";
-            this.vertex += "                float y = (aY * pow(time, 3.0)) + (bY * pow(time, 2.0)) + (cY * time) + p0.y;";
+            this.vertex += "newColor.x = oldColor.x + redStepAmount;";
+            this.vertex += "newColor.y = oldColor.y + greenStepAmount;";
+            this.vertex += "newColor.z = oldColor.z + blueStepAmount;";
             this.vertex += "";
-            this.vertex += "                vec2 result = vec2( x,y );";
+            this.vertex += "my_color = vec3(newColor.x ,newColor.y, newColor.z);";
             this.vertex += "";
-            this.vertex += "                return result;";
-            this.vertex += "            }";
-            this.vertex += "            mat4 rotation(float x) {";
-            this.vertex += "              vec4 line_1 = vec4(cos(x), -sin(x), 0.0, 0.0);";
-            this.vertex += "              vec4 line_2 = vec4(sin(x), cos(x), 0.0, 0.0);";
-            this.vertex += "              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);";
-            this.vertex += "              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);";
+            this.vertex += "return my_color;";
             this.vertex += "";
-            this.vertex += "              return mat4(line_1,line_2,line_3,line_4);";
-            this.vertex += "            }";
-            this.vertex += "            mat4 translation(float x, float y) {";
-            this.vertex += "              vec4 line_1 = vec4(1.0, 0.0, 0.0,  x);";
-            this.vertex += "              vec4 line_2 = vec4(0.0, 1.0, 0.0,  y);";
-            this.vertex += "              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);";
-            this.vertex += "              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);";
+            this.vertex += "}";
+            this.vertex += "float noise(vec2 p){";
+            this.vertex += "vec2 ip = floor(p);";
+            this.vertex += "vec2 u = fract(p);";
+            this.vertex += "u = u*u*(3.0-2.0*u);";
             this.vertex += "";
-            this.vertex += "              return mat4(line_1,line_2,line_3,line_4);";
-            this.vertex += "            }";
-            this.vertex += "            mat4 changerEchelle(float sx, float sy) {";
-            this.vertex += "              vec4 line_1 = vec4(sx, 0.0, 0.0, 0.0);";
-            this.vertex += "              vec4 line_2 = vec4(0.0, sy, 0.0, 0.0);";
-            this.vertex += "              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);";
-            this.vertex += "              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);";
+            this.vertex += "float res = mix(";
+            this.vertex += "mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),";
+            this.vertex += "mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);";
+            this.vertex += "return res*res;";
+            this.vertex += "}";
+            this.vertex += "vec2 bezier(int t,  vec2 p0,vec2 p1,vec2 p2,vec2 p3){";
             this.vertex += "";
-            this.vertex += "              return mat4(line_1,line_2,line_3,line_4);";
-            this.vertex += "            }";
+            this.vertex += "highp float timer = float(t);";
             this.vertex += "";
-            this.vertex += "			void main() {";
+            this.vertex += "highp float time = timer * 1.0\/(float(number_segmentation));";
             this.vertex += "";
-            this.vertex += "				        vColor = customColor;";
-            this.vertex += "				        vec3 newPosition = position;";
-            this.vertex += "                vec4 mvPosition;";
-            this.vertex += "				        float ANGLE = 90.0;";
+            this.vertex += "float cX = 3.0 * (p1.x - p0.x);";
+            this.vertex += "float bX = 3.0 * (p2.x - p1.x) - cX;";
+            this.vertex += "float aX = p3.x - p0.x - cX - bX;";
             this.vertex += "";
+            this.vertex += "float cY = 3.0 * (p1.y - p0.y);";
+            this.vertex += "float bY = 3.0 * (p2.y - p1.y) - cY;";
+            this.vertex += "float aY = p3.y - p0.y - cY - bY;";
             this.vertex += "";
-            this.vertex += "               ";
-            this.vertex += "                highp int id_faisceaux = int(id_particle);";
+            this.vertex += "float x = (aX * pow(time, 3.0)) + (bX * pow(time, 2.0)) + (cX * time) + p0.x;";
+            this.vertex += "float y = (aY * pow(time, 3.0)) + (bY * pow(time, 2.0)) + (cY * time) + p0.y;";
             this.vertex += "";
+            this.vertex += "vec2 result = vec2( x,y );";
             this.vertex += "";
-            this.vertex += "                actual_velocity = velocity[0];";
+            this.vertex += "return result;";
+            this.vertex += "}";
+            this.vertex += "mat4 rotation(float x) {";
+            this.vertex += "vec4 line_1 = vec4(cos(x), -sin(x), 0.0, 0.0);";
+            this.vertex += "vec4 line_2 = vec4(sin(x), cos(x), 0.0, 0.0);";
+            this.vertex += "vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);";
+            this.vertex += "vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);";
+            this.vertex += "return mat4(line_1,line_2,line_3,line_4);";
+            this.vertex += "}";
+            this.vertex += "mat4 translation(float x, float y) {";
+            this.vertex += "vec4 line_1 = vec4(1.0, 0.0, 0.0,  x);";
+            this.vertex += "vec4 line_2 = vec4(0.0, 1.0, 0.0,  y);";
+            this.vertex += "vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);";
+            this.vertex += "vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);";
+            this.vertex += "return mat4(line_1,line_2,line_3,line_4);";
+            this.vertex += "}";
+            this.vertex += "mat4 changerEchelle(float sx, float sy) {";
+            this.vertex += "vec4 line_1 = vec4(sx, 0.0, 0.0, 0.0);";
+            this.vertex += "vec4 line_2 = vec4(0.0, sy, 0.0, 0.0);";
+            this.vertex += "vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);";
+            this.vertex += "vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);";
+            this.vertex += "return mat4(line_1,line_2,line_3,line_4);";
+            this.vertex += "}";
+            this.vertex += "void main() {";
             this.vertex += "";
-            this.vertex += "           ";
-            this.vertex += "                float timer =  uTime;";
-            this.vertex += "                highp int my_time = int(timer);";
+            this.vertex += "vColor = customColor;";
+            this.vertex += "vec3 newPosition = position;";
+            this.vertex += "vec4 mvPosition;";
+            this.vertex += "float ANGLE = 90.0;";
+            this.vertex += "highp int id_faisceaux = int(id_particle);";
+            this.vertex += "actual_velocity = velocity[0];";
+            this.vertex += "float timer =  uTime;";
+            this.vertex += "highp int my_time = int(timer);";
+            this.vertex += "highp int velo = int(actual_velocity);";
+            this.vertex += "my_time = my_time + temporal_delay[id_faisceaux];";
+            this.vertex += "int index_old = MOD(my_time , number_segmentation_pattern_fitting);";
             this.vertex += "";
-            this.vertex += "                int index_thorique = MOD(my_time, number_segmentation);";
+            this.vertex += "float virtual_index = float(index_old);";
+            this.vertex += "virtual_index = virtual_index * actual_velocity;";
+            this.vertex += "highp int index = int(virtual_index);";
             this.vertex += "";
-            this.vertex += "                for(int i = 0; i < 9; i++){";
-            this.vertex += "                    if(index_thorique <= gate_position[i+1] && index_thorique > gate_position[i]){";
-            this.vertex += "                        gate = i;";
-            this.vertex += "                    }";
             this.vertex += "";
-            this.vertex += "                    if(index_thorique >= gate_position[i+1] && index_thorique >= gate_position[i] &&";
-            this.vertex += "                        gate_position[i+1] == 0 && gate_position[i] != 0){";
-            this.vertex += "                        gate = i;";
-            this.vertex += "                    }";
             this.vertex += "";
-            this.vertex += "                }";
             this.vertex += "";
             this.vertex += "";
-            this.vertex += "                vColor = vec3(gate_colors[gate].x ,gate_colors[gate].y, gate_colors[gate].z);";
-            this.vertex += "                my_opacity = opacity[gate];";
             this.vertex += "";
-            this.vertex += "                highp int velo = int(actual_velocity);";
             this.vertex += "";
+            this.vertex += "float random = 0.0;";
             this.vertex += "";
-            this.vertex += "                my_time = my_time + temporal_delay[id_faisceaux];";
+            this.vertex += "vec4 path;";
+            this.vertex += "vec4 path_next;";
             this.vertex += "";
-            this.vertex += "                int index_old = MOD(my_time , number_segmentation_pattern_fitting);";
+            this.vertex += "highp int path_id = int(id) * (4);";
             this.vertex += "";
-            this.vertex += "                float virtual_index = float(index_old);";
-            this.vertex += "                virtual_index = virtual_index * actual_velocity;";
-            this.vertex += "                highp int index = int(virtual_index);";
+            this.vertex += "path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);";
+            this.vertex += "path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);";
             this.vertex += "";
+            this.vertex += "distance_with_arrival = distance(path.x, path.y, path_quadratic[path_id+3].x, path_quadratic[path_id+3].y);";
+            this.vertex += "distance_with_departure = distance(path.x, path.y, path_quadratic[path_id].x, path_quadratic[path_id].y);";
             this.vertex += "";
+            this.vertex += "float angle = atan(path_next.y - path.y, path_next.x - path.x );";
+            this.vertex += "vRotation =  - angle;";
             this.vertex += "";
             this.vertex += "";
             this.vertex += "";
+            this.vertex += "mat4 my_matrice =  translation(path.x + random,path.y+ random);";
             this.vertex += "";
-            this.vertex += "                float random = noise(vec2( index , index )) * wiggling[gate];";
+            this.vertex += "vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;";
             this.vertex += "";
-            this.vertex += "                vec4 path;";
-            this.vertex += "                vec4 path_next;";
             this.vertex += "";
-            this.vertex += "                highp int path_id = int(id) * (4);";
+            this.vertex += "mvPosition =  modelViewMatrix * positionEchelle;";
             this.vertex += "";
+            this.vertex += "int index_thorique = index;";
             this.vertex += "";
-            this.vertex += "                path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);";
-            this.vertex += "                path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);";
+            this.vertex += "for(int i = 0; i < 9; i++){";
+            this.vertex += "if(index_thorique <= gate_position[i+1] && index_thorique > gate_position[i]){";
+            this.vertex += "gate = i;";
+            this.vertex += "}";
             this.vertex += "";
-            this.vertex += "                if (index >= number_segmentation  || index <= 0){my_opacity = 0.0;}";
-            this.vertex += "   ";
-            this.vertex += "                distance_with_arrival = distance(path.x, path.y, path_quadratic[path_id+3].x, path_quadratic[path_id+3].y);";
-            this.vertex += "                distance_with_departure = distance(path.x, path.y, path_quadratic[path_id].x, path_quadratic[path_id].y);";
-            this.vertex += " ";
-            this.vertex += "                float angle = atan(path_next.y - path.y, path_next.x - path.x );";
-            this.vertex += "                vRotation =  - angle;";
+            this.vertex += "if(index_thorique >= gate_position[i+1] && index_thorique >= gate_position[i] &&";
+            this.vertex += "gate_position[i+1] == 0 && gate_position[i] != 0){";
+            this.vertex += "gate = i;";
+            this.vertex += "}";
+            this.vertex += "}";
             this.vertex += "";
+            this.vertex += "vColor = vec3(gate_colors[gate].x ,gate_colors[gate].y, gate_colors[gate].z);";
+            this.vertex += "vec3 vColorNext = vec3(gate_colors[gate+1].x ,gate_colors[gate+1].y, gate_colors[gate+1].z);";
+            this.vertex += "size_fadding = size[gate];";
             this.vertex += "";
+            this.vertex += "vColor = fadeRGB(vColor, vColorNext, gate_position[gate+1] - gate_position[gate], index_thorique - gate_position[gate]);";
+            this.vertex += "size_fadding = fadeSize(size[gate], size[gate+1], gate_position[gate+1] - gate_position[gate], index_thorique - gate_position[gate]);";
             this.vertex += "";
+            this.vertex += "my_opacity = opacity[gate];";
+            this.vertex += "if (index >= number_segmentation  || index <= 0){my_opacity = 0.0;}";
             this.vertex += "";
-            this.vertex += "                mat4 my_matrice =  translation(path.x + random,path.y+ random);";
+            this.vertex += "gl_PointSize = size_fadding;";
+            this.vertex += "sprite_size = gl_PointSize;";
             this.vertex += "";
-            this.vertex += "                vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;";
+            this.vertex += "gl_Position = projectionMatrix * mvPosition;";
             this.vertex += "";
             this.vertex += "";
-            this.vertex += "";
-            this.vertex += "                mvPosition =  modelViewMatrix * positionEchelle;";
-            this.vertex += "";
-            this.vertex += "                gl_PointSize = size[gate];";
-            this.vertex += "                sprite_size = gl_PointSize;";
-            this.vertex += "";
-            this.vertex += "";
-            this.vertex += "                gl_Position = projectionMatrix * mvPosition;";
-            this.vertex += "";
-            this.vertex += "";
-            this.vertex += "			}";
+            this.vertex += "}";
             this.vertex += "";
         };
         return Shader;
@@ -4611,9 +4710,8 @@ var Sparkiz;
             this.nodes = nodes;
             this.scene = interface_.scene;
             this.camera = interface_.camera;
-            this.shader = new Sparkiz_1.Shader();
-            this.fragment_shader = this.shader.fragment;
-            this.vertex_shader = this.shader.vertex;
+            this.load_vertex_shaders();
+            this.load_fragment_shaders();
         }
         Sparkiz.prototype.draw_map = function (projection) {
             var array = [];
@@ -4704,19 +4802,19 @@ var Sparkiz;
                     if (self.nodes[i].label_name != null) {
                         var textGeo = new THREE.TextGeometry(self.nodes[i].label_name, {
                             font: font,
-                            size: 6,
+                            size: self.nodes[i].label_size,
                             height: 5,
                             curveSegments: 12,
                             bevelThickness: 1,
                             bevelSize: 5,
                             bevelEnabled: false
                         });
-                        var textMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
+                        var textMaterial = new THREE.MeshBasicMaterial({ color: self.nodes[i].label_color });
                         var mesh = new THREE.Mesh(textGeo, textMaterial);
-                        self.webGL_label.push(mesh);
-                        mesh.position.set(i * 50, 10, 1);
-                        mesh.position.x = self.nodes[i].x + 30;
-                        mesh.position.y = self.nodes[i].y;
+                        mesh.position.set(0, 0, 1);
+                        mesh.position.x = self.nodes[i].x + self.nodes[i].label_x;
+                        mesh.position.y = self.nodes[i].y + self.nodes[i].label_y;
+                        ;
                         mesh.name = "label";
                         console.log("CREATE");
                         self.scene.add(mesh);
@@ -4729,14 +4827,19 @@ var Sparkiz;
             this.webGL_nodes = [];
             for (var i = 0; i < this.nodes.length; i++) {
                 this.nodes[i].label_name = null;
+                this.nodes[i].label_size = 6;
+                this.nodes[i].label_x = 0;
+                this.nodes[i].label_y = 0;
+                this.nodes[i].label_color = 0xff0000;
                 var material = new THREE.MeshBasicMaterial({
                     transparent: true
                 });
-                var segments = 50;
+                var segments = 64;
                 var circleGeometry = new THREE.CircleGeometry(1, segments);
                 var circle = new THREE.Mesh(circleGeometry, material);
                 this.webGL_nodes.push(circle);
                 circle.scale.set(1, 1, 1);
+                circle.position.set(10, 10, 1);
                 circle.name = "circle";
                 circle.userData = { id: i, type: "node" };
                 this.scene.add(circle);
@@ -4912,7 +5015,6 @@ var Sparkiz;
                 this.links[i].number_segmentation_pattern_fitting = 50;
                 this.links[i].spatial_distribution = [];
                 this.links[i].temporal_distribution2 = [0.0];
-                this.links[i].velocity = [];
                 this.links[i].opacity = [];
                 this.links[i].wiggling = [];
                 this.links[i].size = [];
@@ -4984,11 +5086,12 @@ var Sparkiz;
                 this.curveSplines.push(multi_line);
                 this.links[i].userData = { id: this.links[i]._id, number_particles: 0 };
                 this.links[i].temporal_distribution = Array.apply(null, Array(this.number_particles)).map(Number.prototype.valueOf, 0);
-                this.links[i].velocity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
                 this.links[i].opacity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
                 this.links[i].wiggling = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 0.0);
                 this.links[i].size = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 40.0);
-                this.links[i].gate_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                this.links[i].gate_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                this.links[i].gate_velocity = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+                this.links[i].gate_colors = Array(this.links[i].gate_position).fill(new THREE.Vector3(1.0, 1.0, 1.0));
                 for (var j = 0; j < this.number_max_gates; j++) {
                     this.links[i].gate_colors.push(new THREE.Vector3(1.0, 1.0, 1.0));
                 }
@@ -5025,6 +5128,10 @@ var Sparkiz;
                 object.material = curveSplineMaterial;
                 object.geometry.vertices = geometry.vertices;
                 object.geometry.verticesNeedUpdate = true;
+                for (var f = 1; f < this.links[i].gate_position.length - 1; f++) {
+                    this.links[i].gate_position[f] = Math.ceil((this.links[i].number_segmentation / 9) * f);
+                }
+                this.links[i].gate_position[10] = this.links[i].number_segmentation + Math.ceil(this.links[i].number_segmentation / 9);
                 var position = this.get_normal_position_border(x1, y1, x2, y2, this.links[i].width_tube, this.number_paths_particule);
                 for (var j = 0, f = 1; j < position.length - 1; j += 2, f++) {
                     var object = this.curveSplines[i].children[f];
@@ -5146,8 +5253,8 @@ var Sparkiz;
         Sparkiz.prototype.updateParticles_Velocity = function (link_id, gate, value) {
             var number_particles = this.links[link_id].userData.number_particles;
             var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
-            uniforms.velocity.value[gate] = value;
-            console.log("VELOCITY", uniforms.velocity.value);
+            uniforms.gate_velocity.value[gate] = value;
+            console.log("VELOCITY", uniforms.gate_velocity.value);
         };
         Sparkiz.prototype.updateParticles_Wiggling = function (link_id, gate, value) {
             var number_particles = this.links[link_id].userData.number_particles;
@@ -5283,7 +5390,7 @@ var Sparkiz;
             console.log("CREATE PARTICLES", particles, link_id);
             var self = this;
             var temporal = this.links[link_id].temporal_distribution;
-            var velocity = this.links[link_id].velocity;
+            var gate_velocity = this.links[link_id].gate_velocity;
             var opacity = this.links[link_id].opacity;
             var wiggling = this.links[link_id].wiggling;
             var size = this.links[link_id].size;
@@ -5296,18 +5403,30 @@ var Sparkiz;
                 path_quadratic = path_quadratic.concat(this.links[link_id].path_quadratic[i]);
             }
             var spatial = this.array_SpatialDistribution_items(particles, link_id);
-            console.log(temporal);
             var texture = new THREE.TextureLoader().load(this.links[link_id].texture);
             texture.minFilter = THREE.LinearMipMapLinearFilter;
             texture.magFilter = THREE.LinearFilter;
+            console.log("GATE POSITION", gate_position);
+            var number = 0;
+            var posistion_gate_after_speed = [];
+            var gap_two_gates = parseInt(gate_position[1] - gate_position[0]);
+            for (var i = 0; i < gate_position.length; i++) {
+                posistion_gate_after_speed.push(number);
+                number = number + parseInt(gap_two_gates / (gate_velocity[i]));
+            }
+            posistion_gate_after_speed[posistion_gate_after_speed.length - 1] = gate_position[gate_position.length - 1];
+            posistion_gate_after_speed[posistion_gate_after_speed.length - 2] = gate_position[gate_position.length - 2];
+            console.log("gate_velocity", gate_velocity);
+            console.log("posistion_gate_after_speed", posistion_gate_after_speed);
             var uniforms = {
                 "path_quadratic": { type: "v2v", value: path_quadratic },
                 "temporal_delay": { type: "iv1", value: temporal },
-                "velocity": { type: "fv1", value: velocity },
+                "gate_velocity": { type: "iv1", value: gate_velocity },
                 "size": { type: "fv1", value: size },
                 "opacity": { type: "fv1", value: opacity },
                 "wiggling": { type: "fv1", value: wiggling },
-                "gate_position": { type: "iv1", value: gate_position },
+                "gap_two_gates": { type: "iv1", value: gap_two_gates },
+                "gate_position": { type: "iv1", value: posistion_gate_after_speed },
                 "gate_colors": { type: "v3v", value: gate_colors },
                 "particles_number": { type: "iv1", value: particles },
                 "number_segmentation": { type: "iv1", value: number_segmentation },
@@ -5551,7 +5670,7 @@ var Sparkiz;
         Sparkiz.prototype.fit_to_frequence_temporal_distrib = function (id) {
             var frequence_patttern = this.links[id].frequency_pattern;
             var temporal_distribution = this.links[id].temporal_distribution2;
-            var speed = this.links[id].velocity[0];
+            var speed = this.links[id].gate_velocity[0];
             frequence_patttern = this.FPS * frequence_patttern;
             var temporal_dis = [];
             for (var i = 0; i < temporal_distribution.length; i++) {

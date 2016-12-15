@@ -14,6 +14,7 @@ module Sparkiz {
         sparkiz;
         _UI;
         mapping;
+        controls;
 
         frame =0;
         refreshIntervalId;
@@ -46,6 +47,9 @@ module Sparkiz {
 
             this._UI = new UI(this.sparkiz, this.interface_.scene, this.interface_.camera, this.interface_.renderer, this.interface_.raycaster);
             
+            //this.controls = new THREE.OrbitControls( this.interface_.camera, this.interface_.renderer.domElement);
+            
+			
 
             this.mapping = new Mapping(this.sparkiz);
 
@@ -98,6 +102,7 @@ module Sparkiz {
             //Update mes particule de une case
             //this.sparkiz.update();
             this.sparkiz.updateParticle(number_frame);
+            //this.controls.update();
             //Render l'interface graphique
             this.interface_.renderer.render(this.interface_.scene, this.interface_.camera);
         }

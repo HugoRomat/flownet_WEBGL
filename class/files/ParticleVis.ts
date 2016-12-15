@@ -75,14 +75,14 @@ export class Sparkiz{
         this.scene = interface_.scene;
         this.camera = interface_.camera;
        
-        //this.load_vertex_shaders();
-        //this.load_fragment_shaders();
+        this.load_vertex_shaders();
+        this.load_fragment_shaders();
 
         //SI PROBLEME AVEC TEMPORAL IL FAUT AUGMENTER LE NOMBRE DANS LE TABLEAU
         //this.create();
-         this.shader = new Shader();
-         this.fragment_shader = this.shader.fragment;
-         this.vertex_shader = this.shader.vertex
+        //  this.shader = new Shader();
+        //  this.fragment_shader = this.shader.fragment;
+        //  this.vertex_shader = this.shader.vertex
         //console.log(this.shader.fragment);
 
 
@@ -142,13 +142,10 @@ export class Sparkiz{
         
         
         // // Cree mes labels et noeuds a des places aleatoires
-        
         this.createNodes();
-        
-        
         this.createTube();
-        
         this.createLinks();
+        
         
         //this.d3cola.linkDistance(function (l) { return l.link_length })
        
@@ -233,43 +230,35 @@ export class Sparkiz{
         }
         createLabel(){
             var self = this;
-
-            
-
-                var loader = new THREE.FontLoader();
-				loader.load( 'helvetiker_bold.typeface.json', function ( font ) {
-                    //console.log(self.nodes[i].label)
-                    var mesh = new THREE.Font();
-                    for(var i=0 ; i<self.nodes.length ; i++)
-                    {
-                        if (self.nodes[i].label_name != null){
-                            //console.log("YOO", self.nodes[i].label_name)
-                            var textGeo = new THREE.TextGeometry( self.nodes[i].label_name, {
-                                font: font,
-                                size: 6,
-                                height: 5,
-                                curveSegments: 12,
-                                bevelThickness: 1,
-                                bevelSize: 5,
-                                bevelEnabled: false
-                            });
-
-                            var textMaterial = new THREE.MeshPhongMaterial( { color: 0xff0000 } );
-                            var mesh = new THREE.Mesh( textGeo, textMaterial );
-                            
-                            self.webGL_label.push(mesh);
-
-                            mesh.position.set( i * 50,10,1);
-                            mesh.position.x = self.nodes[i].x + 30;
-                            mesh.position.y = self.nodes[i].y;
-                            //console.log(mesh.position.x, mesh.position.y)
-                            //console.log(self.nodes[i].x, self.nodes[i].y);
-                            mesh.name = "label" ;
-                            console.log("CREATE")
-                            self.scene.add( mesh );
-                        }
+            var loader = new THREE.FontLoader();
+            loader.load( 'helvetiker_bold.typeface.json', function ( font ) {
+                //console.log(self.nodes[i].label)
+                var mesh = new THREE.Font();
+                for(var i=0 ; i<self.nodes.length ; i++)
+                {
+                    if (self.nodes[i].label_name != null){
+                        //console.log("YOO", self.nodes[i].label_name)
+                        var textGeo = new THREE.TextGeometry( self.nodes[i].label_name, {
+                            font: font,
+                            size: self.nodes[i].label_size,
+                            height: 5,
+                            curveSegments: 12,
+                            bevelThickness: 1,
+                            bevelSize: 5,
+                            bevelEnabled: false
+                        })
+                        var textMaterial = new THREE.MeshBasicMaterial({ color: self.nodes[i].label_color});
+                        var mesh = new THREE.Mesh( textGeo, textMaterial );
+                        //self.webGL_label.push(mesh);
+                        mesh.position.set( 0,0,1);
+                        mesh.position.x = self.nodes[i].x + self.nodes[i].label_x;
+                        mesh.position.y = self.nodes[i].y + self.nodes[i].label_y;;
+                        mesh.name = "label" ;
+                        console.log("CREATE")
+                        self.scene.add( mesh );
                     }
-				} );
+                }
+			});
         }
         createNodes(){
             // NODES
@@ -284,6 +273,10 @@ export class Sparkiz{
             {
                 //JE MET UN PX ET PY CAR LE LAYOUT TOURNE CONSTAMENT DONC EMPECHE MES NODES DE SE METTRE A JOUR
                 this.nodes[i].label_name = null;
+                this.nodes[i].label_size = 6;
+                this.nodes[i].label_x = 0;
+                this.nodes[i].label_y = 0;
+                this.nodes[i].label_color = 0xff0000;
                 // this.nodes[i].px = null;
                 // this.nodes[i].py = null;
 
@@ -292,15 +285,25 @@ export class Sparkiz{
                     transparent:true
                 });
                 // instantiate a loader
-                var segments = 50 ;
+                var segments = 64 ;
                 var circleGeometry = new THREE.CircleGeometry(1, segments );
+                
                 var circle = new THREE.Mesh( circleGeometry, material );
                 this.webGL_nodes.push(circle);
                 circle.scale.set(1,1, 1);
-                //circle.position.set(10,10, 1);
+                circle.position.set(10,10, 1);
                 circle.name = "circle" ;
                 circle.userData = { id: i, type: "node" };
                 this.scene.add( circle );
+
+                /*var geometry = new THREE.SphereGeometry( 1, 32, 32 );
+                var material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+                var circle = new THREE.Mesh( geometry, material );
+                this.webGL_nodes.push(circle);
+                circle.scale.set(1,1, 1);
+                circle.name = "circle" ;
+                circle.userData = { id: i, type: "node" };
+                this.scene.add( circle );*/
                 
             }
         } 
@@ -545,12 +548,14 @@ export class Sparkiz{
                 
                 this.links[i].spatial_distribution = [];
                 this.links[i].temporal_distribution2 = [0.0];
-                this.links[i].velocity = [];
+                //this.links[i].velocity = [];
                 this.links[i].opacity = [];
                 this.links[i].wiggling = [];
                 this.links[i].size = [];
                 this.links[i].gate_position = [];
-                this.links[i].gate_colors = []; 
+
+                this.links[i].gate_colors = [];
+
                 this.links[i].texture = "images/rectangle_texture.png"; 
                 this.links[i].number_particles = this.number_particles;
                 this.links[i].coefficient_number_particles = 1;
@@ -642,12 +647,13 @@ export class Sparkiz{
                 
 
                 this.links[i].temporal_distribution = Array.apply(null, Array(this.number_particles)).map(Number.prototype.valueOf,0);
-                this.links[i].velocity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
+                //this.links[i].velocity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
                 this.links[i].opacity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf,1.0);
                 this.links[i].wiggling = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf,0.0);
                 this.links[i].size = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf,40.0);
-                this.links[i].gate_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                //this.links[i].gate_colors = Array(this.links[i].gate_position).fill(new THREE.Vector3( 1.0, 1.0, 1.0 )); 
+                this.links[i].gate_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                this.links[i].gate_velocity = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+                this.links[i].gate_colors = Array(this.links[i].gate_position).fill(new THREE.Vector3( 1.0, 1.0, 1.0 )); 
                 
                 for (var j = 0; j< this.number_max_gates;j++){
                     this.links[i].gate_colors.push(new THREE.Vector3( 1.0, 1.0, 1.0 ))
@@ -696,6 +702,14 @@ export class Sparkiz{
                 object.material = curveSplineMaterial; 
                 object.geometry.vertices = geometry.vertices;
                 object.geometry.verticesNeedUpdate = true;
+
+                /************************* POUR LES GATES  ****************************************/
+                /******** AFIN QUE LA DERNIERE PORTE CORRESPONDE AU NOEUD FINAL  ******************/
+                for(var f = 1; f < this.links[i].gate_position.length - 1 ; f++){
+                    this.links[i].gate_position[f] = Math.ceil((this.links[i].number_segmentation/ 9) * f) //this.links[i].gate_position = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                }
+                this.links[i].gate_position[10] = this.links[i].number_segmentation + Math.ceil(this.links[i].number_segmentation/ 9);
+                
 
                 /***** POUR LES LIENS EXTERIEURS */
                 var position = this.get_normal_position_border(x1, y1, x2, y2, this.links[i].width_tube, this.number_paths_particule);
@@ -868,8 +882,8 @@ export class Sparkiz{
 
             var number_particles = this.links[link_id].userData.number_particles
             var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
-            uniforms.velocity.value[gate] = value;
-            console.log("VELOCITY",uniforms.velocity.value)
+            uniforms.gate_velocity.value[gate] = value;
+            console.log("VELOCITY",uniforms.gate_velocity.value)
         }
         updateParticles_Wiggling(link_id, gate, value){
 
@@ -1045,6 +1059,7 @@ export class Sparkiz{
             console.log("Temporal",uniforms.temporal_delay)
 
         }
+        /************* J'UPDATE LE TEMPS **********/
         updateParticle(number_frame){
             var numParticles; 
             var my_frame = 0;
@@ -1057,7 +1072,8 @@ export class Sparkiz{
 
                     var uniforms = this.links[j].particleSystems.material.__webglShader.uniforms;
                     uniforms.uTime.value = number_frame;
-                    //uniforms.uTime.value = uniforms.uTime.value % 50;
+                    
+                    
                 }
             }
             
@@ -1069,7 +1085,7 @@ export class Sparkiz{
 
 
             var temporal = this.links[link_id].temporal_distribution;
-            var velocity = this.links[link_id].velocity;
+            var gate_velocity = this.links[link_id].gate_velocity;
             var opacity = this.links[link_id].opacity;
             var wiggling = this.links[link_id].wiggling;
             var size = this.links[link_id].size;
@@ -1085,7 +1101,7 @@ export class Sparkiz{
             }
 
             var spatial = this.array_SpatialDistribution_items(particles, link_id);
-            console.log(temporal)
+            //console.log("GATE POSITION", gate_position)
             //console.log(path_quadratic)
             // for (var i = 0; i< path_quadratic.length; i++){
             //     this.draw_circle(path_quadratic[i].x,path_quadratic[i][1])
@@ -1112,21 +1128,37 @@ export class Sparkiz{
             //console.log("YOOOOO", self.camera)
             //console.log(this.links[link_id].curvePath[11], this.links[link_id].curvePath[0])
             //console.log(path_quadratic)
+
             var texture = new THREE.TextureLoader().load( this.links[link_id].texture );
             texture.minFilter = THREE.LinearMipMapLinearFilter;
 			texture.magFilter = THREE.LinearFilter;
             
-            //console.log("FINAL", temporal)
+            console.log("GATE POSITION", gate_position);
+            var number = 0;
+            var posistion_gate_after_speed = [];
+
+            /*************** PERMET DE DETERMINER LA NOUVELLE POSITION DES GATES POUR PRENDRE EN COMPTE LA VITESSE *************/
+            var gap_two_gates = parseInt(gate_position[1] - gate_position[0]);
+            for (var i =0; i<gate_position.length; i ++){
+                posistion_gate_after_speed.push(number);
+                number = number + parseInt(gap_two_gates / (gate_velocity[i]));
+            }
+            posistion_gate_after_speed[posistion_gate_after_speed.length - 1] = gate_position[gate_position.length - 1];
+            posistion_gate_after_speed[posistion_gate_after_speed.length - 2] = gate_position[gate_position.length - 2];
+
+            console.log("gate_velocity", gate_velocity);
+            console.log("posistion_gate_after_speed", posistion_gate_after_speed);
             
             //console.log(number_segmentation_pattern_fitting)
             var uniforms = {
                 "path_quadratic" :  { type: "v2v", value: path_quadratic },
                 "temporal_delay" : { type: "iv1", value: temporal },
-                "velocity" : { type: "fv1", value: velocity },
+                "gate_velocity" : { type: "iv1", value: gate_velocity },
                 "size" : { type: "fv1", value: size },
                 "opacity" : { type: "fv1", value: opacity },
                 "wiggling" : { type: "fv1", value: wiggling },
-                "gate_position" : { type: "iv1", value: gate_position },
+                "gap_two_gates" : { type: "iv1", value: gap_two_gates },
+                "gate_position" : { type: "iv1", value: posistion_gate_after_speed },
                 "gate_colors" : { type: "v3v", value: gate_colors },
                 "particles_number" : { type: "iv1", value: particles },  
                 "number_segmentation" : { type: "iv1", value: number_segmentation },  
@@ -1530,7 +1562,7 @@ export class Sparkiz{
             // J'ai 60 fps donc je multiplie par 60 pour avoir l'equivalent en frame
             var frequence_patttern = this.links[id].frequency_pattern;
             var temporal_distribution = this.links[id].temporal_distribution2;
-            var speed = this.links[id].velocity[0];
+            var speed = this.links[id].gate_velocity[0];
             frequence_patttern = this.FPS * frequence_patttern; 
 
             //console.log(frequence_patttern, temporal_distribution);
@@ -1538,8 +1570,8 @@ export class Sparkiz{
             //console.log(frequence_patttern, temporal_distribution)
 
             //Je multiplie par frequence pattern pour partir d'une echelle sur [O,1] en entrée vers [0,-frequence_patttern]
-            // ƒNégatif pour que ca parte vers l'arriere
-            // Divise par speed pour que cela soit proportionnel si l'on change la vitesse
+            //Négatif pour que ca parte vers l'arriere
+            //Divise par speed pour que cela soit proportionnel si l'on change la vitesse
             var temporal_dis = [];
             for (var i = 0;i<temporal_distribution.length; i++){
                 temporal_dis.push(temporal_distribution[i] * -frequence_patttern / speed);

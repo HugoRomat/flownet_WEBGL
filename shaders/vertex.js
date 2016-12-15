@@ -4,7 +4,7 @@
             uniform float time;
             uniform float uTime;
 
-			//attribute float size;
+			varying float size_fadding;
             //Correspond au numero du chemin surlequel je suis
 			attribute float id;
 
@@ -16,12 +16,11 @@
             //attribute float actual_velocity;
             uniform int particles_number;
 
-            //uniform float zoom;
 
             uniform mat4 ProjectionMatrix;
 
             uniform int number_segmentation;
-
+            uniform float gap_two_gates;
             varying float sprite_size;
 
             // Si les liens avaient 50 cases alors on aurait 51 * 12
@@ -31,15 +30,18 @@
             uniform vec2 path_quadratic[path_length];
 
             uniform int gate_position[10];
-            uniform int temporal_delay[50]; // NUMBER OF PARTICLES
-            uniform int varyingData;
-
-            uniform vec3 gate_colors[10];
-
-            uniform float velocity[10];
             uniform float size[10];
             uniform float opacity[10];
             uniform float wiggling[10];
+            uniform vec3 gate_colors[10];
+            uniform float gate_velocity[10];
+
+            uniform int temporal_delay[real_number_particles];
+            uniform int varyingData;
+
+            
+
+            
             uniform int number_segmentation_pattern_fitting;
 
 			      varying vec3 vColor;
@@ -47,6 +49,8 @@
             varying float distance_with_arrival;
             varying float distance_with_departure;
             float actual_velocity;
+
+            //int gate_position[10];
 
             varying float vRotation;
             int gate = 0;
@@ -65,6 +69,47 @@
 
                 float longueur = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
                 return longueur;
+            }
+            int determine_which_gate(int index_thorique){
+
+                for(int i = 0; i < 9; i++){
+                    int actual_gate_pos = gate_position[i] ;
+                    int next_gate_pos = gate_position[i+1] ;
+                    if(index_thorique <= next_gate_pos && index_thorique > actual_gate_pos){
+                        gate = i;
+                    }
+                    //Si c'est la premiere ou derniere porte
+                    if(index_thorique >= next_gate_pos && index_thorique >= actual_gate_pos &&
+                        next_gate_pos == 0 && actual_gate_pos != 0){
+                        gate = i;
+                    }
+                }
+                return gate;
+            }
+            float fadeSize(float actualSize, float nextSize, int steps, int index){ 
+
+                float temporarySize = ((nextSize - actualSize)/ float(steps)) * float(index);
+                return actualSize + temporarySize;
+
+            }
+            vec3 fadeRGB(vec3 oldColor, vec3 newColor, int steps, int index){
+
+                vec3 my_color;
+                float redStepAmount = ((newColor.x - oldColor.x) / float(steps)) * float(index);
+                float greenStepAmount = ((newColor.y - oldColor.y) / float(steps)) * float(index);
+                float blueStepAmount = ((newColor.z - oldColor.z) / float(steps)) * float(index);
+                
+                newColor.x = oldColor.x + redStepAmount;
+                newColor.y = oldColor.y + greenStepAmount;
+                newColor.z = oldColor.z + blueStepAmount;
+
+                my_color = vec3(newColor.x ,newColor.y, newColor.z);
+
+                // if (steps == 150 && index < 150){
+                //     my_color = vec3(1, 1, 0);
+                // }
+                return my_color;
+
             }
             float noise(vec2 p){
                 vec2 ip = floor(p);
@@ -125,63 +170,136 @@
 
 			void main() {
 
-				        vColor = customColor;
-				        vec3 newPosition = position;
+				vColor = customColor;
+				vec3 newPosition = position;
                 vec4 mvPosition;
-				        float ANGLE = 90.0;
+				float ANGLE = 90.0;
 
 
                 // FAISCEAUX ID
                 highp int id_faisceaux = int(id_particle);
-
-
-                actual_velocity = velocity[0];
+                actual_velocity = float(gate_velocity[0]);//velocity[0];
+                //actual_velocity = 9.0;
+                //for(int i = 0; i < 10; i++){ gate_position[i] = gate_pos[i]; }
+                
+                
 
                 //float timer =  uTime * actual_velocity;
                 float timer =  uTime;
                 highp int my_time = int(timer);
 
-                /******** CETTE PARTIE N'EST FAITE QUE POUR DETERMINER LA GATE ******/
-                int index_thorique = MOD(my_time, number_segmentation);
-                //int length_array = gate_position.length();
-                for(int i = 0; i < 9; i++){
-                    if(index_thorique <= gate_position[i+1] && index_thorique > gate_position[i]){
-                        gate = i;
-                    }
-                    //Si c'est la premiere ou derniere porte
-                    if(index_thorique >= gate_position[i+1] && index_thorique >= gate_position[i] &&
-                        gate_position[i+1] == 0 && gate_position[i] != 0){
-                        gate = i;
-                    }
-
-                }
-                /**************************************/
-                // Determine la couleur en fonction de la porte
-                vColor = vec3(gate_colors[gate].x ,gate_colors[gate].y, gate_colors[gate].z);
-                my_opacity = opacity[gate];
-
-                highp int velo = int(actual_velocity);
-
                 //int index = MOD(my_time, number_segmentation);
-                // ADD VELOCITY TO TIME
+        /*************** J'AJOUTE LE TEMPORAL DELAY ****************************/
                 my_time = my_time + temporal_delay[id_faisceaux];
                 // OBtient le nombre de segment a faire
                 int index_old = MOD(my_time , number_segmentation_pattern_fitting);
+                
 
-                //Convertit pour avoir la bonne vitesse en float et pas seulement avec les INT
+        /*************** POUR AVOIR LE BON INDEX AVEC LA VITESSE ************/
                 float virtual_index = float(index_old);
-                virtual_index = virtual_index * actual_velocity;
-                highp int index = int(virtual_index);
+                virtual_index = virtual_index; //* 2.0;// actual_velocity;
+                highp int index2 = int(virtual_index);
+
+        /******** CETTE PARTIE N'EST FAITE QUE POUR DETERMINER LA GATE ******/
+                
+                //gate = determine_which_gate(index);
+                //index = index * gate_velocity[gate];
+                //int last_index = index2 * gate_velocity[0]
+                gate = determine_which_gate(index2);
 
 
 
+                float multiplicateur = 1.0;
+                if (gate_velocity[gate] == 1.0){multiplicateur = 0.0;}
+
+                float difference = 0.0;
+                float difference_gate_before = 0.0;
+
+                /************* SI C'EST MA PORTION QUI CONTIENT MA PARTICULE ALORS JE LA RECULE UN PEU POUR NE PAS AVOIR LE DELAY************/
+                if (gate_velocity[gate]!= 1.0){
+                    difference = float(gate_position[gate]) * multiplicateur * (gate_velocity[gate] - 1.0);
+                }
+                /***** SI C'EST MES PARTICULES ALORS J'AVANCE ***/
+                // if (gate > 1){
+
+                //     difference_gate_before = 83.0;
+                //     //difference_gate_before = 800.0;
+                // }
+
+                /*************** SI C'EST LES PARTICULES D'APRES ALORS IL FAUT QUE JE LES AVANCES UN PETIT PEU ******************/
+                if (gate == 10){
+                    for(int i = 0; i < 10; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+                if (gate == 9){
+                    for(int i = 0; i < 9; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+                else if (gate == 8){
+                    for(int i = 0; i < 8; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+                else if (gate == 7){
+                    for(int i = 0; i < 7; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+                else if (gate == 6){
+                    for(int i = 0; i < 6; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+                else if (gate == 5){
+                    for(int i = 0; i < 5; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+                else if (gate == 4){
+                    for(int i = 0; i < 4; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+                else if (gate == 3){
+                    for(int i = 0; i < 3; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+                else if (gate == 2){
+                    for(int i = 0; i < 2; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+                else if (gate == 1){
+                    for(int i = 0; i < 1; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+                else if (gate == 0){
+                    for(int i = 0; i < 0; i++){
+                        difference_gate_before = difference_gate_before + gap_two_gates - (gap_two_gates / gate_velocity[i]);
+                    }
+                }
+
+                
+                float new_index = ( float(index2) * gate_velocity[gate] ) - difference + difference_gate_before;
+                highp int index = int(new_index);
+
+                
+
+                // gate = determine_which_gate(index3);
+                // difference = (gate_velocity[gate] - 1.0 ) * 150.0;
+                // new_index = ( float(index2) * gate_velocity[gate] ) - difference;
+                // highp int index = int(new_index);
 
 
+        /************** TO DETERMINE THE WIGGLING ******************************/
+                //float random = noise(vec2( index , index )) * wiggling[gate];
+                float random = 0.0;
 
-                // ADD WIGGLING
-                float random = noise(vec2( index , index )) * wiggling[gate];
-
-                // TO DETERMINE THE PATH
+        /************** TO DETERMINE THE PATH ******************************/
                 vec4 path;
                 vec4 path_next;
                 //Determine le numero du chemin sur lequel je suis
@@ -197,10 +315,10 @@
                 path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);
                 path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);
 
-                if (index >= number_segmentation  || index <= 0){my_opacity = 0.0;}
+                
                 //if (index >= number_segmentation_pattern_fitting  || index <= 0){my_opacity = 0.0;}
 
-                /***** TEST *******/
+        /************** TO DETERMINE THE DISTANCE WITH ARRIVAL ******************************/
                 distance_with_arrival = distance(path.x, path.y, path_quadratic[path_id+3].x, path_quadratic[path_id+3].y);
                 distance_with_departure = distance(path.x, path.y, path_quadratic[path_id].x, path_quadratic[path_id].y);
                 /*float demie_longueur = size[gate] / 10.0;
@@ -208,7 +326,8 @@
                 if(distance_with_arrival < demie_longueur){ my_opacity = 0.0;}
                 if(distance_with_departure < demie_longueur){ my_opacity = 0.0;}*/
 
-                //CALCULATE THE ANGLE
+
+        /************** TO DETERMINE THE ROTATION ******************************/
                 float angle = atan(path_next.y - path.y, path_next.x - path.x );
                 vRotation =  - angle;
 
@@ -234,12 +353,40 @@
 
 
 
+
+                /**************************************/
+                // Determine la couleur en fonction de la porte
+                size_fadding = size[gate];
+                vColor = vec3(gate_colors[gate].x ,gate_colors[gate].y, gate_colors[gate].z);
+                
+                // vec3 vColorNext = vec3(gate_colors[gate+1].x ,gate_colors[gate+1].y, gate_colors[gate+1].z);
+                // vColor = fadeRGB(vColor, vColorNext, gate_position[gate+1] - gate_position[gate], index - gate_position[gate]);
+                
+
+                // size_fadding = fadeSize(size[gate], size[gate+1], gate_position[gate+1] - gate_position[gate], index - gate_position[gate]);
+                
+
+
+                // if(gate == 0){vColor = vec3(1, 1, 0);} // JAUNE
+                // if(gate == 1){vColor = vec3(0, 1, 0);} // VERT
+                 // BLEU
+                // if(gate == 3){vColor = vec3(1, 0, 0);} // ROUGE
+                // if(gate == 4){vColor = vec3(0, 0, 0);} // NOIR
+                
+                // if(gate == 5){vColor = vec3(1, 1, 0);} // JAUNE
+                // if(gate == 6){vColor = vec3(0, 0, 1);} // BLEU
+                // if(gate == 7){vColor = vec3(1, 0, 0);} // ROUGE
+                // if(gate == 8){vColor = vec3(1, 0, 0);} // ROUGE
+                // if(gate == 9){vColor = vec3(1, 1, 0);} // JAUNE
+                my_opacity = opacity[gate];
+    /**************** PERMET D"ENLEVER MES PARTICULES DE L'ECRAN *************/
+                if (index >= number_segmentation  || index <= 0){my_opacity = 0.0;}
+                //if(gate == 2){my_opacity = 0;}
+
                 //300 Correspond donc a la size initiale
-                // gl_PointSize = size[gate]; //* ( 300.0 / -mvPosition.z );
-                gl_PointSize = size[gate];
+                gl_PointSize = size_fadding;
                 sprite_size = gl_PointSize;
 
-                //gl_PointSize = -mvPosition.z ;
                 gl_Position = projectionMatrix * mvPosition;
 
 
