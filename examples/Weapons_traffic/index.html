@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>ParticleVis.js</title>
+
+    <script src="https://threejs.org/build/three.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://cdn.rawgit.com/tgdwyer/WebCola/master/WebCola/cola.min.js"></script>
+    <script src="Sparkiz.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+<!--
+    <script src="https://d3js.org/d3.v4.0.0-alpha.50.min.js"></script> -->
+
+    <script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
+<!--
+    <script src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js'></script>
+    <link rel='stylesheet prefetch' href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css'> -->
+
+    <style>
+
+    body{
+      margin:0;
+      background-color: #737373;
+      font-family: 'Lato'
+
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    svg {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      /*//z-index: 2;*/
+
+    }
+    /*.legend_import, .legend_export{
+      display: inline-block;
+      vertical-align: top;
+    }*/
+
+    .graticule {
+      fill: none;
+      stroke: #777;
+      stroke-width: .5px;
+      stroke-opacity: .5;
+    }
+
+
+    .boundary {
+      fill: none;
+      stroke: grey;
+      stroke-width: .5px;
+    }
+
+/************* POUR LA LEGENDE EN BAS *********/
+
+#slider_year{
+  width: 650px;
+  height: 5px;
+  /*background: #ddd;*/
+  border: none;
+  border-radius: 3px;
+}
+#text_label_year{
+  text-align: center;
+}
+    #slider{
+      position: absolute;
+      left: 300px;
+      top: 500px;
+    }
+    #slider ul{
+      max-width: 680px;
+      list-style: none;
+      margin:0;
+      /*margin-left: -10px;*/
+      padding: 0;
+      font-size: 10px;
+      margin-top: 10px;
+      /*text-align: center;*/
+
+    }
+    #slider li{
+      display: inline-block;
+      position: relative;
+      width:20px;
+      max-width: 20px;
+      vertical-align: top;
+      margin-right:13.3px;
+      /*transform: rotate(deg);*/
+    }
+
+    .legend_import_export {
+        position: absolute;
+        left: 0px;
+        top: 500px;
+        /*background-color: blue;*/
+
+      }
+/******* POUR LES CHECKBOX ********/
+/** RESTE A UPDATER QUAND ON CHANGE SUR LES BOUTTON ***/
+
+  input[type=checkbox]{
+      display: none;
+  }
+  .label{
+    background-color: rgba(0, 0, 0, 0);
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+
+    border-style: solid;
+    border-color: white;
+    border-width: 0.1px;
+
+    vertical-align: middle;
+    display: inline-block;
+  }
+  input[type=button]{
+    vertical-align: middle;
+    display: inline-block;
+  }
+  input[type=checkbox]:checked + .ammo{
+    background-color: #4daf4a;
+  }
+  input[type=checkbox]:checked + .CiWeapons{
+    background-color: #ff7f00;
+  }
+  input[type=checkbox]:checked + .MilWeapons{
+    background-color: #e41a1c;
+  }
+
+
+  /********* SLIDER *********/
+  input[type=range] {
+  box-sizing: border-box;
+  font-size: 16px;
+  line-height: 5;
+  height: 50em;
+  background-color: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  width: 100%;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+}
+input[type=range]:focus {
+  outline: none;
+}
+input[type=range]::-ms-track {
+  width: 100%;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1em;
+  height: 1em;
+  margin-top: 0;
+  background-color: #16a085;
+  border-radius: 1em;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width: 2em;
+  height: 2em;
+  margin-top: 0;
+  background-color: #16a085;
+  border-radius: 1em;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+input[type=range]::-ms-thumb {
+  width: 2em;
+  height: 2em;
+  margin-top: 0;
+  background-color: #16a085;
+  border-radius: 1em;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+input[type=range]:hover::-webkit-slider-thumb {
+  border-color: rgba(255, 255, 255, 0.7);
+}
+input[type=range]:hover::-moz-range-thumb {
+  border-color: rgba(255, 255, 255, 0.7);
+}
+input[type=range]:hover::-ms-thumb {
+  border-color: rgba(255, 255, 255, 0.7);
+}
+input[type=range]:active::-webkit-slider-thumb {
+  border-color: #ffffff;
+}
+input[type=range]:active::-moz-range-thumb {
+  border-color: #ffffff;
+}
+input[type=range]:active::-ms-thumb {
+  border-color: #ffffff;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  cursor: pointer;
+  height: 0.6em;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+  background-color: transparent;
+}
+input[type=range]::-moz-range-track {
+  width: 100%;
+  cursor: pointer;
+  height: 1em;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+  background-color: transparent;
+}
+input[type=range]::-ms-track {
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+
+
+    </style>
+
+
+</head>
+<body>
+  <svg>
+    <g id="legend" transform="translate(10,300)"></g>
+  </svg>
+  <div id="visFrame"> </div>
+
+
+  <div class="legend_import_export">
+    <div class="legend_import">
+
+          <span>
+            <input type="button" value="Import" id="slideImport" name="check" />
+          </span>
+          <input type="checkbox" class="import " value="None" id="slideImportAmmo" name="check" />
+          <label class="label ammo" for="slideImportAmmo"></label>
+
+          <input type="checkbox" class="import" value="None" id="slideImportCiWeapons" name="check" />
+          <label class="label CiWeapons" for="slideImportCiWeapons"></label>
+
+          <input type="checkbox" class="import" value="None" id="slideImportMilWeapons" name="check" />
+          <label class="label MilWeapons" for="slideImportMilWeapons"></label>
+
+    </div>
+    <div class="legend_export">
+
+          <input type="button" value="Export" id="slideExport" name="check"/>
+
+          <input type="checkbox" class="export" value="None" id="slideExportAmmo" name="check" checked>
+          <label class="label ammo" for="slideExportAmmo"></label>
+
+          <input type="checkbox" class="export" value="None" id="slideExportCiWeapons" name="check" checked>
+          <label class="label CiWeapons" for="slideExportCiWeapons"></label>
+
+          <input type="checkbox" class="export" value="None" id="slideExportMilWeapons" name="check" checked>
+          <label class="label MilWeapons" for="slideExportMilWeapons"></label>
+
+    </div>
+  </div>
+  <div id="slider">
+    <div id="text_label_year">
+      2000
+    </div>
+    <div id="year_selection">
+      <input type="range" id="slider_year" value="2000" max="2010" min="1992" step="1" />
+    </div>
+    <ul>
+      <li>92</li>
+      <li>93</li>
+      <li>94</li>
+      <li>95</li>
+      <li>96</li>
+      <li>97</li>
+      <li>98</li>
+      <li>99</li>
+      <li>00</li>
+      <li>01</li>
+      <li>02</li>
+      <li>03</li>
+      <li>04</li>
+      <li>05</li>
+      <li>06</li>
+      <li>07</li>
+      <li>08</li>
+      <li>09</li>
+      <li>10</li>
+    </ul>
+
+  </div>
+
+
+
+
+
+  <script>
+
+  /*
+	930100 – military weapons, and includes some light weapons and artillery as well as machine guns and assault rifles etc.
+	930190 – military firearms – eg assault rifles, machineguns (sub, light, heavy etc), combat shotguns, machine pistols etc
+	930200 – pistols and revolvers
+	930320 – Sporting shotguns (anything that isn’t rated as a military item).
+	930330 – Sporting rifles (basically anything that isn’t fully automatic).
+	930621 – shotgun shells
+	930630 – small caliber ammo (anything below 14.5mm which isn’t fired from a shotgun.
+*/
+
+//	a list of weapon 'codes'
+//	now they are just strings of categories
+//	Category Name : Category Code
+// var weaponLookup = {
+// 	'Military Weapons' 		: 'mil',
+// 	'Civilian Weapons'		: 'civ',
+// 	'Ammunition'			: 'ammo',
+// };
+var categoryColors = {
+'mil' : "#e41a1c", // RED
+'civ' : "#ff7f00",
+'ammo' : "#1a9850",
+'930330' : "#984ea3"
+}
+
+var temp_scale = {
+  'mil':0.0,
+  'civ':0.2,
+  'ammo':0.4,
+  '930330':0.6
+}
+
+   var size_scale = d3.scale.linear()
+                    .domain([2000,800000, 100000000])
+                    .range([10,25,40])
+
+ //
+
+  var app;
+  var max = 0;
+  var data;
+
+  var year_dataset = 2000;
+
+  var countries;
+  var country_iso;
+
+  var importation = false;
+  var exportation = true;
+
+  var ImportAmmo = false;
+  var ImportCiWeapons = false;
+  var ImportMilWeapons = false;
+
+  var ExportAmmo = true;
+  var ExportCiWeapons = true;
+  var ExportMilWeapons = true;
+
+  var country_selected = "FR";
+
+  var proj = d3.geo.miller()
+                    .scale(328)
+                    .translate([-50,-10]);
+
+
+    var size_scale = d3.scale.linear()
+                     .domain([2000,800000, 8000000])
+                     .range([10,30, 50])
+
+d3.json("data/weapons/ammo2000.json", function(json) {
+
+     var DATA = [];
+     DATA["links"] = [];
+     for (var i =0; i< json.links.length; i++){
+       //if (exportation){
+        var b = json.links[i];
+         if (b.emitter == country_selected ){
+           if (ExportAmmo) if (b.type == "ammo" ) DATA["links"].push(b); //if (b.amount > max) max = b.amount;
+           if (ExportCiWeapons) if (b.type == "civ" ) DATA["links"].push(b);//if (b.amount > max) max = b.amount;
+           if (ExportMilWeapons) if (b.type == "mil" ) DATA["links"].push(b);// if (b.amount > max) max = b.amount;
+         }
+       //}
+       //if (importation){
+         if (b.receiver == country_selected ){
+           if (ImportAmmo) if (b.type == "ammo" ) DATA["links"].push(b); //if (b.amount > max) max = b.amount;
+           if (ImportCiWeapons) if (b.type == "civ" ) DATA["links"].push(b);// if (b.amount > max) max = b.amount;
+           if (ImportMilWeapons) if (b.type == "mil" ) DATA["links"].push(b);// if (b.amount > max) max = b.amount;
+        // }
+       }
+     }
+   //max = Math.max.apply(Math,json.links.map(function(o){return o.amount;}))
+
+
+//  console.log(max)
+
+ app = Sparkiz.force("#visFrame", 1800,1000,"#abd9e9", 0)
+     .nodes(json.nodes)
+     .links(DATA["links"])
+
+     .layout("linkDistance", 300)
+     .create_layout()
+     .roads_mapping("number_roads", 1 )
+     .links_mapping("courbure", 5)
+     .create_WEBGL_element()
+     .links_mapping("color", "#fee08b")
+     .links_mapping("size", 0.5)
+     .links_mapping("opacity", 1)
+     .roads_mapping("opacity", 0)
+     .zoom(true)
+     //.nodes_mapping("label", function(d, i) {return d.name; })
+     .nodes_mapping("size",  1)
+     .nodes_mapping("color", "#000000")
+     //.nodes_mapping("image", function(d, i) {return "images/particle3.png"; })
+     .nodes_mapping("x", function(d, i) {return proj([d.lon,d.lat])[0]; })
+     .nodes_mapping("y", function(d, i) {return - proj([d.lon,d.lat])[1];  })
+     .particle_mapping("color", function(d, i) {return new THREE.Color(categoryColors[d.type]);})
+     .particle_mapping("size", function(d, i) {return size_scale(d.amount);})
+     //.particle_mapping("frequency_pattern", function(d, i) { return 0.3; })
+     .particle_mapping("frequency_pattern", 15)//function(d, i) {var u = parseFloat(frequency_scale(d.amount)); return u; })
+     .particle_mapping("temporal_distribution", function(d, i) {return [temp_scale[d.type]];})
+     //.particle_mapping("spatial_distribution", [0])
+     .particle_mapping("velocity", 1)
+     .particle_mapping("texture", "images/rectangle_texture.png")
+     .start(0);
+     app.sparkiz.draw_map(proj);
+     console.log(max)
+
+     app.viz._UI.callback = function(f){
+       console.log("J'ai cliqué sur ", f);
+
+       country_selected = f.name.slice(0, 2);
+       update();
+     }
+
+    });
+
+
+
+
+
+
+
+
+
+function update(){
+  //country = "FR";
+  console.log(year_dataset, country_selected)
+  d3.json("data/weapons/ammo"+year_dataset+".json", function(json) {
+
+    // DELETE EVERYTHING
+    for( var i = app.sparkiz.scene.children.length - 1; i >= 0; i--) {
+      obj = app.sparkiz.scene.children[i];
+      if (obj.name == "links") app.sparkiz.scene.remove(obj);
+      if (obj.name == "roads") app.sparkiz.scene.remove(obj);
+      if (obj.name.slice(0, 4) ==  "tube") app.sparkiz.scene.remove(obj);
+      if (obj.name.slice(0, 15) == 'particle_system') app.sparkiz.scene.remove(obj);
+      if (obj.name == "circle") app.sparkiz.scene.remove(obj);
+    }
+    app.sparkiz.links = []
+    app.sparkiz.tube = []
+
+    max = 0;
+    // LOAD LINKS
+    var DATA = [];
+    DATA["links"] = [];
+    for (var i =0; i< json.links.length; i++){
+      //if (exportation){
+       var b = json.links[i];
+        if (b.emitter == country_selected ){
+          if (ExportAmmo) if (b.type == "ammo" ) DATA["links"].push(b); //if (b.amount > max) max = b.amount;
+          if (ExportCiWeapons) if (b.type == "civ" ) DATA["links"].push(b);//if (b.amount > max) max = b.amount;
+          if (ExportMilWeapons) if (b.type == "mil" ) DATA["links"].push(b); //if (b.amount > max) max = b.amount;
+        }
+      //}
+      //if (importation){
+        if (b.receiver == country_selected ){
+          if (ImportAmmo) if (b.type == "ammo" ) DATA["links"].push(b); //if (b.amount > max) max = b.amount;
+          if (ImportCiWeapons) if (b.type == "civ" ) DATA["links"].push(b); //if (b.amount > max) max = b.amount;
+          if (ImportMilWeapons) if (b.type == "mil" ) DATA["links"].push(b); //if (b.amount > max) max = b.amount;
+       // }
+      }
+    }
+  console.log("MAX EST", max)
+  //max = Math.max.apply(Math,json.links.map(function(o){return o.amount;}))
+
+
+    app.links(DATA["links"])
+    .nodes(json.nodes)
+    .create_layout()
+    .roads_mapping("number_roads", 1 )
+    .links_mapping("courbure", 5)
+    .create_WEBGL_element()
+    .nodes_mapping("x", function(d, i) {return proj([d.lon,d.lat])[0]; })
+    .nodes_mapping("y", function(d, i) {return - proj([d.lon,d.lat])[1];  })
+    .links_mapping("color", "#fee08b")
+    .links_mapping("size", 0.5)
+    .links_mapping("opacity", 0.8)
+    .roads_mapping("opacity", 0)
+    //.zoom(true)
+    .nodes_mapping("size",  1)
+    .nodes_mapping("color", "#000000")
+    //.nodes_mapping("opacity", 0)
+    .particle_mapping("opacity_0", 0.0)
+
+    .nodes_mapping("x", function(d, i) {return proj([d.lon,d.lat])[0]; })
+    .nodes_mapping("y", function(d, i) {return - proj([d.lon,d.lat])[1];  })
+    .particle_mapping("color", function(d, i) {return new THREE.Color(categoryColors[d.type]);})
+    .particle_mapping("size", function(d, i) {return size_scale(d.amount);})
+    //.particle_mapping("frequency_pattern", function(d, i) { return 0.3; })
+    .particle_mapping("frequency_pattern", 15)//function(d, i) {var u = parseFloat(frequency_scale(d.amount)); return u; })
+    .particle_mapping("temporal_distribution", function(d, i) {return [temp_scale[d.type]];})
+    //.particle_mapping("spatial_distribution", [0])
+    .particle_mapping("velocity", 1)
+    .particle_mapping("texture", "images/rectangle_texture.png")
+    .stop()
+    .start(0);
+    //
+    //console.log(app.sparkiz.scene)
+
+    // TRICK A RESOUDRE CAR IL ME RESTE LES LIENS .... IL NE VEULENT PAS S'UPDATER !!!!!!
+    // setTimeout(function(){
+    //     app.sparkiz.updateLinks();
+    //  }, 5000);
+
+  })
+}
+
+function isInArray(a, b) {
+    return a.indexOf(b) != -1
+}
+var width = 1800,//800,
+      height = 1000;
+var svg = d3.select("svg")
+          .attr("width", width)
+          .attr("height", height);
+
+
+var legend = d3.select('#legend').selectAll('.legend')
+  .data([{"type":"ammo", "name": "Munition"}, {"type":"civ", "name":"Civil Weapons"}, {"type":"mil", "name":"Military Weapons"}])
+  .enter()
+  .append('g')
+  .attr('class', 'legend')
+legend.append('rect')
+  .attr('width', 15)
+  .attr('height', 15)
+  .attr('y',function(d, i) {return i*18;  })
+  .style('fill', function (d,i){ return categoryColors[d.type];})
+  .style('stroke', "white");
+legend.append('text')
+  .attr('x',function(d, i) {return 20;  })
+  .attr('y',function(d, i) {return 10 + (20*i);  })
+  .text(function(d) { return d.name; });
+
+
+/********* POUR LES DEUX BOUTTONS ***********/
+$("#slideImport").click(function(event) {
+  var bool = true;
+  if (ImportAmmo) bool = false;
+  else bool = true;
+  ImportAmmo = bool;
+  ImportCiWeapons = bool;
+  ImportMilWeapons = bool;
+
+  update();
+  $('.import').prop('checked', importation);
+});
+$("#slideExport").click(function(event) {
+  var bool = true;
+  if (ExportAmmo) bool = false;
+  else bool = true;
+  ExportAmmo = bool;
+  ExportCiWeapons = bool;
+  ExportMilWeapons = bool;
+
+  update();
+  $('.export').prop('checked', exportation);
+});
+/************** POUR TOUTES LES AUTRE CHECKBOX *************/
+
+/**************** IMPORT *************************/
+  $("#slideImportAmmo").click(function(event) {
+    ImportAmmo = !ImportAmmo;
+    update();
+  });
+  $("#slideImportCiWeapons").click(function(event) {
+    ImportCiWeapons = !ImportCiWeapons;
+    update();
+  });
+  $("#slideImportMilWeapons").click(function(event) {
+    ImportMilWeapons = !ImportMilWeapons;
+    update();
+  });
+/**************** EXPORT *************************/
+  $("#slideExportAmmo").click(function(event) {
+    ExportAmmo = !ExportAmmo;
+    update();
+  });
+  $("#slideExportCiWeapons").click(function(event) {
+    ExportCiWeapons = !ExportCiWeapons;
+    update();
+  });
+  $("#slideExportMilWeapons").click(function(event) {
+    ExportMilWeapons = !ExportMilWeapons;
+    update();
+  });
+ // SLIDER //
+  $('#slider_year').change(function() {
+    year_dataset = $(this).val();
+    update();
+    //console.log(yo)
+  });
+  $('#slider_year').on('input', function () {
+    var year_label = $(this).val();
+    $( "#text_label_year" ).text(year_label);
+});
+
+// var ImportAmmo = false;
+// var ImportCiWeapons = false;
+// var ImportMilWeapons = false;
+//
+// var ExportAmmo = true;
+// var ExportCiWeapons = true;
+// var ExportMilWeapons = true;
+// var checkbox = d3.select('#checkbox').selectAll('.checkbox')
+//   .data([{"type":"ammo", "name": "Import", "checked":"false"}, {"type":"civ", "name":"Export", "checked":"true"}])
+//   .enter()
+//   .append('g')
+//   .attr('class', 'checkbox')
+//
+// checkbox.append('circle')
+//         .attr("cx", function (d, i) { return 20; })
+//         .attr("cy", function (d, i) { return 10 + (20*i); })
+//         .attr("r", function (d, i) { return 8; })
+//         .attr("checked", "true")
+//         .style("fill", function(d, i) {if(d.checked == "true"){return "blue"} else{return "#3288bd"}; })
+//         .style('stroke', "white")
+//         .on('mousedown', function(d, i) {
+//           console.log(d3.select(this).datum());
+//           d3.select(this).attr("checked", function (d, i) {
+//             if(d.checked == "true"){importation = false;d3.select(this).style("fill","#3288bd");d.checked = "false";return "false"}
+//             else {importation = true; d3.select(this).style("fill","blue");d.checked = "true"; return "true"}
+//           })
+//         })
+//   checkbox.append('text')
+//       .attr('x',function(d, i) {return 40;  })
+//       .attr('y',function(d, i) {return 15 + (20*i);  })
+//       .text(function(d) { return d.name; });
+//
+//
+//
+//   var width = 1800,//800,
+//       height = 1000;
+//
+//   var projection = d3.geo.equirectangular()
+//       .scale(328)
+//       .translate([842, 495])
+//       .precision(.1);
+//
+//   var path = d3.geo.path()
+//       .projection(projection);
+//
+// var color = d3.scale.category10();
+//
+//   var svg = d3.select("svg")
+//       .attr("width", width)
+//       .attr("height", height);
+//
+//   d3.json("data/world.json", function(error, world) {
+//     d3.tsv("data/world-country-names.tsv", function(error, names) {
+//           if (error) throw error;
+//
+//           var countries = topojson.feature(world, world.objects.countries).features,
+//             neighbors = topojson.neighbors(world.objects.countries.geometries);
+//
+//             countries = countries.filter(function(d) {
+//               return names.some(function(n) {
+//                 if (d.id == n.id) return d.name = n.name;
+//               });
+//             }).sort(function(a, b) {
+//               return a.name.localeCompare(b.name);
+//             });
+//
+//         svg.selectAll(".country")
+//             .data(countries)
+//           .enter().insert("path", ".graticule")
+//             .attr("class", "country")
+//             .attr("d", path)
+//             .style("opacity", 0.2)
+//             .attr("name", function(d,i){return d.name;})
+//             //.style("fill", function(d, i) { return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
+//             .style('fill', "#878787")
+//             .on("mousedown", function(d,i){
+//               d3.select(this).style("fill", "blue");
+//               console.log(d3.select(this).attr('name'))
+//             })
+//
+//         svg.insert("path", ".graticule")
+//             .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+//             .attr("class", "boundary")
+//             .attr("d", path);
+//       });
+  //
+  //
+  // });
+
+
+
+
+  </script>
+</body>
+</html>

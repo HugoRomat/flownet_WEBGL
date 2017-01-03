@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>ParticleVis.js</title>
+
+      <script src="https://threejs.org/build/three.min.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+      <script src="https://d3js.org/d3.v3.min.js"></script>
+      <script src="https://cdn.rawgit.com/tgdwyer/WebCola/master/WebCola/cola.min.js"></script>
+      <script src="../Sparkiz.js"></script>
+
+
+    <style>
+        div{
+            float: left;
+            margin-right: 5px;
+        }
+
+    </style>
+
+
+</head>
+<body>
+
+  <div id="visFrame"></div>
+
+  <script>
+  var color_scale = d3.scale.linear()
+                   .domain([1,4])
+                   .range([d3.rgb("#ff0000"), d3.rgb('#fffe00')])
+
+    d3.json("data_test_cm.json", function(json) {
+
+            var app = Sparkiz.force("#visFrame", 1500,800,"blue", 0)
+                .nodes(json.nodes)
+                .links(json.links)
+
+                .create()
+
+                .links_mapping("color", "grey")
+                .links_mapping("size", 5)
+
+                //.nodes_mapping("label", function(d, i) {return d.label; })
+                .nodes_mapping("size",  5)
+                .nodes_mapping("color", "black")
+
+                 .nodes_mapping("x", function(d, i) {console.log(d.X); return d.X; })
+                 .nodes_mapping("y", function(d, i) {console.log(d.Y); return d.Y; })
+
+                 .particle_mapping("color", '#d53e4f')
+
+                 .particle_mapping("frequency_pattern", function(d, i) {return d.frequency; })
+                 .particle_mapping("temporal_distribution", function(d, i) {return d.temporal; })
+                 .particle_mapping("velocity", function(d, i) {return d.speed; })
+                // .particle_mapping("color", 'white')
+                 .particle_mapping("size", 20)
+                // .particle_mapping("frequency_pattern", function(d, i) {return d.frequency; })
+                // .particle_mapping("temporal_distribution", function(d, i) {return d.temporal; })
+                // .particle_mapping("velocity", function(d, i) {return d.speed; })
+                .particle_mapping("texture", "images/rectangle.png")
+
+                .start(1000);
+
+
+
+    });
+
+
+
+  </script>
+
+
+</body>
+</html>
