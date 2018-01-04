@@ -1,0 +1,114 @@
+{
+  "nodes":[
+        {
+            "id": 0, 
+            "name": "capteur de vitesse", 
+            "type": 1
+            
+        },
+        {
+            "id": 1, 
+            "name": "capteur d'angle", 
+            "type": 1
+        },
+        {
+            "id": 2, 
+            "name": "capteur infrarouge",
+            "type": 1
+        },
+        {
+            "id": 3, 
+            "name": "UNIV BEIHANG", 
+            "type": 2
+
+        },
+        {
+            "id": 4, 
+            "name": "CHENG NAISHI", 
+            "type": 2
+        },
+        {
+            "id": 5, 
+            "name": "UNIV TONGJI", 
+            "type": 2
+        },
+        {
+            "id": 6, 
+            "name": "capteur de profondeur",
+            "type": 1
+        }
+  ],
+  "links":[
+        {
+            "id": 0, 
+            "source": 3, 
+            "target": 0,
+            "number_publication": 1,
+            "number_patent":3, 
+            "number_litterature":4,
+            "frequence" : 0
+
+        },
+        {
+            "id": 2, 
+            "source": 4, 
+            "target": 1,
+            "number_publication": 4,
+            "number_patent":3, 
+            "number_litterature":7,
+            "frequence" : 4
+
+        },
+        {
+            "id": 3, 
+            "source": 3, 
+            "target": 2,
+            "number_publication": 22,
+            "number_patent":5, 
+            "number_litterature":27,
+            "frequence" : 2
+
+        },
+        {
+            "id": 4, 
+            "source": 5, 
+            "target": 1,
+            "number_publication": 2,
+            "number_patent":30, 
+            "number_litterature":32,
+            "frequence" : 8
+
+        },
+        {
+            "id": 5, 
+            "source": 4, 
+            "target": 2,
+            "number_publication": 3,
+            "number_patent":5, 
+            "number_litterature":8,
+            "frequence" : 10
+
+        },
+        {
+            "id": 5, 
+            "source": 3, 
+            "target": 6,
+            "number_publication": 10,
+            "number_patent":10, 
+            "number_litterature":20,
+            "frequence" : 3
+
+        },
+        {
+            "id": 3, 
+            "source": 3, 
+            "target": 1,
+            "number_publication": 8,
+            "number_patent":2, 
+            "number_litterature":4,
+            "frequence" : 10
+
+        }
+
+  ]
+}

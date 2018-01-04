@@ -1,0 +1,39 @@
+{
+    "nodes": [
+        {
+            "id": 0,
+            "iata": "LAS",
+            "label": "McCarran International",
+            "city": "Las Vegas",
+            "state": "NV",
+            "country": "USA",
+            "lat": "36.08036111",
+            "long": "-115.1523333"
+        },
+        {
+            "id": 1,
+            "iata": "PHX",
+            "label": "Phoenix Sky Harbor International",
+            "city": "Phoenix",
+            "state": "AZ",
+            "country": "USA",
+            "lat": "33.43416667",
+            "long": "-112.0080556"
+        }
+    ],
+    "links": [
+        {
+            "id": 0,
+            "source": 0,
+            "target": 1,
+            "origin": "LAS",
+            "dest": "PHX",
+            "number_plane": 3,
+            "dep_delay": 32.0,
+            "arr_delay": 19.0,
+            "passengers": 1797.0,
+            "number_carrier": 2,
+            "seats": 6954.0
+        }
+    ]
+}
