@@ -741,7 +741,7 @@ launch_network(time){
 
             this.links[i].courbure = 5;
 
-            this.links[i].texture = "images/rectangle_texture.png"; 
+            this.links[i].texture = "../../static/images/rectangle_texture.png"; 
             this.links[i].number_particles = this.number_particles;
             this.links[i].coefficient_number_particles = 1;
             this.links[i].gates = [];
@@ -1088,7 +1088,7 @@ launch_network(time){
 
         var number_particles = this.links[link_id].userData.number_particles
         var uniforms = this.links[link_id].particleSystems.material.__webglShader.uniforms;
-        uniforms.texture.value = new THREE.TextureLoader().load( "images/" + value) 
+        uniforms.texture.value = new THREE.TextureLoader().load( "../../static/images/" + value) 
         uniforms.texture.name = value;
         console.log("TEXTURE",uniforms.texture.value)
     }
