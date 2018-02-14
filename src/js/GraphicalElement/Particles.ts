@@ -44,7 +44,6 @@ export class Particles{
             this.particles[i].texture = textureRectangle; 
 
             // this.number_particles = 1;
-
             this.particles[i].temporal_distribution = Array.apply(null, Array(this.particles[i].number_particles)).map(Number.prototype.valueOf,0);
             //this.links[i].velocity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
             this.particles[i].gate_opacity = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 1.0);
@@ -71,7 +70,6 @@ export class Particles{
     fit_to_frequence_temporal_distrib(id){
         
         //.slice();
-
         // Je recois une frequence exprimant quand j'envoi chaque pattern (exprimé en secondes)
         // J'ai 60 fps donc je multiplie par 60 pour avoir l'equivalent en frame
         var frequence_patttern = this.particles[id].frequency_pattern;
@@ -80,7 +78,7 @@ export class Particles{
         var speed = 10//this.links[id].gate_velocity[0];
         frequence_patttern = this.FPS * frequence_patttern; 
 
-        
+        var speedAverage = this.getAverageSpeed(id);
         //Je multiplie par frequence pattern pour partir d'une echelle sur [O,1] en entrée vers [0,-frequence_patttern]
         //Négatif pour que ca parte vers l'arriere
         //Divise par speed pour que cela soit proportionnel si l'on change la vitesse
@@ -91,12 +89,11 @@ export class Particles{
 
         //Motifs = Je prend la plus grande partie d'un lien
         //Si mon lien fait 130, je prend le multiple le plus haut de frequence pattern (si=80, je prend 160)
-
         // MOTIFS +1 POUR AVOIR LA PLACE DE LE DECALER ET DE FAIRE DES ANIM AU DEBUT
         var offsetDueToBeginning = 0.11 * this.particles[id].number_segmentation
         var motifs = Math.ceil((this.particles[id].number_segmentation + offsetDueToBeginning)/frequence_patttern);
-        // console.log("motifs", motifs)
-
+        console.log("motifs", motifs, speedAverage, frequence_patttern)
+        // motifs = 30;
         //console.log("MOTIFS", motifs, this.links[id].number_segmentation)
         this.particles[id].number_particles = motifs * temporal_distribution.length;  
 
@@ -179,7 +176,6 @@ export class Particles{
         //     posistion_gate_after_speed.push(number);
         //     number = number + parseInt(gap_two_gates / (gate_velocity[i]));
         // }
-
         
         
 
@@ -192,7 +188,6 @@ export class Particles{
         var offsetGate = 0;
         var posistion_gate_after_speed = [];
         // GAP = un espace
-
         
         var gap = number_segmentation_pattern_fitting / (this.number_max_gates);
         
@@ -203,11 +198,9 @@ export class Particles{
         posistion_gate_after_speed.push(number_segmentation_pattern_fitting)
         // console.log("GATE SPEED", posistion_gate_after_speed)
         var gap_two_gates = posistion_gate_after_speed[3] - posistion_gate_after_speed[2];//(gate_position[1] - gate_position[0]);
-
         // console.log("GATE POSITION", posistion_gate_after_speed)
         
         // console.log("gap Gates", gap_two_gates)
-
 
 
         /**
@@ -225,7 +218,6 @@ export class Particles{
             // console.log("Valeurs que je dois avoir", posistion_gate_after_speed[i] * gate_velocity[i])
             // console.log(offset)
             // console.log(" =============== OFFSET", (posistion_gate_after_speed[i] * gate_velocity[i]) - offset, i);
-
             var normalValuesAtGates = posistion_gate_after_speed[i] * gate_velocity[i];
             var offsetBetweenGates = posistion_gate_after_speed[i+1] - posistion_gate_after_speed[i];
             offsetArray[i] = (posistion_gate_after_speed[i] * gate_velocity[i]) - offset;
@@ -234,7 +226,6 @@ export class Particles{
 
         }
         // console.log("TEMPORAL", offsetArray)
-
         /* Détermines mes uniforms pour les transmettre au shaders */
         var uniforms = {
             "path_quadratic" :  { type: "v2v", value: path_quadratic },
@@ -294,7 +285,6 @@ export class Particles{
             colors[ i3 + 0 ] = 1; //this.hslToRgb(1,1,0.5)[0];
             colors[ i3 + 1 ] = 1; //this.hslToRgb(1,1,0.5)[1];
             colors[ i3 + 2 ] = 0; //this.hslToRgb(1 ,1,0.5)[2];
-
             my_velocity[ i ] = 1.0;
             iterations[i] = 0.0;
             //Id de la particule, Sert à mettre du delay
@@ -334,10 +324,15 @@ export class Particles{
             array = array.concat(this.particles[i].spatial_distribution);
         }
         return array;
-
+    }
+    getAverageSpeed(linkId){
+        var gate_velocity = this.particles[linkId].gate_velocity;
+        var speed = 0;
+        for (var i = 0; i < this.particles[linkId].gate_velocity.length; i++ ){
+            // console.log(speed)
+            speed += this.particles[linkId].gate_velocity[i];
+        }
+        return speed = speed / this.particles[linkId].gate_velocity.length;
     }
 
-    
 }
-
-

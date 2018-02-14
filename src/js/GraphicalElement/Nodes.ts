@@ -25,7 +25,7 @@ export class Nodes{
         
         for(var i=0 ; i<self.nodes.length ; i++)
         {
-            console.log("YOO", self.nodes[i])
+            // console.log("YOO", self.nodes[i])
             if (self.nodes[i].label_name != null){
                 
                 var textGeo = new THREE.TextGeometry( self.nodes[i].label_name, {
@@ -54,7 +54,7 @@ export class Nodes{
 
     }
     updateNodes(){
-        console.log("UPDATE NODES", this.webglNodes)
+        // console.log("UPDATE NODES", this.webglNodes)
         var self = this;
         //console.log(self.nodes[0])
         for(var i=0 ; i<this.nodes.length ; i++)
@@ -73,7 +73,7 @@ export class Nodes{
      * Permet de créer mes noeuds avec les parametres renseigné avant
      */
     createNodes(){
-        console.log("CREATE NODES");
+        // console.log("CREATE NODES");
         // NODES
         var n;
         // this.webGL_nodes = [];

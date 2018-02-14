@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>confluent vs powergraph</title>
+    <title>particles</title>
 
   <script src="../static/lib/d3.v4.js"></script>
   <script src="../dist/main.entry.js"></script>
@@ -72,7 +72,8 @@
               // {"name":"edge_base", "id":1, "X": -400,"Y":300}
             ],
             "links":[
-              {"source":101, "id":0, "target":100, "freq":2, "sp":4, "temp": [0], "width": 10, "colour": "black", "textu": "images/circle_texture.png"}
+              {"source":101, "id":0, "target":100, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "textu": "images/circle_texture.png"}
+              // {"source":101, "id":0, "target":100, "freq":2, "sp":4, "temp": [0], "width": 10, "colour": "black", "textu": "images/circle_texture.png"}
               // {"source":101, "target":102, "freq":2, "sp":4, "temp": [0], "width": 10, "couleur": "black", "textu": "images/circle_texture.png"},
               // {"source":101, "target":103, "freq":2, "sp":4, "temp": [0], "width": 10, "couleur": "black", "textu": "images/circle_texture.png"},
               // {"source":101, "target":104, "freq":2, "sp":4, "temp": [0], "width": 10, "couleur": "black", "textu": "images/circle_texture.png"},
@@ -92,21 +93,6 @@
                   .links(json.links)
                   // .layout("linkDistance", 500)
                   .create_layout()
-                  // .numberSegmentation("numberSpacedPoints", function (d, i){
-                  //     var X1 = d.source.X;
-                  //     var X2 = d.target.X;
-        
-                  //     var Y1 = d.source.Y;
-                  //     var Y2 = d.target.Y;
-        
-                  //     var dist = get_distance(X1, Y1, X2, Y2)
-                  //     console.log(dist)
-        
-                  //     return 2;
-                  //     // var distance = get_distance();
-        
-                  // })
-        
                   .tracks("count", 1 )
                   
                   .create_WEBGL_element()
@@ -156,7 +142,7 @@
                   .node_properties("label_color", "#FFFFFF")
                   //
                   .particles("color", "black")
-                  // .particles("size", 5)
+                  .particles("size", 10)
                   // .particles("color", function(d, i) {return d.couleur; })
         
                   // .particles("wiggling_0", 1.0)
@@ -323,11 +309,11 @@
                   //.particles("texture", function(d, i) {return d.textu; })
         
                   // .particles("pattern", function(d, i) {return [0, 0, 0, 0.6]; })
-                 
-                  .particles("track", [0, 0, 0])
+                  .particles("pattern", function(d, i) {return [0.0, 0.2]; })
+                  // .particles("track", [0, 0, 0])
                   .particles("frequency", 0.5)
                   // .particles("frequency", function(d, i) {return freq(d.value); })
-                  // // .particles("speed", function(d, i) {return 3; })
+                  .particles("speed", function(d, i) {return 3; })
         // 
                   // .particles("speed", 2, 0.5)
         
@@ -347,18 +333,6 @@
       // }, 1000)
         
             });
-
-      
-        /* Get the distance between two points */
-    function get_distance(x1, y1, x2, y2){
-        var a = x1 - x2
-        var b = y1 - y2
-
-        var c = Math.sqrt( a*a + b*b );
-        //console.log(c)
-        return c;
-    }
-
 
 	</script>
 

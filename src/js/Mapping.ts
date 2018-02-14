@@ -20,11 +20,15 @@ export class Mapping{
     tracksObject;
 
 
-    constructor(div, width, height, color, alpha){
+    constructor(div, width, height, color, alpha, visualisation){
         //console.log("I HAVE CREATED A MAIN")
         // this.viz = new Main(div,null, null, width, height, color, alpha);
         // this.sparkiz = this.viz.sparkiz;
-        this.visualisation = new Visualisation(div, width, height, color, alpha, this);
+        if (visualisation == undefined) this.visualisation = new Visualisation(div, width, height, color, alpha, this);
+        else {
+            // console.log("KEEP SCENE")
+            this.visualisation = visualisation;
+        } 
 
         this.linksObject = new Links(this.visualisation.scene);
         this.nodesObject = new Nodes(this.visualisation.scene);
@@ -69,6 +73,20 @@ export class Mapping{
     //     //this.viz.with_absolute_time();
     //     return this;
     // }
+    start_particle_delay(delay) {
+        this.visualisation.then -= delay;
+        //this.viz.with_absolute_time();
+        return this;
+    }
+    update() {
+        this.nodesObject.createLabel();
+        this.tracksObject.updatetracks();
+        this.nodesObject.updateNodes();
+        this.linksObject.updateTube();
+        this.particlesObject.fit_all_particles_to_frequence_temporal_distrib();
+        this.particlesObject.updateParticles();
+        return this;
+    }
     start(time) {
         this.nodesObject.createLabel();
         this.tracksObject.updatetracks();
@@ -154,7 +172,7 @@ export class Mapping{
                     else{value = callback(particles[i], i);}
                     if (gate == undefined){gate_position = 0} 
                     if (gate != undefined){gate_position = gate} 
-                    for(var k = gate_position ; k< maxGates ; k++) { maxGates[i].size[k] = value; }
+                    for(var k = gate_position ; k< maxGates ; k++) { particles[i].size[k] = value; }
                 }
                 return this;
 
@@ -276,8 +294,12 @@ export class Mapping{
                     else{
                         var a = callback(links[i], i);
                         value = new THREE.Color(a);
+                        
                     }
-                    links[i]["linkColor"] = value.getHex();
+                    // console.log(value)
+                    links[i].linkColor = value;
+                    // console.log(value.getHex())
+                    
                     // this.sparkiz.tube[i].children[0].material.color.setHex(value.getHex());
                 }
                 return this;

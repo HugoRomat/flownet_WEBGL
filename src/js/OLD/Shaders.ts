@@ -13,7 +13,7 @@ export class Force{
 
     constructor(div, width, height, color, alpha){
         //console.log("I HAVE CREATED A MAIN")
-        this.viz = new Main(div,null, null, width, height, color, alpha);
+        this.viz = new Main(div, null, null, width, height, color, alpha);
         this.sparkiz = this.viz.sparkiz;
         return this;
     }

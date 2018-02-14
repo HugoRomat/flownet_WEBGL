@@ -199,7 +199,7 @@ export class Tracks{
             for(var j=0 , f = 1; j < position.length - 1; j+=2, f++)
             {
                 var object = this.curveSplines[i].children[f];
-                console.log(object)
+                // console.log(object)
                 var points = []
 
                 var segmentation = this.tracks[i].number_segmentation;

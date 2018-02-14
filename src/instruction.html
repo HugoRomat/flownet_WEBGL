@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>particles</title>
+
+  <script src="../static/lib/d3.v4.js"></script>
+  <script src="../dist/main.entry.js"></script>
+    <style>
+        div{
+            /* float: left;
+            margin-right: 5px; */
+        }
+      html { width: 100%; height:100%; /*overflow:hidden;*/ }
+      body{
+        width: 100%;
+        height:100%;
+        font-family: Lato;
+        margin: 0;
+        padding: 0;
+          /*background-color: black;*/
+      }
+
+
+    </style>
+
+
+</head>
+<body>
+
+
+  <div class="instruction">
+    <h1>INSTRUCTION</h1>
+    <p id=instruction>This experiment aims to observe how the crossing of different visual variables influences the perception of motion.
+      The motion that your task will focus on will be:<span id=mainMotionSpan></span></p>
+      </br>
+      <div id=mainMotionDiv> </div>
+      <span class="leftSpan"> Low value</span> <span class="rightSpan"> High value</span>
+      </br></br></br></br>
+      <p>The other visual variables used will be:</p>
+        <span id=otherMotionSpan0></span>
+        <div id=otherMotionDiv0> </div></br>
+        <span id=otherMotionSpan1></span>
+        <div id=otherMotionDiv1> </div></br>
+        <span id=otherMotionSpan2></span>
+        <div id=otherMotionDiv2> </div></br>
+        <span id=otherMotionSpan3></span>
+        <div id=otherMotionDiv3> </div>
+    </p></br></br>
+    <p> During each trial a graph will be displayed, this graph will contain two edges that will be annotated:
+      <strong>A</strong> for the <strong>reference edge</strong> and <strong>B</strong> for the <strong>editable edge</strong>.</br></br>
+     The goal of each trial is to modify the motion of edge B until it <strong>visually matches</strong> the motion of edge A.
+     For each trial, the value of the motion of edge B may be <strong>inferior, superior than or equal to</strong> the value of edge A.</br></br>
+      To do so you will have two button: "Increase Motion" and "Decrease Motion"
+    </p>
+      <button id="submit" type="submit" class="flat_button">Start training session</button>
+
+  </div>
+
+  <script>
+  var checkedVariable = <%- JSON.stringify(variables) %>;
+  var mainMotion = <%- JSON.stringify(mainMotion) %>;
+
+    function assignData(str){
+      console.log(str);
+      switch (str) {
+        case "cross":
+            return speedFrequencyData
+          break;
+        case "(Speed and Frequency mix)":
+            return speedFrequencyData
+          break;
+        case "speed":
+            return speedData
+          break;
+        case "frequency":
+            return frequencyData
+          break;
+        case "pattern":
+            return temporalData
+          break;
+        case "color":
+            return colorData
+          break;
+        case "size":
+            return sizeData
+          break;
+        case "shape":
+            return shapeData
+          break;
+        default:
+
+      }
+    }
+    speed = [1, 1.9, 3.61, 6.86, 13.034, 24.8]
+    frequency = [2.277, 1.518, 1.0125, 0.675, 0.45, 0.3]
+    temporal = [[0.4,0.6,0.8], [0.0,0.2], [0.0], [0.0,0.4,0.6,0.8], [0.0, 0.5], [0.0,0.2,0.4,0.6,0.8]]
+    color = ['#00ffff','#0000ff','#ff00ff','#ff0000','#ffff00','#00ff00']
+    size = [6, 9, 12,15,18,21]
+    shape = ['rectangle','circle','triangle','star', 'square', 'cross']
+    espace_particules = 2;
+
+    colorData = {"directed": false, "graph": {},
+      "nodes": [{"Y": 0, "X": -700, "name": 0, "id": 0}, {"Y": 0, "X": -550, "name": 1, "id": 1},
+        {"Y": 0, "X": -450, "name": 2, "id": 2}, {"Y": 0, "X": -300, "name": 3, "id": 3},
+        {"Y": 0, "X": -200, "name": 4, "id": 4}, {"Y": 0, "X": -50, "name": 5, "id": 5},
+        {"Y": 0, "X": 50, "name": 6, "id": 6}, {"Y": 0, "X": 200, "name": 7, "id": 7},
+        {"Y": 0, "X": 300, "name": 8, "id": 8}, {"Y": 0, "X": 450, "name": 9, "id": 9},
+        {"Y": 0, "X": 550, "name": 10, "id": 10}, {"Y": 0, "X": 700, "name": 11, "id": 11}],
+      "links": [{"sizeParticule": "10", "target": 1, "OLDSOURCE": 0, "color": "#00ffff", "temporal": [0], "OLDTARGET": 1, "source": 0, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 3, "OLDSOURCE": 0, "color": "#0000ff", "temporal": [0], "OLDTARGET": 1, "source": 2, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 5, "OLDSOURCE": 0, "color": "#ff00ff", "temporal": [0], "OLDTARGET": 1, "source": 4, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 7, "OLDSOURCE": 0, "color": "#ff0000", "temporal": [0], "OLDTARGET": 1, "source": 6, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 9, "OLDSOURCE": 0, "color": "#ffff00", "temporal": [0], "OLDTARGET": 1, "source": 8, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 11, "OLDSOURCE": 0, "color": "#00ff00", "temporal": [0], "OLDTARGET": 1, "source": 10, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0}],
+      "multigraph": false}
+
+    sizeData = {"directed": false, "graph": {},
+      "nodes": [{"Y": 0, "X": -700, "name": 0, "id": 0}, {"Y": 0, "X": -550, "name": 1, "id": 1},
+        {"Y": 0, "X": -450, "name": 2, "id": 2}, {"Y": 0, "X": -300, "name": 3, "id": 3},
+        {"Y": 0, "X": -200, "name": 4, "id": 4}, {"Y": 0, "X": -50, "name": 5, "id": 5},
+        {"Y": 0, "X": 50, "name": 6, "id": 6}, {"Y": 0, "X": 200, "name": 7, "id": 7},
+        {"Y": 0, "X": 300, "name": 8, "id": 8}, {"Y": 0, "X": 450, "name": 9, "id": 9},
+        {"Y": 0, "X": 550, "name": 10, "id": 10}, {"Y": 0, "X": 700, "name": 11, "id": 11}],
+      "links": [{"sizeParticule": "6", "target": 1, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 0, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "9", "target": 3, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 2, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "12", "target": 5, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 4, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "15", "target": 7, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 6, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "18", "target": 9, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 8, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "21", "target": 11, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 10, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0}],
+      "multigraph": false}
+
+    shapeData = {"directed": false, "graph": {},
+      "nodes": [{"Y": 0, "X": -700, "name": 0, "id": 0}, {"Y": 0, "X": -550, "name": 1, "id": 1},
+        {"Y": 0, "X": -450, "name": 2, "id": 2}, {"Y": 0, "X": -300, "name": 3, "id": 3},
+        {"Y": 0, "X": -200, "name": 4, "id": 4}, {"Y": 0, "X": -50, "name": 5, "id": 5},
+        {"Y": 0, "X": 50, "name": 6, "id": 6}, {"Y": 0, "X": 200, "name": 7, "id": 7},
+        {"Y": 0, "X": 300, "name": 8, "id": 8}, {"Y": 0, "X": 450, "name": 9, "id": 9},
+        {"Y": 0, "X": 550, "name": 10, "id": 10}, {"Y": 0, "X": 700, "name": 11, "id": 11}],
+      "links": [{"sizeParticule": "10", "target": 1, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 0, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 3, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 2, "shape": "circle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 5, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 4, "shape": "triangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 7, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 6, "shape": "star", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 9, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 8, "shape": "square", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 11, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 10, "shape": "cross", "frequency": 0.25, "speed": 1.9, "id": 0}],
+      "multigraph": false}
+
+    temporalData = {"directed": false, "graph": {},
+      "nodes": [{"Y": 0, "X": -700, "name": 0, "id": 0}, {"Y": 0, "X": -550, "name": 1, "id": 1},
+        {"Y": 0, "X": -450, "name": 2, "id": 2}, {"Y": 0, "X": -300, "name": 3, "id": 3},
+        {"Y": 0, "X": -200, "name": 4, "id": 4}, {"Y": 0, "X": -50, "name": 5, "id": 5},
+        {"Y": 0, "X": 50, "name": 6, "id": 6}, {"Y": 0, "X": 200, "name": 7, "id": 7},
+        {"Y": 0, "X": 300, "name": 8, "id": 8}, {"Y": 0, "X": 450, "name": 9, "id": 9},
+        {"Y": 0, "X": 550, "name": 10, "id": 10}, {"Y": 0, "X": 700, "name": 11, "id": 11}],
+      "links": [{"sizeParticule": "10", "target": 1, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 0, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 3, "OLDSOURCE": 0, "color": "black", "temporal": [0.0,0.2], "OLDTARGET": 1, "source": 2, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 5, "OLDSOURCE": 0, "color": "black", "temporal": [0.0, 0.5], "OLDTARGET": 1, "source": 4, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 7, "OLDSOURCE": 0, "color": "black", "temporal": [0.4,0.6,0.8], "OLDTARGET": 1, "source": 6, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 9, "OLDSOURCE": 0, "color": "black", "temporal": [0.0,0.4,0.6,0.8], "OLDTARGET": 1, "source": 8, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 11, "OLDSOURCE": 0, "color": "black", "temporal": [0.0,0.2,0.4,0.6,0.8], "OLDTARGET": 1, "source": 10, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0}],
+      "multigraph": false}
+
+    frequencyData = {"directed": false, "graph": {},
+      "nodes": [{"Y": 0, "X": -700, "name": 0, "id": 0}, {"Y": 0, "X": -550, "name": 1, "id": 1},
+        {"Y": 0, "X": -450, "name": 2, "id": 2}, {"Y": 0, "X": -300, "name": 3, "id": 3},
+        {"Y": 0, "X": -200, "name": 4, "id": 4}, {"Y": 0, "X": -50, "name": 5, "id": 5},
+        {"Y": 0, "X": 50, "name": 6, "id": 6}, {"Y": 0, "X": 200, "name": 7, "id": 7},
+        {"Y": 0, "X": 300, "name": 8, "id": 8}, {"Y": 0, "X": 450, "name": 9, "id": 9},
+        {"Y": 0, "X": 550, "name": 10, "id": 10}, {"Y": 0, "X": 700, "name": 11, "id": 11}],
+      "links": [{"sizeParticule": "10", "target": 1, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 0, "shape": "rectangle", "frequency": 2.277, "speed": 3.61, "id": 0},
+        {"sizeParticule": "10", "target": 3, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 2, "shape": "rectangle", "frequency": 1.518, "speed": 3.61, "id": 0},
+        {"sizeParticule": "10", "target": 5, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 4, "shape": "rectangle", "frequency": 1.0125, "speed": 3.61, "id": 0},
+        {"sizeParticule": "10", "target": 7, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 6, "shape": "rectangle", "frequency": 0.675, "speed": 3.61, "id": 0},
+        {"sizeParticule": "10", "target": 9, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 8, "shape": "rectangle", "frequency": 0.45, "speed": 3.61, "id": 0},
+        {"sizeParticule": "10", "target": 11, "OLDSOURCE": 0, "color": "black", "temporal": [0], "OLDTARGET": 1, "source": 10, "shape": "rectangle", "frequency": 0.3, "speed": 3.61, "id": 0}],
+      "multigraph": false}
+
+    speedData = {"directed": false, "graph": {},
+      "nodes": [{"Y": 0, "X": -700, "name": 0, "id": 0}, {"Y": 0, "X": -550, "name": 1, "id": 1},
+        {"Y": 0, "X": -450, "name": 2, "id": 2}, {"Y": 0, "X": -300, "name": 3, "id": 3},
+        {"Y": 0, "X": -200, "name": 4, "id": 4}, {"Y": 0, "X": -50, "name": 5, "id": 5},
+        {"Y": 0, "X": 50, "name": 6, "id": 6}, {"Y": 0, "X": 200, "name": 7, "id": 7},
+        {"Y": 0, "X": 300, "name": 8, "id": 8}, {"Y": 0, "X": 450, "name": 9, "id": 9},
+        {"Y": 0, "X": 550, "name": 10, "id": 10}, {"Y": 0, "X": 700, "name": 11, "id": 11}],
+      "links": [{"sizeParticule": "10", "target": 1, "OLDSOURCE": 0, "color": "black", "temporal": [(0 % 10) / 10.0], "OLDTARGET": 1, "source": 0, "shape": "rectangle", "frequency": 0.25, "speed": 1, "id": 0},
+        {"sizeParticule": "10", "target": 3, "OLDSOURCE": 0, "color": "black", "temporal": [(1 % 10) / 10.0], "OLDTARGET": 1, "source": 2, "shape": "rectangle", "frequency": 0.25, "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 5, "OLDSOURCE": 0, "color": "black", "temporal": [(2 % 10) / 10.0], "OLDTARGET": 1, "source": 4, "shape": "rectangle", "frequency": 0.25, "speed": 3.61, "id": 0},
+        {"sizeParticule": "10", "target": 7, "OLDSOURCE": 0, "color": "black", "temporal": [(3 % 10) / 10.0], "OLDTARGET": 1, "source": 6, "shape": "rectangle", "frequency": 0.25, "speed": 6.86, "id": 0},
+        {"sizeParticule": "10", "target": 9, "OLDSOURCE": 0, "color": "black", "temporal": [(4 % 10) / 10.0], "OLDTARGET": 1, "source": 8, "shape": "rectangle", "frequency": 0.25, "speed": 13.034, "id": 0},
+        {"sizeParticule": "10", "target": 11, "OLDSOURCE": 0, "color": "black", "temporal": [(5 % 10) / 10.0], "OLDTARGET": 1, "source": 10, "shape": "rectangle", "frequency": 0.25, "speed": 24.8, "id": 0}],
+      "multigraph": false}
+
+    crossData = {"directed": false, "graph": {},
+      "nodes": [{"Y": 0, "X": -700, "name": 0, "id": 0}, {"Y": 0, "X": -550, "name": 1, "id": 1},
+        {"Y": 0, "X": -450, "name": 2, "id": 2}, {"Y": 0, "X": -300, "name": 3, "id": 3},
+        {"Y": 0, "X": -200, "name": 4, "id": 4}, {"Y": 0, "X": -50, "name": 5, "id": 5},
+        {"Y": 0, "X": 50, "name": 6, "id": 6}, {"Y": 0, "X": 200, "name": 7, "id": 7},
+        {"Y": 0, "X": 300, "name": 8, "id": 8}, {"Y": 0, "X": 450, "name": 9, "id": 9},
+        {"Y": 0, "X": 550, "name": 10, "id": 10}, {"Y": 0, "X": 700, "name": 11, "id": 11}],
+      "links": [{"sizeParticule": "10", "target": 1, "OLDSOURCE": 0, "color": "black", "temporal": [(0 % 10) / 10.0], "OLDTARGET": 1, "source": 0, "shape": "rectangle", "frequency": (1.0 / espace_particules), "speed": 1, "id": 0},
+        {"sizeParticule": "10", "target": 3, "OLDSOURCE": 0, "color": "black", "temporal": [(1 % 10) / 10.0], "OLDTARGET": 1, "source": 2, "shape": "rectangle", "frequency":(1.9 / espace_particules), "speed": 1.9, "id": 0},
+        {"sizeParticule": "10", "target": 5, "OLDSOURCE": 0, "color": "black", "temporal": [(2 % 10) / 10.0], "OLDTARGET": 1, "source": 4, "shape": "rectangle", "frequency": (3.61 / espace_particules), "speed": 3.61, "id": 0},
+        {"sizeParticule": "10", "target": 7, "OLDSOURCE": 0, "color": "black", "temporal": [(3 % 10) / 10.0], "OLDTARGET": 1, "source": 6, "shape": "rectangle", "frequency":(6.86 / espace_particules), "speed": 6.86, "id": 0},
+        {"sizeParticule": "10", "target": 9, "OLDSOURCE": 0, "color": "black", "temporal": [(4 % 10) / 10.0], "OLDTARGET": 1, "source": 8, "shape": "rectangle", "frequency":(13.034 / espace_particules), "speed": 13.034, "id": 0},
+        {"sizeParticule": "10", "target": 11, "OLDSOURCE": 0, "color": "black", "temporal": [(5 % 10) / 10.0], "OLDTARGET": 1, "source": 10, "shape": "rectangle", "frequency": (24.8 / espace_particules), "speed": 24.8, "id": 0}],
+      "multigraph": false}
+
+    d3.select("#mainMotionSpan").append('text').text(" the "+ mainMotion).style('font-weight', 'bold')
+    //console.log(checkedVariable);
+    app = flownet.force("#mainMotionDiv", 1500 ,40, "black",0)
+        .nodes(assignData(mainMotion).nodes)
+        .links(assignData(mainMotion).links)
+
+        .layout("linkDistance", 200)
+        .create_layout()
+        .tracks("count", 1 )
+
+        .create_WEBGL_element()
+
+        .link_properties("curvature", 100)
+        .link_properties("color", "#dddddd")
+        .link_properties("size", 3)
+
+        .node_properties("color", "#999797")
+        .node_properties("size", 7)
+
+        //.controls(false)
+        .node_properties("x", function(d, i) {return d.X; })
+        .node_properties("y", function(d, i) {return - d.Y;  })
+
+        .particles("color", function(d, i) {console.log(d.color);return d.color; })
+        .particles("size", function(d, i) {console.log(d.sizeParticule);return d.sizeParticule; })
+        .particles("frequency", function(d, i) {return d.frequency; })
+        .particles("pattern", function(d, i) {return d.temporal; })
+        .particles("speed", function(d, i) {return d.speed; })
+
+        .particles("texture", function(d, i) {return "images/"+ d.shape +"_texture.png";})
+
+        .start_particle_delay(10000)
+        .start(0);
+
+    str = " "
+    for (var i = 0; i < checkedVariable.length; i++) {
+      //str += checkedVariable[i]
+      //if ( i < checkedVariable.length-1 ) str +=  ", "
+      d3.select('#otherMotionSpan'+i).append('text').text(checkedVariable[i]+":").style('font-weight', 'bold')
+      app = flownet.force("#otherMotionDiv"+i, 1500 ,40, "black",0)
+          .nodes(assignData(checkedVariable[i]).nodes)
+          .links(assignData(checkedVariable[i]).links)
+
+          .layout("linkDistance", 200)
+          .create_layout()
+          .tracks("count", 1 )
+
+          .create_WEBGL_element()
+
+          .link_properties("curvature", 100)
+          .link_properties("color", "#dddddd")
+          .link_properties("size", 3)
+
+          .node_properties("color", "#999797")
+          .node_properties("size", 7)
+
+          //.controls(false)
+          .node_properties("x", function(d, i) {return d.X; })
+          .node_properties("y", function(d, i) {return - d.Y;  })
+
+          .particles("color", function(d, i) {console.log(d.color);return d.color; })
+          .particles("size", function(d, i) {console.log(d.sizeParticule);return d.sizeParticule; })
+          .particles("frequency", function(d, i) {return d.frequency; })
+          .particles("pattern", function(d, i) {return d.temporal; })
+          .particles("speed", function(d, i) {return d.speed; })
+
+          .particles("texture", function(d, i) {return "images/"+ d.shape +"_texture.png";})
+
+          .start_particle_delay(10000)
+          .start(0);
+    }
+    //d3.select('#otherMotionSpan').append('text').text(str).style('font-weight', 'bold')
+
+
+  // J'ajoute plus un a la redirection
+  $( "#submit" ).click(function() {
+      var URL = window.location.href;
+      var res = URL.split("/");
+      var next_app = parseInt(res[res.length-1]) +1;
+    console.log("Store Data")
+      window.location = '/application/count_groups/0';
+
+  });
+  </script>
+</html>

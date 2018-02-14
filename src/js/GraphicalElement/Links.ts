@@ -124,6 +124,7 @@ export class Links{
                 this.tube[i].children[0].geometry = geometry2;
                 // console.log(this.links[i])
                 this.tube[i].children[0].material.opacity = this.links[i].tube_opacity;
+                this.tube[i].children[0].material.color = this.links[i].linkColor;
 
                 // for (var a in geometry2.vertices) {
                 //     this.tube[i].children[0].geometry.vertices[a].x = geometry2.vertices[a].x;
@@ -151,8 +152,7 @@ export class Links{
             //}
         }
         // console.log("FINISH UPDATE TUBE")
-        //console.log(scene);
-
+        //console.log(scene)
     }
     createTube(){
         var path = [];
@@ -165,6 +165,7 @@ export class Links{
         for(var i=0 ; i<this.links.length ; i++)
         {
             this.links[i].width_tube = 1;
+            this.links[i].linkColor = new THREE.Color('grey');
             this.links[i].tube_opacity = 1;
             this.links[i].spatial_distribution = []
 
@@ -212,8 +213,8 @@ export class Links{
             //ICI BUG
                 geometry = new THREE.ShapeGeometry( shape );
                 //console.log(2)
-                //console.log("3");
-                var material = new THREE.MeshBasicMaterial( { color: 0x3498db, opacity: this.links[i].tube_opacity, transparent: true } );
+                // console.log(this.links[i]);
+                var material = new THREE.MeshBasicMaterial( { color: this.links[i].linkColor, opacity: this.links[i].tube_opacity, transparent: true } );
             //  material.opacity = 1;
                 
                 

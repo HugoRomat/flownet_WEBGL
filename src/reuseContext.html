@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>particles</title>
+
+  <script src="../static/lib/d3.v4.js"></script>
+  <script src="../dist/main.entry.js"></script>
+    <style>
+        div{
+            /* float: left;
+            margin-right: 5px; */
+        }
+      html { width: 100%; height:100%; /*overflow:hidden;*/ }
+      body{
+        width: 100%;
+        height:100%;
+        font-family: Lato;
+        margin: 0;
+        padding: 0;
+          /*background-color: black;*/
+      }
+
+
+    </style>
+
+
+</head>
+<body>
+
+
+	<div id="visFrame"></div>
+
+	<script>
+
+    var json; 
+    var color_scale_delay_dep = d3.scaleLinear()
+                   .domain([0, 23])
+                   .range([2,10])
+
+    var freq = d3.scaleLinear()
+                   .domain([0, 28])
+                   .range([0.1,0.8])
+              
+
+    d3.json("../static/data/starWars.json", function(json) {
+
+              json = {"directed": false, "graph": {},
+              "nodes": [{"Y": 0, "X": -400, "name": 0, "id": 0}, {"Y": 0, "X": -250, "name": 1, "id": 1},
+                {"Y": 0, "X": -200, "name": 2, "id": 2}, {"Y": 0, "X":-50, "name": 3, "id": 3},
+                {"Y": 0, "X": 0, "name": 4, "id": 4}, {"Y": 0, "X": 400, "name": 5, "id": 5}
+],
+              "links": [{
+                "sizeParticule": "10", "target": 1, "OLDSOURCE": 0, "color": "#00ffff", "temporal": [0], "OLDTARGET": 1, "source": 0, "fr": 0.2, "sp": 1, "id": 0},
+                {"sizeParticule": "10", "target": 3, "OLDSOURCE": 0, "color": "#0000ff", "temporal": [0], "OLDTARGET": 1, "source": 2, "fr": 1, "sp": 5, "id": 1},
+                {"sizeParticule": "10", "target": 5, "OLDSOURCE": 0, "color": "#ff00ff", "temporal": [0], "OLDTARGET": 1, "source": 4, "fr": 4, "sp": 20, "id": 2}],
+              "multigraph": false}
+            var width = window.innerWidth;
+            var height = window.innerHeight
+            
+            var app = flownet.force("#visFrame", width, height, "grey",1)
+                  .nodes(json.nodes)
+                  .links(json.links)
+                  .create_layout()
+                  .tracks("count", 1 )
+                  .create_WEBGL_element()
+                  .link_properties("curvature", -5)
+                  .link_properties("size", 5)
+                  // .link_properties("color", "blue")
+                  .node_properties("color", "#000000")
+                  .node_properties("size", 5)
+                  .node_properties("size", 5)
+                  .node_properties("x", function(d, i) {return d.X; })
+                  .node_properties("y", function(d, i) {return d.Y;  })                
+                  .tracks("opacity", 0.4)
+                  .node_properties("label", function(d, i) {return d.name; })
+                  .node_properties("label_size", 10)
+                  .node_properties("label_x", 15)
+                  .node_properties("label_y", -5)
+                  .node_properties("label_color", "#FFFFFF")
+                  .particles("color", "black")
+                  .particles("size", 7)
+                  .particles("pattern", [0, 0.15, 0.3])
+                  .particles("frequency", 1)//function(d, i) {return d.fr; })
+                  .particles("speed", 10)//function(d, i) {return d.sp; })
+                  // .particles("speed", 3, 0.5)
+                  .particles("speed", 5, 0.5)
+                  .start(0);
+                
+        
+                  // setInterval(function(){ 
+                  //   console.log(app);
+                  //   var scene = app.visualisation.scene;
+                  //   // // console.log(app.visualisation);
+                  //   while(scene.children.length > 0){ 
+                  //       scene.remove(scene.children[0]); 
+                  //   }
+                    
+                  //   flownet.force("#visFrame", width, height, "grey",1, app.visualisation)
+                  //     .nodes(json.nodes)
+                  //     .links(json.links)
+                  //     .create_layout()
+                  //     .tracks("count", 1 )
+                  //     .create_WEBGL_element()
+                  //     .link_properties("curvature", -5)
+                  //     .link_properties("size", 5)
+                  //     .node_properties("color", "#000000")
+                  //     .node_properties("size", 5)
+                  //     .node_properties("size", 5)
+                  //     .node_properties("x", function(d, i) {return d.X; })
+                  //     .node_properties("y", function(d, i) {return d.Y;  })
+                  //     .tracks("opacity", 0.4)
+                  //     // .node_properties("label", function(d, i) {return d.name; })
+                  //     .node_properties("label_size", 10)
+                  //     .node_properties("label_x", 15)
+                  //     .node_properties("label_y", -5)
+                  //     .node_properties("label_color", "#FFFFFF")
+                  //     .particles("color", "black")
+                  //     .particles("size", 10)
+                  //     .particles("frequency", 0.5)
+                  //     .particles("speed", function(d, i) {return 3; })
+                  //     .update(0);
+
+                  // }, 500);
+
+          });
+
+	</script>
+
+
+</body>
+</html>

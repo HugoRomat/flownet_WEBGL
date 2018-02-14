@@ -132,7 +132,7 @@
 
 
                
-                // gl_FragColor = vec4( vColor, my_opacity );
-                // gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+                //gl_FragColor = vec4( vColor, my_opacity );
+                //gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
 
             }

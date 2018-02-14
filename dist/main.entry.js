@@ -53250,8 +53250,8 @@ module.exports = __webpack_require__(174);
 Object.defineProperty(exports, "__esModule", { value: true });
 // import {MainClass} from './MainClass'
 var Mapping_1 = __webpack_require__(175);
-function force(div, width, height, color, alpha) {
-    var mapping = new Mapping_1.Mapping(div, width, height, color, alpha);
+function force(div, width, height, color, alpha, visualisation) {
+    var mapping = new Mapping_1.Mapping(div, width, height, color, alpha, visualisation);
     return mapping;
 }
 exports.force = force;
@@ -53272,11 +53272,16 @@ var Particles_1 = __webpack_require__(180);
 var LayoutManager_1 = __webpack_require__(184);
 var Visualisation_1 = __webpack_require__(476);
 var Mapping = /** @class */ (function () {
-    function Mapping(div, width, height, color, alpha) {
+    function Mapping(div, width, height, color, alpha, visualisation) {
         //console.log("I HAVE CREATED A MAIN")
         // this.viz = new Main(div,null, null, width, height, color, alpha);
         // this.sparkiz = this.viz.sparkiz;
-        this.visualisation = new Visualisation_1.Visualisation(div, width, height, color, alpha, this);
+        if (visualisation == undefined)
+            this.visualisation = new Visualisation_1.Visualisation(div, width, height, color, alpha, this);
+        else {
+            // console.log("KEEP SCENE")
+            this.visualisation = visualisation;
+        }
         this.linksObject = new Links_1.Links(this.visualisation.scene);
         this.nodesObject = new Nodes_1.Nodes(this.visualisation.scene);
         this.tracksObject = new Tracks_1.Tracks(this.visualisation.scene);
@@ -53314,6 +53319,20 @@ var Mapping = /** @class */ (function () {
     //     //this.viz.with_absolute_time();
     //     return this;
     // }
+    Mapping.prototype.start_particle_delay = function (delay) {
+        this.visualisation.then -= delay;
+        //this.viz.with_absolute_time();
+        return this;
+    };
+    Mapping.prototype.update = function () {
+        this.nodesObject.createLabel();
+        this.tracksObject.updatetracks();
+        this.nodesObject.updateNodes();
+        this.linksObject.updateTube();
+        this.particlesObject.fit_all_particles_to_frequence_temporal_distrib();
+        this.particlesObject.updateParticles();
+        return this;
+    };
     Mapping.prototype.start = function (time) {
         this.nodesObject.createLabel();
         this.tracksObject.updatetracks();
@@ -53414,7 +53433,7 @@ var Mapping = /** @class */ (function () {
                         gate_position = gate;
                     }
                     for (var k = gate_position; k < maxGates; k++) {
-                        maxGates[i].size[k] = value;
+                        particles[i].size[k] = value;
                     }
                 }
                 return this;
@@ -53585,7 +53604,9 @@ var Mapping = /** @class */ (function () {
                         var a = callback(links[i], i);
                         value = new THREE.Color(a);
                     }
-                    links[i]["linkColor"] = value.getHex();
+                    // console.log(value)
+                    links[i].linkColor = value;
+                    // console.log(value.getHex())
                     // this.sparkiz.tube[i].children[0].material.color.setHex(value.getHex());
                 }
                 return this;
@@ -53837,7 +53858,7 @@ var Nodes = /** @class */ (function () {
         var loader = new THREE.FontLoader();
         var myFont = new THREE.Font(fontHelvetiker);
         for (var i = 0; i < self.nodes.length; i++) {
-            console.log("YOO", self.nodes[i]);
+            // console.log("YOO", self.nodes[i])
             if (self.nodes[i].label_name != null) {
                 var textGeo = new THREE.TextGeometry(self.nodes[i].label_name, {
                     font: myFont,
@@ -53864,7 +53885,7 @@ var Nodes = /** @class */ (function () {
         }
     };
     Nodes.prototype.updateNodes = function () {
-        console.log("UPDATE NODES", this.webglNodes);
+        // console.log("UPDATE NODES", this.webglNodes)
         var self = this;
         //console.log(self.nodes[0])
         for (var i = 0; i < this.nodes.length; i++) {
@@ -53882,7 +53903,7 @@ var Nodes = /** @class */ (function () {
      * Permet de créer mes noeuds avec les parametres renseigné avant
      */
     Nodes.prototype.createNodes = function () {
-        console.log("CREATE NODES");
+        // console.log("CREATE NODES");
         // NODES
         var n;
         // this.webGL_nodes = [];
@@ -54040,6 +54061,7 @@ var Links = /** @class */ (function () {
                 this.tube[i].children[0].geometry = geometry2;
                 // console.log(this.links[i])
                 this.tube[i].children[0].material.opacity = this.links[i].tube_opacity;
+                this.tube[i].children[0].material.color = this.links[i].linkColor;
                 // for (var a in geometry2.vertices) {
                 //     this.tube[i].children[0].geometry.vertices[a].x = geometry2.vertices[a].x;
                 //     this.tube[i].children[0].geometry.vertices[a].y = geometry2.vertices[a].y;
@@ -54062,7 +54084,7 @@ var Links = /** @class */ (function () {
             //}
         }
         // console.log("FINISH UPDATE TUBE")
-        //console.log(scene);
+        //console.log(scene)
     };
     Links.prototype.createTube = function () {
         var path = [];
@@ -54074,6 +54096,7 @@ var Links = /** @class */ (function () {
         //console.log(this.links)
         for (var i = 0; i < this.links.length; i++) {
             this.links[i].width_tube = 1;
+            this.links[i].linkColor = new THREE.Color('grey');
             this.links[i].tube_opacity = 1;
             this.links[i].spatial_distribution = [];
             //this.links[i].particleSystems = [];
@@ -54118,8 +54141,8 @@ var Links = /** @class */ (function () {
             //ICI BUG
             geometry = new THREE.ShapeGeometry(shape);
             //console.log(2)
-            //console.log("3");
-            var material = new THREE.MeshBasicMaterial({ color: 0x3498db, opacity: this.links[i].tube_opacity, transparent: true });
+            // console.log(this.links[i]);
+            var material = new THREE.MeshBasicMaterial({ color: this.links[i].linkColor, opacity: this.links[i].tube_opacity, transparent: true });
             //  material.opacity = 1;
             //var mesh = THREE.SceneUtils.createMultiMaterialObject( geometry, [ material] );
             var mesh = new THREE.Mesh(geometry, material);
@@ -54308,7 +54331,7 @@ var Tracks = /** @class */ (function () {
             // console.log("POSITION LIENS", x1, y1, x2, y2, this.tracks[i].width_tube, this.tracks[i].number_paths_particule)
             for (var j = 0, f = 1; j < position.length - 1; j += 2, f++) {
                 var object = this.curveSplines[i].children[f];
-                console.log(object);
+                // console.log(object)
                 var points = [];
                 var segmentation = this.tracks[i].number_segmentation;
                 var courbure = this.tracks[i].courbure;
@@ -54420,6 +54443,7 @@ var Particles = /** @class */ (function () {
         var temporal_distribution = this.particles[id].temporal_distribution2;
         var speed = 10; //this.links[id].gate_velocity[0];
         frequence_patttern = this.FPS * frequence_patttern;
+        var speedAverage = this.getAverageSpeed(id);
         //Je multiplie par frequence pattern pour partir d'une echelle sur [O,1] en entrée vers [0,-frequence_patttern]
         //Négatif pour que ca parte vers l'arriere
         //Divise par speed pour que cela soit proportionnel si l'on change la vitesse
@@ -54432,7 +54456,8 @@ var Particles = /** @class */ (function () {
         // MOTIFS +1 POUR AVOIR LA PLACE DE LE DECALER ET DE FAIRE DES ANIM AU DEBUT
         var offsetDueToBeginning = 0.11 * this.particles[id].number_segmentation;
         var motifs = Math.ceil((this.particles[id].number_segmentation + offsetDueToBeginning) / frequence_patttern);
-        // console.log("motifs", motifs)
+        console.log("motifs", motifs, speedAverage, frequence_patttern);
+        // motifs = 30;
         //console.log("MOTIFS", motifs, this.links[id].number_segmentation)
         this.particles[id].number_particles = motifs * temporal_distribution.length;
         // Motifs qui fitte en termes de une seconde pour un motif)
@@ -54630,6 +54655,15 @@ var Particles = /** @class */ (function () {
         }
         return array;
     };
+    Particles.prototype.getAverageSpeed = function (linkId) {
+        var gate_velocity = this.particles[linkId].gate_velocity;
+        var speed = 0;
+        for (var i = 0; i < this.particles[linkId].gate_velocity.length; i++) {
+            // console.log(speed)
+            speed += this.particles[linkId].gate_velocity[i];
+        }
+        return speed = speed / this.particles[linkId].gate_velocity.length;
+    };
     return Particles;
 }());
 exports.Particles = Particles;
@@ -54645,7 +54679,7 @@ module.exports = "#define GLSLIFY 1\n\n\n\n            uniform float time;\n    
 /* 182 */
 /***/ (function(module, exports) {
 
-module.exports = "#define GLSLIFY 1\n//uniform vec3 color;\n            uniform sampler2D texture;\n            //uniform float zoom;\n\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float my_opacity;\n            varying vec3 vColor;\n\n            varying float vRotation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n\n\n            mat2 rotation(float x) {\n              vec2 line_1 = vec2(cos(x), -sin(x));\n              vec2 line_2 = vec2(sin(x), cos(x));\n\n              return mat2(line_1,line_2); \n            }\n            mat2 translation(float x, float y) {\n              vec2 line_1 = vec2(1.0,x);\n              vec2 line_2 = vec2(1.0,y);\n\n              return mat2(line_1,line_2); \n            }\n            mat2 changerEchelle(float sx, float sy) {\n              vec2 line_1 = vec2(sx, 0.0);\n              vec2 line_2 = vec2(0.0, sy);\n\n              return mat2(line_1,line_2); \n            }\n\n\n            void main() {\n\n\n                float mid = 0.5;\n                mat2 my_matrix = /** translation(mid, mid) **/rotation(vRotation) ;\n                vec2 rotated =  my_matrix * vec2(gl_PointCoord.x - mid, gl_PointCoord.y - mid) ;\n                rotated.x = rotated.x + mid;\n                rotated.y = rotated.y + mid;\n\n\n\n\n                /*vec2 rotated = vec2(\n                        cos(vRotation) * (gl_PointCoord.x - mid) + sin(vRotation) * (gl_PointCoord.y - mid) + mid,\n                        cos(vRotation) * (gl_PointCoord.y - mid) - sin(vRotation) * (gl_PointCoord.x - mid) + mid);*/\n\n                //Texture 2D return the RGBA\n                vec4 color = vec4(1.0,1.0,1.0, 1.0);\n\n                vec2 new_coord =  my_matrix * gl_PointCoord;\n\n\n                \n                // if (rotated.x > 0.5){\n                //   color = vec4(1.0,1.0,1.0, 0.0);\n                // }\n                float opacityArr = 1.0;\n                float opacityDep = 0.0;\n                /*************************************\n                ARRIVE DE LA PARTICULE \n\n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n                \n                *************************************/\n\n                // if (index_ >= segmentation + (0.1 * segmentation)){\n                //   color = vec4(1.0,0.0,0.0, 1.0);\n                // }\n                if (distance_with_arrival < (sprite_size * 2.0) && index_ < segmentation + (0.1 * segmentation)){\n                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                  }\n                }\n\n                if (distance_with_arrival < (sprite_size * 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){\n                    color = vec4(0.0,1.0,0.0, 0.0);\n                  }\n                }\n                // // // color = vec4(1.0,0.0,0.0, 1.0);\n                // // //QUAND LA PARTICULE A DEPASSE LE NOEUD\n                if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                }\n\n                /*************************************\n                DEPART DE LA PARTICULE \n                \n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n\n                *************************************/\n\n                if (distance_with_departure < (sprite_size / 2.0) && index_ < 0.0 + (0.1 * segmentation)){\n                  if ( rotated.x - 0.5 < (distance_with_departure / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                  }\n                }\n                if (distance_with_departure < (sprite_size / 2.0) && index_ >= 0.0 + (0.1 * segmentation)){\n                  if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){\n                    color = vec4(0.0,1.0,0.0, 0.0);\n                  }\n                }\n\n                if (distance_with_departure >= (sprite_size / 2.0) && index_ <= 0.0 + (0.1 * segmentation)){\n                  color = vec4(1.0,0.0,0.0, 0.0);\n                }\n\n                // if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                //     color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n                \n                //if ( rotated.x < 0.5){color = vec4(1.0,1.0,1.0, 0.0);}\n\n                vec4 rotatedTexture = texture2D( texture,  rotated) * color;\n\n                gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;\n\n\n\n               \n                //gl_FragColor = vec4( vColor, my_opacity );\n                //gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );\n\n            }"
+module.exports = "#define GLSLIFY 1\n//uniform vec3 color;\n            uniform sampler2D texture;\n            //uniform float zoom;\n\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float my_opacity;\n            varying vec3 vColor;\n\n            varying float vRotation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n\n\n            mat2 rotation(float x) {\n              vec2 line_1 = vec2(cos(x), -sin(x));\n              vec2 line_2 = vec2(sin(x), cos(x));\n\n              return mat2(line_1,line_2); \n            }\n            mat2 translation(float x, float y) {\n              vec2 line_1 = vec2(1.0,x);\n              vec2 line_2 = vec2(1.0,y);\n\n              return mat2(line_1,line_2); \n            }\n            mat2 changerEchelle(float sx, float sy) {\n              vec2 line_1 = vec2(sx, 0.0);\n              vec2 line_2 = vec2(0.0, sy);\n\n              return mat2(line_1,line_2); \n            }\n\n\n            void main() {\n\n\n                float mid = 0.5;\n                mat2 my_matrix = /** translation(mid, mid) **/rotation(vRotation) ;\n                vec2 rotated =  my_matrix * vec2(gl_PointCoord.x - mid, gl_PointCoord.y - mid) ;\n                rotated.x = rotated.x + mid;\n                rotated.y = rotated.y + mid;\n\n\n\n\n                /*vec2 rotated = vec2(\n                        cos(vRotation) * (gl_PointCoord.x - mid) + sin(vRotation) * (gl_PointCoord.y - mid) + mid,\n                        cos(vRotation) * (gl_PointCoord.y - mid) - sin(vRotation) * (gl_PointCoord.x - mid) + mid);*/\n\n                //Texture 2D return the RGBA\n                vec4 color = vec4(1.0,1.0,1.0, 1.0);\n\n                vec2 new_coord =  my_matrix * gl_PointCoord;\n\n\n                \n                // if (rotated.x > 0.5){\n                //   color = vec4(1.0,1.0,1.0, 0.0);\n                // }\n                float opacityArr = 1.0;\n                float opacityDep = 0.0;\n                /*************************************\n                ARRIVE DE LA PARTICULE \n\n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n                \n                *************************************/\n\n                // if (index_ >= segmentation + (0.1 * segmentation)){\n                //   color = vec4(1.0,0.0,0.0, 1.0);\n                // }\n                if (distance_with_arrival < (sprite_size * 2.0) && index_ < segmentation + (0.1 * segmentation)){\n                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                  }\n                }\n\n                if (distance_with_arrival < (sprite_size * 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){\n                    color = vec4(0.0,1.0,0.0, 0.0);\n                  }\n                }\n                // // // color = vec4(1.0,0.0,0.0, 1.0);\n                // // //QUAND LA PARTICULE A DEPASSE LE NOEUD\n                if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                }\n\n                /*************************************\n                DEPART DE LA PARTICULE \n                \n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n\n                *************************************/\n\n                if (distance_with_departure < (sprite_size / 2.0) && index_ < 0.0 + (0.1 * segmentation)){\n                  if ( rotated.x - 0.5 < (distance_with_departure / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                  }\n                }\n                if (distance_with_departure < (sprite_size / 2.0) && index_ >= 0.0 + (0.1 * segmentation)){\n                  if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){\n                    color = vec4(0.0,1.0,0.0, 0.0);\n                  }\n                }\n\n                if (distance_with_departure >= (sprite_size / 2.0) && index_ <= 0.0 + (0.1 * segmentation)){\n                  color = vec4(1.0,0.0,0.0, 0.0);\n                }\n\n                // if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                //     color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n                \n                //if ( rotated.x < 0.5){color = vec4(1.0,1.0,1.0, 0.0);}\n\n                vec4 rotatedTexture = texture2D( texture,  rotated) * color;\n\n                gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;\n\n\n\n               \n                // gl_FragColor = vec4( vColor, my_opacity );\n                // gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );\n\n            }"
 
 /***/ }),
 /* 183 */
