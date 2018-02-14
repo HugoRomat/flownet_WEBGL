@@ -115,7 +115,7 @@ export class Visualisation {
         var my_frame = 0;
         var links = this.mapping.linksObject.links;
         for ( var j = 0;  j < links.length; j ++ ){  
-             
+            //  console.log(number_frame)
             if (links[j].particleSystems.length != 0 && links[j].particleSystems.material.__webglShader != undefined){
                 var uniforms = links[j].particleSystems.material.__webglShader.uniforms;
                 // console.log(uniforms)

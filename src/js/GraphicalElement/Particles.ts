@@ -90,10 +90,11 @@ export class Particles{
         //Motifs = Je prend la plus grande partie d'un lien
         //Si mon lien fait 130, je prend le multiple le plus haut de frequence pattern (si=80, je prend 160)
         // MOTIFS +1 POUR AVOIR LA PLACE DE LE DECALER ET DE FAIRE DES ANIM AU DEBUT
-        var offsetDueToBeginning = 0.11 * this.particles[id].number_segmentation
-        var motifs = Math.ceil((this.particles[id].number_segmentation + offsetDueToBeginning)/frequence_patttern);
-        console.log("motifs", motifs, speedAverage, frequence_patttern)
-        // motifs = 30;
+        // var offsetDueToBeginning = 0.11 * this.particles[id].number_segmentation
+        // var motifs = Math.ceil((this.particles[id].number_segmentation + offsetDueToBeginning)/frequence_patttern);
+        var motifs = Math.ceil(((this.particles[id].number_segmentation/5)/(12.5)) * speedAverage) //+ Math.ceil(this.particles[id].number_segmentation/500);
+        // console.log("motifs", motifs, speedAverage, frequence_patttern, this.particles[id].number_segmentation/5)
+        // motifs = 71;
         //console.log("MOTIFS", motifs, this.links[id].number_segmentation)
         this.particles[id].number_particles = motifs * temporal_distribution.length;  
 
@@ -111,13 +112,13 @@ export class Particles{
         for(var k=1 ; k < motifs+1; k++){
             total_for_pattern = 0
             //J'ajoute frequence pattern a chaque nouveau pattern
-            delay = frequence_patttern * (k - 1)
+            delay = frequence_patttern * (k -1)//- 1)
 
             for(var j=0 ; j<temporal_distribution.length; j++){
                 //Pour chaque element du tableau donnée, j'ajoute frequence_pattern + le delay.
                 this.particles[id].temporal_distribution[id_particle] = (delay + temporal_dis[j]);
                 // console.log()
-                total_for_pattern += delay +temporal_dis[j];
+                total_for_pattern += delay + temporal_dis[j];
                 id_particle +=1;
             }
         }      
@@ -189,18 +190,19 @@ export class Particles{
         var posistion_gate_after_speed = [];
         // GAP = un espace
         
-        var gap = number_segmentation_pattern_fitting / (this.number_max_gates);
+        var gap = number_segmentation / (this.number_max_gates);
         
         for (var i =0; i< (this.number_max_gates -1); i ++){
             posistion_gate_after_speed.push(number);
-            number = number + parseInt(gap/(gate_velocity[i])) 
+            number = number + parseInt(gap/(gate_velocity[i])) + 2; 
         }
-        posistion_gate_after_speed.push(number_segmentation_pattern_fitting)
+        posistion_gate_after_speed.push(number_segmentation)
         // console.log("GATE SPEED", posistion_gate_after_speed)
         var gap_two_gates = posistion_gate_after_speed[3] - posistion_gate_after_speed[2];//(gate_position[1] - gate_position[0]);
         // console.log("GATE POSITION", posistion_gate_after_speed)
-        
-        // console.log("gap Gates", gap_two_gates)
+        // posistion_gate_after_speed = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 840]
+        // posistion_gate_after_speed =  [0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 109, 128, 147, 166, 185, 204, 223, 242, 261, 2000]
+        // console.log("gap Gates", posistion_gate_after_speed)
 
 
         /**
@@ -225,7 +227,7 @@ export class Particles{
 
 
         }
-        // console.log("TEMPORAL", offsetArray)
+        console.log("TEMPORAL", offsetArray)
         /* Détermines mes uniforms pour les transmettre au shaders */
         var uniforms = {
             "path_quadratic" :  { type: "v2v", value: path_quadratic },
@@ -328,11 +330,11 @@ export class Particles{
     getAverageSpeed(linkId){
         var gate_velocity = this.particles[linkId].gate_velocity;
         var speed = 0;
-        for (var i = 0; i < this.particles[linkId].gate_velocity.length; i++ ){
+        for (var i = 0; i < this.particles[linkId].gate_velocity.length -1; i++ ){
             // console.log(speed)
-            speed += this.particles[linkId].gate_velocity[i];
+            speed += 1 / this.particles[linkId].gate_velocity[i];
         }
-        return speed = speed / this.particles[linkId].gate_velocity.length;
+        return speed = speed / ((this.particles[linkId].gate_velocity.length-1) );
     }
 
 }

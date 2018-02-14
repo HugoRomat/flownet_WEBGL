@@ -137,7 +137,7 @@
                 highp float timer = float(t);
                 //Pour avoir un timer qui va de 0 a 1
                 //highp float time = timer * 1.0/float(number_segmentation);
-                highp float time = (timer * 1.0/(float(number_segmentation) )) - 0.1;
+                highp float time = (timer * 1.0/(float(number_segmentation) )); // - 0.1;
 
                 float cX = 3.0 * (p1.x - p0.x);
                 float bX = 3.0 * (p2.x - p1.x) - cX;
