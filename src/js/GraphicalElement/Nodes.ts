@@ -31,7 +31,7 @@ export class Nodes{
                 var textGeo = new THREE.TextGeometry( self.nodes[i].label_name, {
                     font: myFont,
                     size: self.nodes[i].label_size || 200,
-                    height: 5,
+                    height: 1,
                     curveSegments: 12,
                     bevelThickness: 1,
                     bevelSize: 5,

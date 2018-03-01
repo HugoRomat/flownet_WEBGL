@@ -40,15 +40,15 @@
                      .translate([800, 400]);
 
     var size_scale = d3.scaleLinear()
-                    .domain([0,10000])
+                    .domain([0,40000])
                     .range([2, 15 ])
 
     var space_scale = d3.scaleLinear()
-                    .domain([1,21]) // Nombre sur lequel mapper notre viz
+                    .domain([1,3]) // Nombre sur lequel mapper notre viz
                     .range([10, 1])
 
     var speed_scale = d3.scaleLinear()
-                    .domain([0,10000])
+                    .domain([0,40000])
                     .range([1, 15 ])
 
     var opacity_scale = d3.scaleLinear()
@@ -156,7 +156,7 @@
 
           // .link_properties("color", "steelblue")
           .link_properties("size", 1)
-          .link_properties("opacity", 0.3)//function(d, i) {return opacity_scale(d.passengers);})
+          .link_properties("opacity", 0.1)//function(d, i) {return opacity_scale(d.passengers);})
           // .link_properties("size", 3)
 
           .tracks("opacity", 0.0)
@@ -174,26 +174,31 @@
           // .node_properties("label_y", -5)
           .node_properties("label_color", "white")
           //
-          .particles("color", "white")
+          .particles("color", "#205574")
           // .particles("opacity", 0.2, 0.5)
-
+          // .particles("opacity", 1.0, 0)
+          // .particles("opacity", 0.2, 0.5)
+          // .particles("opacity", 1.0, 0.6)
         //   // .particles("wiggling", 1.0)
           // .particles("color", "green", 0.5)
 
-          // .particles("speed", function(d, i) {return speed_scale(d.passengers);})
-          .particles("speed", 4)
-          // .particles("size",function(d, i) {return size_scale(d.passengers); })
+          .particles("speed", function(d, i) {return speed_scale(d.passengers);})
+          // .particles("speed", 4)
+          .particles("size",function(d, i) {return size_scale(d.passengers); })
           // .particles("speed", 10,  0.3)
           // .particles("size",10)
+          // .particles("speed", 1, 0.5)
+          // .particles("speed", function(d, i) {return 3; })
+        // 
           // .particles("speed", 1, 0.5)
           .particles("texture", "images/rectangle_texture.png")
           // .particles("pattern", function(d, i) {return d.temp; })
          
           //// //.particles("track", [0])
           .particles("frequency", function(d, i) { 
-            return 1;
+            // return 1;
             // console.log(speed_scale(d.passengers) / space_scale(d.number_plane), d.number_plane); 
-            // return speed_scale(d.passengers) / space_scale(d.number_plane);
+            return speed_scale(d.passengers) / space_scale(d.number);
           })
           
           // .start_particle_delay(200000000)

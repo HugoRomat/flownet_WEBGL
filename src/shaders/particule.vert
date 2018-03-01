@@ -4,6 +4,8 @@
             uniform float time;
             uniform float uTime;
 
+            uniform int gapTwoGates;
+
 			float size_fadding;
             //Correspond au numero du chemin surlequel je suis
 			attribute float id;
@@ -246,16 +248,9 @@
                 path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);
                 path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);
 
-                
-                //if (index >= number_segmentation_pattern_fitting  || index <= 0){my_opacity = 0.0;}
-
         /************** TO DETERMINE THE DISTANCE WITH ARRIVAL ******************************/
                 distance_with_arrival = distance(path.x, path.y, path_quadratic[path_id+3].x, path_quadratic[path_id+3].y);
                 distance_with_departure = distance(path.x, path.y, path_quadratic[path_id].x, path_quadratic[path_id].y);
-                /*float demie_longueur = size[gate] / 10.0;
-
-                if(distance_with_arrival < demie_longueur){ my_opacity = 0.0;}
-                if(distance_with_departure < demie_longueur){ my_opacity = 0.0;}*/
 
         /************** TO DETERMINE THE WIGGLING ******************************/
                 float random = noise(vec2( index , index )) * wiggling_gate[gate];
@@ -264,14 +259,6 @@
         /************** TO DETERMINE THE ROTATION ******************************/
                 float angle = atan(path_next.y - path.y, path_next.x - path.x );
                 vRotation =  - angle;
-
-
-
-                // mat4 my_matrice =  translation(path.x,path.y) ;
-                // vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;
-                // mvPosition =  modelViewMatrix * positionEchelle;//path;//positionEchelle;
-
-
 
                 mat4 my_matrice =  translation(path.x + random,path.y+ random);
                 vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;
@@ -287,27 +274,27 @@
                 
                 
                 
-                // vec3 vColorNext = vec3(gate_colors[gate+1].x ,gate_colors[gate+1].y, gate_colors[gate+1].z);
-                // vColor = fadeRGB(vColor, vColorNext, gate_position[gate+1] - gate_position[gate], index - gate_position[gate]);
-                
-            //    if (size[gate] != size[gate+1]){
-            //         //  vColor = vec3(1, 1, 0);
-            //        size_fadding = fadeSize(size[gate], size[gate+1], gate_position[gate+1] - gate_position[gate], index - gate_position[gate]);
-            //     }
-                
-                // if (gate_opacity[gate] != gate_opacity[gate+1]){
-                //    my_opacity = fadeOpacity(gate_opacity[gate], gate_opacity[gate+1], gate_position[gate+1] - gate_position[gate], index - gate_position[gate]);
-                // }
-                
                 vColor = vec3(gate_colors[gate].x ,gate_colors[gate].y, gate_colors[gate].z);
+
+                if (gate_colors[gate] != gate_colors[gate+1]){
+                    vec3 vColorNext = vec3(gate_colors[gate+1].x ,gate_colors[gate+1].y, gate_colors[gate+1].z);
+                    vColor = fadeRGB(vColor, vColorNext, gapTwoGates , index - (gapTwoGates*gate));
+                }
+                if (size[gate] != size[gate+1]){
+                    size_fadding = fadeSize(size[gate], size[gate+1], gapTwoGates , index - (gapTwoGates*gate));
+                }
+                
+                if (gate_opacity[gate] != gate_opacity[gate+1]){
+                   my_opacity = fadeOpacity(gate_opacity[gate], gate_opacity[gate+1], gapTwoGates , index - (gapTwoGates*gate));
+                }
+                
+                // 
 
                  
                 // if(gate == 0){vColor = vec3(1, 1, 0);} // JAUNE
                 // if(gate == 1){vColor = vec3(0, 1, 0);} // VERT
-                 // BLEU
                 // if(gate == 3){vColor = vec3(1, 0, 0);} // ROUGE
                 // if(gate == 4){vColor = vec3(0, 0, 0);} // NOIR
-                
                 // if(gate == 5){vColor = vec3(1, 1, 0);} // JAUNE
                 // if(gate == 6){vColor = vec3(0, 0, 1);} // BLEU
                 // if(gate == 7){vColor = vec3(1, 0, 0);} // ROUGE
@@ -329,8 +316,9 @@
                 //if(gate == 2){my_opacity = 0;}
 
                 //300 Correspond donc a la size initiale
-                gl_PointSize = size_fadding;
-                sprite_size = gl_PointSize;
+                gl_PointSize = size_fadding * ( 1000.0 / length( mvPosition.xyz ) );
+                // gl_PointSize = size_fadding;
+                sprite_size = size_fadding;
 
                 gl_Position = projectionMatrix * mvPosition;
 

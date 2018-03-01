@@ -35,9 +35,9 @@ export class Mapping{
         this.linksObject = new Links(this.visualisation.scene);
         this.nodesObject = new Nodes(this.visualisation.scene);
         this.tracksObject = new Tracks(this.visualisation.scene);
-        this.particlesObject = new Particles(this.visualisation.scene);
+        this.particlesObject = new Particles(this.visualisation.scene, this.visualisation.camera);
         this.layoutManager = new LayoutManager();
-        this.UI = new UI(this.visualisation, div);
+        this.UI = new UI(this.visualisation, div, this.particlesObject);
 
         return this;
     }

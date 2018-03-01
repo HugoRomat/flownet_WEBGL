@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import OrbitControls from 'orbit-controls-es6';
 
 export class Visualisation {
 
@@ -21,7 +22,7 @@ export class Visualisation {
     delta;
     then = Date.now();
     refreshIntervalId;
-
+    controls;
 
 
     constructor(div_element, width, height, bg_color, alpha, mapping){
@@ -43,9 +44,9 @@ export class Visualisation {
             0.0001, 100000)
         
         
-        //this.camera = new THREE.PerspectiveCamera(40,this.WIDTH/this.HEIGHT,1,10000);
+        this.camera = new THREE.PerspectiveCamera(40,this.WIDTH/this.HEIGHT,1,10000);
         this.camera.position.z = 900;
-
+        
         // this.camera.aspect = this.WIDTH / this.HEIGHT;
         // this.camera.updateProjectionMatrix();
     
@@ -76,7 +77,10 @@ export class Visualisation {
         
         this.raycaster = new THREE.Raycaster();
 
-        // this.animate.call(this);
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        // this.controls.enableRotate = false;
+        this.controls.enablePan = true;
+        console.log(this.controls)
     }
     add(elements){
         // this.scene.add(elements)
@@ -104,6 +108,7 @@ export class Visualisation {
         // console.log(this.mapping)
         this.renderer.render( this.scene, this.camera );
         this.updateParticle(this.number_frame)
+        this.controls.update();
     }
      /**
      * Permet d'updater mes particules en choisissant la frame ou elle devrait se trouver

@@ -24,6 +24,7 @@
     "jquery": "^3.2.1",
     "jquery-ui": "^1.12.1",
     "jquery-ui-bundle": "^1.12.1",
+    "orbit-controls-es6": "^1.0.11",
     "three": "^0.85.0",
     "topojson": "^3.0.2",
     "types.d3": "^0.1.1",

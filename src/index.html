@@ -52,7 +52,8 @@
               json = {
             "nodes":[
               {"name":"bonjour", "id":100, "X": -150,"Y":-150},
-              {"name":"hugo", "id":101, "X": 150,"Y":-100}
+              {"name":"hugo", "id":101, "X": 150,"Y":-100},
+              {"name":"yann", "id":102, "X": -100,"Y":0}
               // {"name":"edge_base", "id":102, "X": 600,"Y":0},
               // {"name":"edge_base", "id":103, "X": -600,"Y":0},
               // {"name":"edge_base", "id":104, "X": 600,"Y":0},
@@ -72,7 +73,8 @@
               // {"name":"edge_base", "id":1, "X": -400,"Y":300}
             ],
             "links":[
-              {"source":101, "id":0, "target":100, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "textu": "images/circle_texture.png"}
+              {"source":101, "id":0, "target":100, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "textu": "images/circle_texture.png"},
+              {"source":101, "id":1, "target":102, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "textu": "images/circle_texture.png"}
               // {"source":101, "id":0, "target":100, "freq":2, "sp":4, "temp": [0], "width": 10, "colour": "black", "textu": "images/circle_texture.png"}
               // {"source":101, "target":102, "freq":2, "sp":4, "temp": [0], "width": 10, "couleur": "black", "textu": "images/circle_texture.png"},
               // {"source":101, "target":103, "freq":2, "sp":4, "temp": [0], "width": 10, "couleur": "black", "textu": "images/circle_texture.png"},
@@ -101,7 +103,7 @@
         
                   .link_properties("curvature", -5)
                   // .link_properties("color", "#b5b5b5")
-                  .link_properties("size", 5)
+                  .link_properties("size", 2)
                   //  .link_properties("opacity", 0.2) //function(d, i) {return color_scale_delay_dep(d.value); })
                   // //
                   .node_properties("color", "#000000")
@@ -109,7 +111,7 @@
                   // .node_properties("label", function(d, i) {return d.name; })
                   // .node_properties("label", function(d, i) {return d.city; })
                   // .node_properties("label", function(d, i) {return d.label; })
-                  .node_properties("size", 5)
+                  .node_properties("size", 0.1)
                   // .node_properties("x", function(d, i) {return 50; })
                   // .node_properties("y", function(d, i) {return (100 * i);  })
                   //.node_properties("image", function(d, i) {return "images/" + d.label + ".jpg"; })
@@ -142,8 +144,8 @@
                   .node_properties("label_color", "#FFFFFF")
                   //
                   .particles("color", "black")
-                  .particles("size", 10)
-                  // .particles("color", function(d, i) {return d.couleur; })
+                  .particles("size", 15)
+                  .particles("color", "red", 0.8)
         
                   // .particles("wiggling_0", 1.0)
                   // .particles("wiggling_1", 0.0)
@@ -225,14 +227,16 @@
                   // // .particles("color", "green" , 0.5)
                   // // .particles("color", "red" , 0.55)
                   // .particles("color", "red" , 0.6)
-                  .particles("color", "yellow" , 0.5)
+                  // .particles("color", "yellow" , 0.5)
         //           .particles("opacity", 1, 0)
         //           // .particles("speed", 1, 0.75)
         // // 
                   // .particles("opacity", 0, 0)
         //           .particles("opacity", 1, 0.3)
-        //           // .particles("opacity", 0, 0.05)
-                  // .particles("opacity", 0.2, 0.5)
+                  // .particles("opacity", 0, 0.05)
+                  .particles("opacity", 1.0, 0)
+                  .particles("opacity", 0.2, 0.5)
+                  .particles("opacity", 1.0, 0.6)
                   
                   // .particles("speed", 11, 0.1)
                   // .particles("speed", 10, 0.2)
@@ -246,14 +250,15 @@
                   //.particles("texture", function(d, i) {return d.textu; })
         
                   // .particles("pattern", function(d, i) {return [0, 0, 0, 0.6]; })
-                  .particles("pattern", function(d, i) {return [0.0, 0.2]; })
+                  .particles("pattern", function(d, i) {return [0.0]; })
                   // .particles("track", [0, 0, 0])
-                  .particles("frequency", 2)
+                  .particles("frequency", 1)
                   // .particles("frequency", function(d, i) {return freq(d.value); })
-                  .particles("speed", function(d, i) {return 5; })
-        // 
+                  .particles("speed", 10, 0.0)
+                  .particles("speed", 3, 0.2)
                   .particles("speed", 1, 0.5)
-                  .particles("size", 4, 0.5)
+                  // .particles("size", 100, 0.5)
+                  // .particles("size", 4, 0.5)
                   // .particles("speed", 1, 0.5)
         
                   // .particles("speed", 3, 0.8)

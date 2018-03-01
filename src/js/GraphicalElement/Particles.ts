@@ -13,10 +13,12 @@ export class Particles{
     particles = [];
     number_max_gates = 21;
     FPS = 60;
+    camera;
 
-    constructor(scene){
+    constructor(scene, camera){
         this.utilities = new Utilities();
         this.scene = scene;
+        this.camera = camera;
     }
     data(data?){
         if (data == undefined) return this.particles;
@@ -97,7 +99,7 @@ export class Particles{
         }
         // console.log(this.particles[id].number_segmentation/5, motifs)
         // JE RAJOUTE UN POUR PAR QUE CA PARTE
-        motifs = Math.ceil(motifs + 1);
+        motifs = Math.ceil(motifs);
         // motifs = 71;
         // console.log("MOTIFS", motifs)
         this.particles[id].number_particles = motifs * temporal_distribution.length;  
@@ -171,19 +173,6 @@ export class Particles{
         texture.magFilter = THREE.LinearFilter;
         var number = 0;
         var posistion_gate_after_speed = [];
-
-        
-
-        /**
-         * PERMET DE DETERMINER LA NOUVELLE POSITION DES GATES POUR PRENDRE EN COMPTE LA VITESSE
-         */
-        // for (var i =0; i<gate_position.length; i ++){
-        //     posistion_gate_after_speed.push(number);
-        //     number = number + parseInt(gap_two_gates / (gate_velocity[i]));
-        // }
-        
-        
-
         /**
          * Met a jour le tableau contenant la position des gates.
          * en fonction de la vitesse de mes élèments
@@ -201,6 +190,7 @@ export class Particles{
         }
         posistion_gate_after_speed.push(number_segmentation)
 
+        
         /**
          * Je met a jour le tableau des offset.
          * Car quand j'augmente la distance, une particules va plus vite qu'une particule allant a une vitesse normale
@@ -218,9 +208,12 @@ export class Particles{
             offsetArray[i] = (posistion_gate_after_speed[i] * gate_velocity[i]) - offset;
             offset += offsetBetweenGates * gate_velocity[i];
         }
+
+        // console.log(posistion_gate_after_speed, offsetArray)
         // console.log("TEMPORAL", offsetArray)
         /* Détermines mes uniforms pour les transmettre au shaders */
         var uniforms = {
+            "gapTwoGates": { type: "i", value: gap },
             "path_quadratic" :  { type: "v2v", value: path_quadratic },
             "temporal_delay" : { type: "iv1", value: temporal },
             "gate_velocity" : { type: "iv1", value: gate_velocity },
@@ -237,7 +230,7 @@ export class Particles{
             time: { type: "f", value: 1.0 },
             delta: { type: "f", value: 0.0 },
             // "ProjectionMatrix": { type: "m4", value: self.camera.projectionMatrix },
-            texture: { value: texture, name:this.particles[link_id].texture }
+            texture: { value: texture, name: this.particles[link_id].texture }
 
         };
         /************ 2 car les liens exterieur, 1 le lien du milieu, *4 pour DEBUT-POINT DE CONTROLE1- POINT DE CONTROLE2 - ARRIVEE */
@@ -297,7 +290,7 @@ export class Particles{
         var particleSystems = new THREE.Points( geometry, shaderMaterial );
         particleSystems.name = "particle_system" + link_id;
         particleSystems.frustumCulled = false;  
-
+        
         this.particles[link_id].particleSystems = particleSystems;
         this.particles[link_id].userData.number_particles = particles;
 

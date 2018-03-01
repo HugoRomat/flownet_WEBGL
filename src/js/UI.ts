@@ -32,9 +32,9 @@ export class UI{
 
     hasHilight = false;
 
-    
+    particles;
 
-    constructor(scene, div){
+    constructor(scene, div, particles){
         // this.particleVis = particleVis;
         //this.state_machine = {state: "nothing"};
         this.state_machine = "hover";
@@ -44,6 +44,7 @@ export class UI{
         this.camera = scene.camera;
         this.renderer = scene.renderer;
         this.raycaster = scene.raycaster;
+        this.particles = particles;
 
         
         
@@ -109,10 +110,10 @@ export class UI{
 
        var canvas = document.getElementById(self.div.slice( 1 ));
         console.log("CANVAS", canvas)
-        canvas.addEventListener("mousedown", mouseDown, false);
-        canvas.addEventListener("mouseup", mouseUp, false);
-        canvas.addEventListener("mousemove", mouseMove, false);
-        canvas.addEventListener("mousewheel", mouseWheel, false);
+        // canvas.addEventListener("mousedown", mouseDown, false);
+        // canvas.addEventListener("mouseup", mouseUp, false);
+        // canvas.addEventListener("mousemove", mouseMove, false);
+        // canvas.addEventListener("mousewheel", mouseWheel, false);
 
 
         //window.addEventListener('click', onMouseMove, false );
@@ -208,8 +209,16 @@ export class UI{
             
             // console.log(self.camera.zoom + event.wheelDelta/1000)
             if (self.camera.zoom + event.wheelDelta/1000 > 0.13){
-                self.camera.zoom += event.wheelDelta/1000;
+                // self.camera.zoom += event.wheelDelta / 1000;
+                // self.camera.verticesNeedUpdate = true;
+                // var zoom = self.camera.position.z + ;
+                self.camera.translateZ( event.wheelDelta );
                 self.camera.updateProjectionMatrix(); 
+
+                console.log(self.camera)
+                // self.particles.updateProjectionMatrix(); 
+
+                // console.log(self.particles)
                 // self.particleVis.updateLabel_scale(self.camera.zoom);
             }
             
