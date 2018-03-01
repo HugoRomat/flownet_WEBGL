@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>confluent vs powergraph</title>
+
+ <script src="../static/lib/d3.v4.js"></script>
+ <script src="../dist/main.entry.js"></script>
+
+
+
+    <style>
+        div{
+            float: left;
+            margin-right: 5px;
+        }
+      html { width: 100%; height:100%; /*overflow:hidden;*/ }
+      body{
+        width: 100%;
+        height:100%;
+        font-family: Lato;
+        margin: 0;
+        padding: 0;
+        background-color: black;
+      }
+
+
+    </style>
+
+
+</head>
+<body>
+
+
+	<div id="visFrame"></div>
+
+	<script>
+    var proj = d3.geoAlbersUsa()
+                     .scale(1000)
+                     .translate([800, 400]);
+
+    var size_scale = d3.scaleLinear()
+                    .domain([0,10000])
+                    .range([2, 15 ])
+
+    var space_scale = d3.scaleLinear()
+                    .domain([1,21]) // Nombre sur lequel mapper notre viz
+                    .range([10, 1])
+
+    var speed_scale = d3.scaleLinear()
+                    .domain([0,10000])
+                    .range([1, 15 ])
+
+    var opacity_scale = d3.scaleLinear()
+                    .domain([0,10000])
+                    .range([0.05,0.8 ])
+
+
+  var color_scale_delay_dep = d3.scaleLinear()
+                   .domain([0,593])
+                   .range(["steelblue", "brown"])
+                   .interpolate(d3.interpolateHcl);
+
+                   // var proj = d3.geo.miller()
+                   //  .scale(328)
+                   //  .translate([-50,-10]);
+
+    d3.json("../static/data/data-22-9heures-WN.json", function(json) {
+    //   json = {
+    // "nodes":[
+    //   {"name":"edge_base", "id":0, "X": -600,"Y":0},
+    //   {"name":"edge_base", "id":1, "X": -400,"Y":0},
+      
+    //   {"name":"edge_base", "id":0, "X": -400,"Y":0},
+    //   {"name":"edge_base", "id":1, "X": -200,"Y":0}
+      
+    //   // {"name":"edge_base", "id":0, "X": -600,"Y":150},
+    //   // {"name":"edge_base", "id":1, "X": -400,"Y":150},
+    //   // {"name":"edge_base", "id":0, "X": -600,"Y":200},
+    //   // {"name":"edge_base", "id":1, "X": -400,"Y":200},
+
+    //   // {"name":"edge_base", "id":0, "X": -600,"Y":250},
+    //   // {"name":"edge_base", "id":1, "X": -400,"Y":250},
+    //   // {"name":"edge_base", "id":0, "X": -600,"Y":300},
+    //   // {"name":"edge_base", "id":1, "X": -400,"Y":300}
+    // ],
+    // "links":[
+    //   {"source":0, "target":1, "freq":0.5, "sp":3, "temp": [0], "width": 10, "couleur": "black", "textu": "images/circle_texture.png"},
+    //   {"source":2, "target":3, "freq":0.8, "sp":1, "temp": [0.9], "width": 10, "couleur": "black", "textu": "images/rectangle_texture.png"}
+      
+    //   // {"source":4, "target":5, "freq":0.2, "sp" : 1, "temp": [0, 0.2]},
+    //   // {"source":6, "target":7, "freq":0.2, "sp" : 4, "temp": [0, 0.2]},
+      
+    //   // {"source":8, "target":9, "freq":0.3, "sp" : 1, "temp": [0]},
+    //   // {"source":10, "target":11, "freq":0.6, "sp" : 1, "temp": [0]}
+    // ]}
+
+    var app = flownet.force("#visFrame", 1800 ,900, "grey",0)
+          .nodes(json.nodes)
+          .links(json.links)
+          .layout("linkDistance", 200)
+          .create_layout()
+          // .numberSegmentation("numberSpacedPoints", function (d, i){
+          //     // var X1 = proj([d.source.long,d.source.lat])[0];
+          //     // var X2 = proj([d.target.long,d.target.lat])[0];
+
+          //     // var Y1 = proj([d.source.long,d.source.lat])[1];
+          //     // var Y2 = proj([d.target.long,d.target.lat])[1];
+
+          //     // var dist = get_distance(X1, Y1, X2, Y2)
+              
+
+          //     // var seg = 2;
+          //     // if (parseInt(dist/20) > 2) seg = parseInt(dist/20);
+
+          //     // console.log(seg);
+          //     return 5;
+          //     // var distance = get_distance();
+
+          // })
+          .tracks("count", 1 )
+          
+          
+          .create_WEBGL_element()
+          // .zoom(true)
+          // .controls(true)
+
+          .link_properties("curvature", 8)
+          // .link_properties("color", "#b5b5b5")
+          // .link_properties("size", 4)
+          //
+          .node_properties("color", "red")
+          .node_properties("size", 0.1)
+          
+          // .node_properties("label", function(d, i) {return d.city; })
+          // .node_properties("label", function(d, i) {return d.label; })
+          // .node_properties("opacity", 0)
+
+          //.node_properties("image", function(d, i) {return "images/" + d.label + ".jpg"; })
+          // .node_properties("x", function(d, i) {return d.X; })
+          // .node_properties("y", function(d, i) {return d.Y;  })
+          // var coordinates = my_projection([nodes[i].attr('long'),nodes[i].attr('lat')]);
+          // // .particles("wiggling",5)
+
+          .node_properties("x", function(d, i) {
+            // console.log(d)
+            // console.log(proj([-66,d.lat])); 
+            // console.log(proj([d.long,d.lat])[0]); 
+            return proj([d.long,d.lat])[0]; 
+          })
+          .node_properties("y", function(d, i) {
+            
+            return - proj([d.long,d.lat])[1];  
+          })
+
+
+          // .link_properties("color", "steelblue")
+          .link_properties("size", 1)
+          .link_properties("opacity", 0.3)//function(d, i) {return opacity_scale(d.passengers);})
+          // .link_properties("size", 3)
+
+          .tracks("opacity", 0.0)
+          // .tracks("opacity", 0)
+          // .tracks("color", "#000000")
+
+          // .node_properties("size", 10)
+          // .node_properties("color", "#d8f0ff")
+          //.node_properties("image", function(d, i) {return "images/particle3.png"; })
+
+
+          .node_properties("label", function(d, i) {return d.city; })
+          // .node_properties("label_size", 10)
+          // .node_properties("label_x", 15)
+          // .node_properties("label_y", -5)
+          .node_properties("label_color", "white")
+          //
+          .particles("color", "white")
+          // .particles("opacity", 0.2, 0.5)
+
+        //   // .particles("wiggling", 1.0)
+          // .particles("color", "green", 0.5)
+
+          // .particles("speed", function(d, i) {return speed_scale(d.passengers);})
+          .particles("speed", 4)
+          // .particles("size",function(d, i) {return size_scale(d.passengers); })
+          // .particles("speed", 10,  0.3)
+          // .particles("size",10)
+          // .particles("speed", 1, 0.5)
+          .particles("texture", "images/rectangle_texture.png")
+          // .particles("pattern", function(d, i) {return d.temp; })
+         
+          //// //.particles("track", [0])
+          .particles("frequency", function(d, i) { 
+            return 1;
+            // console.log(speed_scale(d.passengers) / space_scale(d.number_plane), d.number_plane); 
+            // return speed_scale(d.passengers) / space_scale(d.number_plane);
+          })
+          
+          // .start_particle_delay(200000000)
+          .start(0)
+
+          
+          // app.sparkiz.draw_map(proj, 'data/worldID.json');
+
+
+
+    });
+
+    /* Get the distance between two points */
+    function get_distance(x1, y1, x2, y2){
+        var a = x1 - x2
+        var b = y1 - y2
+
+        var c = Math.sqrt( a*a + b*b );
+        //console.log(c)
+        return c;
+    }
+
+
+
+	</script>
+
+
+</body>
+</html>

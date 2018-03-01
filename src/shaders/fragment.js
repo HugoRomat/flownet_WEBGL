@@ -110,7 +110,7 @@
                 if (distance_with_departure > (sprite_size / 2.0) && index_ < 0.0){
                   color = vec4(1.0,1.0,1.0, 0.0);
                 }
-
+                // color = vec4(1.0,1.0,1.0, 1.0);
 
                 
                 //if ( rotated.x < 0.5){color = vec4(1.0,1.0,1.0, 0.0);}

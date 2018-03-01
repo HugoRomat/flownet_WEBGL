@@ -20,7 +20,6 @@
             uniform mat4 ProjectionMatrix;
 
             uniform int number_segmentation;
-            uniform float gap_two_gates;
 
             varying float sprite_size;
 
@@ -137,7 +136,7 @@
                 highp float timer = float(t);
                 //Pour avoir un timer qui va de 0 a 1
                 //highp float time = timer * 1.0/float(number_segmentation);
-                highp float time = (timer * 1.0/(float(number_segmentation) )); // - 0.1;
+                highp float time = (timer * 1.0/(float(number_segmentation) )) ;//- 0.1;
 
                 float cX = 3.0 * (p1.x - p0.x);
                 float bX = 3.0 * (p2.x - p1.x) - cX;
@@ -291,15 +290,18 @@
                 // vec3 vColorNext = vec3(gate_colors[gate+1].x ,gate_colors[gate+1].y, gate_colors[gate+1].z);
                 // vColor = fadeRGB(vColor, vColorNext, gate_position[gate+1] - gate_position[gate], index - gate_position[gate]);
                 
-                if (size[gate] != size[gate+1]){
-                   size_fadding = fadeSize(size[gate], size[gate+1], gate_position[gate+1] - gate_position[gate], index - gate_position[gate]);
-                }
+            //    if (size[gate] != size[gate+1]){
+            //         //  vColor = vec3(1, 1, 0);
+            //        size_fadding = fadeSize(size[gate], size[gate+1], gate_position[gate+1] - gate_position[gate], index - gate_position[gate]);
+            //     }
                 
                 // if (gate_opacity[gate] != gate_opacity[gate+1]){
                 //    my_opacity = fadeOpacity(gate_opacity[gate], gate_opacity[gate+1], gate_position[gate+1] - gate_position[gate], index - gate_position[gate]);
                 // }
                 
                 vColor = vec3(gate_colors[gate].x ,gate_colors[gate].y, gate_colors[gate].z);
+
+                 
                 // if(gate == 0){vColor = vec3(1, 1, 0);} // JAUNE
                 // if(gate == 1){vColor = vec3(0, 1, 0);} // VERT
                  // BLEU

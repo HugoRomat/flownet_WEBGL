@@ -8,6 +8,7 @@ import {Tracks} from './GraphicalElement/Tracks'
 import {Particles} from './GraphicalElement/Particles'
 import { LayoutManager } from './LayoutManager';
 import { Visualisation } from './Visualisation';
+import { UI } from './UI';
 
 export class Mapping{
 
@@ -18,6 +19,7 @@ export class Mapping{
     visualisation;
     particlesObject;
     tracksObject;
+    UI;
 
 
     constructor(div, width, height, color, alpha, visualisation){
@@ -35,7 +37,7 @@ export class Mapping{
         this.tracksObject = new Tracks(this.visualisation.scene);
         this.particlesObject = new Particles(this.visualisation.scene);
         this.layoutManager = new LayoutManager();
-        
+        this.UI = new UI(this.visualisation, div);
 
         return this;
     }

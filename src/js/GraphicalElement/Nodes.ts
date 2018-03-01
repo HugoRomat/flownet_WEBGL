@@ -59,7 +59,7 @@ export class Nodes{
         //console.log(self.nodes[0])
         for(var i=0 ; i<this.nodes.length ; i++)
         {   
-            console.log(this.nodes[i])
+            // console.log(this.nodes[i])
         //     if (this.nodes[i].px != null){this.nodes[i].x = this.nodes[i].px;}
         //     if (this.nodes[i].py != null){this.nodes[i].y = this.nodes[i].py;}
         //     if (this.nodes[i].pz != null){this.nodes[i].z = this.nodes[i].pz;}

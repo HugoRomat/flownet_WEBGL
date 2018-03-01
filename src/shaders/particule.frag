@@ -77,22 +77,22 @@
                 // if (index_ >= segmentation + (0.1 * segmentation)){
                 //   color = vec4(1.0,0.0,0.0, 1.0);
                 // }
-                if (distance_with_arrival < (sprite_size * 2.0) && index_ < segmentation + (0.1 * segmentation)){
+                /*if (distance_with_arrival < (sprite_size * 2.0) && index_ < segmentation + (0.1 * segmentation)){
                   if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){
-                    //color = vec4(1.0,0.0,0.0, 0.0);
+                    color = vec4(1.0,0.0,0.0, 0.0);
                   }
                 }
 
                 if (distance_with_arrival < (sprite_size * 2.0) && index_ >= segmentation + (0.1 * segmentation)){
                   if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){
-                    //color = vec4(0.0,1.0,0.0, 0.0);
+                    color = vec4(0.0,1.0,0.0, 0.0);
                   }
                 }
                 // // // color = vec4(1.0,0.0,0.0, 1.0);
                 // // //QUAND LA PARTICULE A DEPASSE LE NOEUD
                 if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){
-                    //color = vec4(1.0,0.0,0.0, 0.0);
-                }
+                    color = vec4(1.0,0.0,0.0, 0.0);
+                }*/
 
                 /*************************************
                 DEPART DE LA PARTICULE 
@@ -104,26 +104,32 @@
 
                 *************************************/
 
-                if (distance_with_departure < (sprite_size / 2.0) && index_ < 0.0 + (0.1 * segmentation)){
+                /*if (distance_with_departure < (sprite_size / 2.0) && index_ < 0.0 + (0.1 * segmentation)){
                   if ( rotated.x - 0.5 < (distance_with_departure / sprite_size)){
-                    //color = vec4(1.0,0.0,0.0, 0.0);
+                    color = vec4(1.0,0.0,0.0, 0.0);
                   }
                 }
                 if (distance_with_departure < (sprite_size / 2.0) && index_ >= 0.0 + (0.1 * segmentation)){
                   if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){
-                    //color = vec4(0.0,1.0,0.0, 0.0);
+                    color = vec4(0.0,1.0,0.0, 0.0);
                   }
                 }
 
                 if (distance_with_departure >= (sprite_size / 2.0) && index_ <= 0.0 + (0.1 * segmentation)){
-                  //color = vec4(1.0,0.0,0.0, 0.0);
-                }
+                  color = vec4(1.0,0.0,0.0, 0.0);
+                }*/
 
                 // if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){
                 //     color = vec4(1.0,0.0,0.0, 0.0);
                 // }
                 
                 //if ( rotated.x < 0.5){color = vec4(1.0,1.0,1.0, 0.0);}
+
+                // color = vec4(1.0,0.0,0.0, 1.0);
+
+                if (index_ >= segmentation){
+                    color = vec4(1.0,0.0,0.0, 0.0);
+                }
 
                 vec4 rotatedTexture = texture2D( texture,  rotated) * color;
 
@@ -132,7 +138,7 @@
 
 
                
-                // gl_FragColor = vec4( vColor, my_opacity );
-                // gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+                //gl_FragColor = vec4( vColor, my_opacity );
+                //gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
 
             }

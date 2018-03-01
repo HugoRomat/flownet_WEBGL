@@ -77,8 +77,6 @@ export class Particles{
         var temporal_distribution = this.particles[id].temporal_distribution2;
         var speed = 10//this.links[id].gate_velocity[0];
         frequence_patttern = this.FPS * frequence_patttern; 
-
-        var speedAverage = this.getAverageSpeed(id);
         //Je multiplie par frequence pattern pour partir d'une echelle sur [O,1] en entrée vers [0,-frequence_patttern]
         //Négatif pour que ca parte vers l'arriere
         //Divise par speed pour que cela soit proportionnel si l'on change la vitesse
@@ -87,15 +85,21 @@ export class Particles{
             temporal_dis.push(temporal_distribution[i] * -frequence_patttern);
         }
 
-        //Motifs = Je prend la plus grande partie d'un lien
-        //Si mon lien fait 130, je prend le multiple le plus haut de frequence pattern (si=80, je prend 160)
-        // MOTIFS +1 POUR AVOIR LA PLACE DE LE DECALER ET DE FAIRE DES ANIM AU DEBUT
-        // var offsetDueToBeginning = 0.11 * this.particles[id].number_segmentation
-        // var motifs = Math.ceil((this.particles[id].number_segmentation + offsetDueToBeginning)/frequence_patttern);
-        var motifs = Math.ceil(((this.particles[id].number_segmentation/5)/(12.5)) * speedAverage) //+ Math.ceil(this.particles[id].number_segmentation/500);
-        // console.log("motifs", motifs, speedAverage, frequence_patttern, this.particles[id].number_segmentation/5)
+        var gateSpeed = this.particles[id].gate_velocity;
+        var motifs = 0;
+        for(var i = 0; i< this.particles[id].gate_velocity.length; i++){
+            var lengthBetweenTwoGates = ((this.particles[id].number_segmentation/5)/this.particles[id].gate_velocity.length);
+            // console.log(lengthBetweenTwoGates / (gateSpeed[i]*12.5))
+            var numberSecondToArrive = lengthBetweenTwoGates / (gateSpeed[i] * 12);
+            // console.log(numberSecondToArrive)
+            var numberPatterEdge = numberSecondToArrive * (1 / this.particles[id].frequency_pattern);
+            motifs += numberPatterEdge;
+        }
+        // console.log(this.particles[id].number_segmentation/5, motifs)
+        // JE RAJOUTE UN POUR PAR QUE CA PARTE
+        motifs = Math.ceil(motifs + 1);
         // motifs = 71;
-        //console.log("MOTIFS", motifs, this.links[id].number_segmentation)
+        // console.log("MOTIFS", motifs)
         this.particles[id].number_particles = motifs * temporal_distribution.length;  
 
         // Motifs qui fitte en termes de une seconde pour un motif)
@@ -189,21 +193,13 @@ export class Particles{
         var offsetGate = 0;
         var posistion_gate_after_speed = [];
         // GAP = un espace
-        
         var gap = number_segmentation / (this.number_max_gates);
-        
+        // POUR RAJOUTER L'ESPACE QUE MA SPEED PREND
         for (var i =0; i< (this.number_max_gates -1); i ++){
             posistion_gate_after_speed.push(number);
-            number = number + parseInt(gap/(gate_velocity[i])) + 2; 
+            number = number + (gap/(gate_velocity[i])); 
         }
         posistion_gate_after_speed.push(number_segmentation)
-        // console.log("GATE SPEED", posistion_gate_after_speed)
-        var gap_two_gates = posistion_gate_after_speed[3] - posistion_gate_after_speed[2];//(gate_position[1] - gate_position[0]);
-        // console.log("GATE POSITION", posistion_gate_after_speed)
-        // posistion_gate_after_speed = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 840]
-        // posistion_gate_after_speed =  [0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 109, 128, 147, 166, 185, 204, 223, 242, 261, 2000]
-        // console.log("gap Gates", posistion_gate_after_speed)
-
 
         /**
          * Je met a jour le tableau des offset.
@@ -217,17 +213,12 @@ export class Particles{
         // var offsetArray2 = Array.apply(null, Array(this.number_max_gates)).map(Number.prototype.valueOf, 0);
         
         for (var i = 0; i< this.number_max_gates - 1; i ++){
-            // console.log("Valeurs que je dois avoir", posistion_gate_after_speed[i] * gate_velocity[i])
-            // console.log(offset)
-            // console.log(" =============== OFFSET", (posistion_gate_after_speed[i] * gate_velocity[i]) - offset, i);
             var normalValuesAtGates = posistion_gate_after_speed[i] * gate_velocity[i];
             var offsetBetweenGates = posistion_gate_after_speed[i+1] - posistion_gate_after_speed[i];
             offsetArray[i] = (posistion_gate_after_speed[i] * gate_velocity[i]) - offset;
             offset += offsetBetweenGates * gate_velocity[i];
-
-
         }
-        console.log("TEMPORAL", offsetArray)
+        // console.log("TEMPORAL", offsetArray)
         /* Détermines mes uniforms pour les transmettre au shaders */
         var uniforms = {
             "path_quadratic" :  { type: "v2v", value: path_quadratic },
@@ -236,7 +227,6 @@ export class Particles{
             "size" : { type: "fv1", value: size },
             "gate_opacity" : { type: "fv1", value: gate_opacity },
             "wiggling_gate" : { type: "fv1", value: wiggling_gate },
-            "gap_two_gates" : { type: "iv1", value: gap_two_gates },
             "gate_position" : { type: "iv1", value: posistion_gate_after_speed },
             "gate_colors" : { type: "v3v", value: gate_colors },
             "particles_number" : { type: "iv1", value: particles },  
@@ -321,20 +311,11 @@ export class Particles{
         //console.log("SPATIAL_DISTRIBUTION", this.links[i].spatial_distribution)
         /* JE FAIS CA CAR LE NOMBRE DE PARTICULES EST PROPORTIONNEL AU NOMBRE DU SPATIAL */
         var array_length = number / this.particles[i].spatial_distribution.length;
-        console.log(this.particles[i].spatial_distribution)
+        // console.log(this.particles[i].spatial_distribution)
         for ( var k = 0; k < array_length; k ++ ){
             array = array.concat(this.particles[i].spatial_distribution);
         }
         return array;
-    }
-    getAverageSpeed(linkId){
-        var gate_velocity = this.particles[linkId].gate_velocity;
-        var speed = 0;
-        for (var i = 0; i < this.particles[linkId].gate_velocity.length -1; i++ ){
-            // console.log(speed)
-            speed += 1 / this.particles[linkId].gate_velocity[i];
-        }
-        return speed = speed / ((this.particles[linkId].gate_velocity.length-1) );
     }
 
 }
