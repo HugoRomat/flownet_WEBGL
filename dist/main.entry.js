@@ -68280,7 +68280,7 @@ var Visualisation = /** @class */ (function () {
     }
     Visualisation.prototype.init = function () {
         this.camera = new THREE.OrthographicCamera(this.WIDTH / -2, this.WIDTH / 2, this.HEIGHT / 2, this.HEIGHT / -2, 0.0001, 100000);
-        this.camera = new THREE.PerspectiveCamera(40, this.WIDTH / this.HEIGHT, 1, 10000);
+        // this.camera = new THREE.PerspectiveCamera(40,this.WIDTH/this.HEIGHT,1,10000);
         this.camera.position.z = 900;
         // this.camera.aspect = this.WIDTH / this.HEIGHT;
         // this.camera.updateProjectionMatrix();
@@ -68303,9 +68303,9 @@ var Visualisation = /** @class */ (function () {
         //console.log("HEY",this.div_element)
         this.raycaster = new THREE.Raycaster();
         this.controls = new orbit_controls_es6_1.default(this.camera, this.renderer.domElement);
-        // this.controls.enableRotate = false;
-        this.controls.enablePan = true;
-        console.log(this.controls);
+        this.controls.enableRotate = false;
+        // this.controls.enablePan = true;
+        // console.log(this.controls)
     };
     Visualisation.prototype.add = function (elements) {
         // this.scene.add(elements)
@@ -112867,9 +112867,9 @@ var UI = /** @class */ (function () {
                 // self.camera.zoom += event.wheelDelta / 1000;
                 // self.camera.verticesNeedUpdate = true;
                 // var zoom = self.camera.position.z + ;
-                self.camera.translateZ(event.wheelDelta);
+                // self.camera.translateZ( event.wheelDelta );
                 self.camera.updateProjectionMatrix();
-                console.log(self.camera);
+                // console.log(self.camera)
                 // self.particles.updateProjectionMatrix(); 
                 // console.log(self.particles)
                 // self.particleVis.updateLabel_scale(self.camera.zoom);

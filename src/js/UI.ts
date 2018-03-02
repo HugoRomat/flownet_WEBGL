@@ -212,10 +212,10 @@ export class UI{
                 // self.camera.zoom += event.wheelDelta / 1000;
                 // self.camera.verticesNeedUpdate = true;
                 // var zoom = self.camera.position.z + ;
-                self.camera.translateZ( event.wheelDelta );
+                // self.camera.translateZ( event.wheelDelta );
                 self.camera.updateProjectionMatrix(); 
 
-                console.log(self.camera)
+                // console.log(self.camera)
                 // self.particles.updateProjectionMatrix(); 
 
                 // console.log(self.particles)

@@ -6,6 +6,7 @@
 
  <script src="../static/lib/d3.v4.js"></script>
  <script src="../dist/main.entry.js"></script>
+ <script src="https://d3js.org/topojson.v1.min.js"></script>
 
 
 
@@ -23,6 +24,27 @@
         padding: 0;
         background-color: black;
       }
+      canvas {
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+        .land {
+          fill: none;
+          stroke: grey;
+          opacity: 0.6;
+        }
+
+        .county-boundary {
+          fill: none;
+          stroke: none;
+          stroke-width: .5px;
+        }
+
+        .state-boundary {
+          fill: none;
+          stroke: black;
+        }
 
 
     </style>
@@ -37,7 +59,7 @@
 	<script>
     var proj = d3.geoAlbersUsa()
                      .scale(1000)
-                     .translate([800, 400]);
+                     .translate([0, 0]);
 
     var size_scale = d3.scaleLinear()
                     .domain([0,40000])
@@ -95,7 +117,7 @@
     //   // {"source":10, "target":11, "freq":0.6, "sp" : 1, "temp": [0]}
     // ]}
 
-    var app = flownet.force("#visFrame", 1800 ,900, "grey",0)
+    var app = flownet.force("#visFrame", 800 ,500, "grey",0)
           .nodes(json.nodes)
           .links(json.links)
           .layout("linkDistance", 200)
@@ -210,6 +232,40 @@
 
 
     });
+
+
+    var projection = d3.geoAlbersUsa()
+                     .scale(1000)
+                     .translate([400, 250]);
+
+    var path = d3.geoPath()
+        .projection(projection);
+
+    var svg = d3.select("#visFrame").append("svg")
+        .attr("width", 800)
+        .attr("height", 500)
+        .attr("position", "absolute")
+        .attr("top", "0")
+        .attr("left", "0");
+
+    d3.json("../static/data/us.json", function(error, us) {
+      if (error) throw error;
+
+      svg.insert("path", ".graticule")
+          .datum(topojson.feature(us, us.objects.land))
+          .attr("class", "land")
+          .attr("d", path);
+
+      svg.insert("path", ".graticule")
+          .datum(topojson.mesh(us, us.objects.counties, function(a, b) { return a !== b && !(a.id / 1000 ^ b.id / 1000); }))
+          .attr("class", "county-boundary")
+          .attr("d", path);
+
+      svg.insert("path", ".graticule")
+          .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+          .attr("class", "state-boundary")
+          .attr("d", path);
+  });
 
     /* Get the distance between two points */
     function get_distance(x1, y1, x2, y2){

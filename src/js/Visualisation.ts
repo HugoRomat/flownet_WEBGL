@@ -44,7 +44,7 @@ export class Visualisation {
             0.0001, 100000)
         
         
-        this.camera = new THREE.PerspectiveCamera(40,this.WIDTH/this.HEIGHT,1,10000);
+        // this.camera = new THREE.PerspectiveCamera(40,this.WIDTH/this.HEIGHT,1,10000);
         this.camera.position.z = 900;
         
         // this.camera.aspect = this.WIDTH / this.HEIGHT;
@@ -78,9 +78,9 @@ export class Visualisation {
         this.raycaster = new THREE.Raycaster();
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        // this.controls.enableRotate = false;
-        this.controls.enablePan = true;
-        console.log(this.controls)
+        this.controls.enableRotate = false;
+        // this.controls.enablePan = true;
+        // console.log(this.controls)
     }
     add(elements){
         // this.scene.add(elements)
