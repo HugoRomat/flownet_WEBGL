@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>ACE in Action</title>
+<style type="text/css" media="screen">
+
+</style>
+</head>
+<body>
+<div id="splitting">
+    <div id="left">
+        <div id="buttons">
+            <button id="go"> <i class="fa fa-refresh" aria-hidden="true"></i></button>
+            <button id="stop"> <i class="fa fa-stop" aria-hidden="true"></i></button>
+            <button id="play"> <i class="fa fa-play" aria-hidden="true"></i></button>
+            <button id="renderer"> SVG </button>
+        </div>
+        <div id="editor">
+var graph = {
+    nodes:[
+        {x:100 , y:300, color:'black', size:10, id:0},
+        {x:600 , y:300, color:'black', size:10, id:1}
+    ],
+    links:[
+        { 
+            id:0,
+            points:[{x:100,y:300},{x:450-100,y:50+300},{x:600,y:300}], 
+            interpolation:'cardinal', 
+            colorLink:'lightGrey',
+            sizeLink:12, 
+            colorParticule:'black', 
+            widthParticule:20, 
+            heightParticule:3,
+            patternParticule:[10,2,10], 
+            patternType:'absolute', 
+            frequencyParticule:1, 
+            speedParticule:150
+        }
+
+       
+    ]
+}
+var flownetGraph = flownet.graph('test', document.getElementById('view'))
+    .nodes(graph.nodes)
+    .links(graph.links)
+    .nodes_properties('x', function(d, i){  return d.x})
+    .nodes_properties('y', function(d, i){  return d.y})
+    .nodes_properties('color', function(d, i){ return d.color})
+    .nodes_properties('size', function(d, i){  return d.size})
+
+    .nodes_properties('label_text', function(d, i){return 'id:'+d.id})
+    .nodes_properties('label_size', 16)
+    .nodes_properties('label_x', function(d, i){  return d.x+10})
+    .nodes_properties('label_y', function(d, i){  return d.y-10})
+    .nodes_properties('label_font', 'arial')
+    .nodes_properties('label_color', 'black')
+    .particule_properties('color', function(d,i){ return d.colorParticule})
+    .particule_properties('width', function(d,i){ return d.widthParticule})
+    .particule_properties('height', function(d,i){ return d.heightParticule})
+    
+    .particule_properties('pattern', function(d,i){ return d.patternParticule})
+    .particule_properties('speed', function(d,i){ return d.speedParticule})
+    <!-- .particule_properties('spacing',function(d,i){ return 14}) -->
+    .particule_properties('frequency',function(d,i){ return d.frequencyParticule})
+    
+    .links_properties('points', function(d,i){ return d.points})
+    .links_properties('interpolation', function(d,i){ return d.interpolation})
+    .links_properties('color', function(d,i){ return d.colorLink})
+    .links_properties('size', function(d,i){ return d.sizeLink})
+    .start()
+
+
+        </div>
+    </div>
+    <div id="canvasView">
+        <svg id="view">
+        </svg>
+    </div>
+</div>
+</div>
+<script src="src/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="lib/jquery.js" type="text/javascript" charset="utf-8"></script>
+<script src='lib/flownet_SVG.js'></script>
+<script src='lib/splitter.js'></script>
+<link rel="stylesheet" href="lib/custom.css">
+<link rel="stylesheet" href="lib/fa/css/font-awesome.css">
+<script>
+    var renderer = "SVG";
+    var id = "scriptCode"
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.getSession().setMode("ace/mode/javascript");
+    editor.setOptions({
+        fontSize: "8pt"
+    });
+
+    var splitter = $('#splitting').height(200).split({
+        orientation: 'vertical',
+        limit: 10,
+        position: '50%', // if there is no percentage it interpret it as pixels
+        onDrag: function(event) {
+            console.log(splitter.position());
+        }
+    });
+
+    appendScript(function(){
+        var code = editor.getValue();
+        var script = document.createElement('script');
+        script.appendChild(document.createTextNode(code));
+        script.setAttribute("id", id);
+        document.body.appendChild(script);
+    });
+    
+
+    $("#stop").click(function() {
+        flownetGraph.stop();
+    })
+    $("#play").click(function() {
+        flownetGraph.start();
+    })
+    $("#renderer").click(function() {
+        if (renderer == "SVG") renderer = "webGL";
+        else renderer = "SVG";
+        $("#renderer").html(renderer);
+
+        appendScript(function(){
+            $("#scriptCode").remove();
+            $("#canvasView").empty();
+            var code = editor.getValue();
+            var script = document.createElement('script');
+            script.appendChild(document.createTextNode(code));
+            script.setAttribute("id", id);
+            document.body.appendChild(script);
+        });
+    })
+
+    $("#go").click(function() {
+        $("#scriptCode").remove();
+        $("#canvasView").empty();
+        $("#canvasView").append("<svg id='view'></svg>");
+
+        appendScript(function(){
+            var code = editor.getValue();
+            var script = document.createElement('script');
+            script.appendChild(document.createTextNode(code));
+            script.setAttribute("id", id);
+            document.body.appendChild(script);
+        });
+    })
+
+    function appendScript(callback){
+        console.log(renderer)
+        var libScript = "lib/flownet_SVG.js";
+        if (renderer == "webGL") libScript = "lib/flownet_webGL.js";
+        $.getScript(libScript, function(){
+            // alert("Running test.js");
+            callback();
+        });
+        
+    }
+</script>
+</body>
+</html>
