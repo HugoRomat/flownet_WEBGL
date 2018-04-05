@@ -79,7 +79,14 @@ export class Visualisation {
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableRotate = false;
-        // this.controls.enablePan = true;
+        this.controls.enablePan = true;
+
+        // this.controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+        // this.controls.dampingFactor = 0.25;
+        // // this.controls.panningMode = new THREE.HorizontalPanning; // default is THREE.ScreenSpacePanning
+        // this.controls.minDistance = 100;
+        // this.controls.maxDistance = 500
+        // this.controls.maxPolarAngle = Math.PI / 2;
         // console.log(this.controls)
     }
     add(elements){
@@ -127,8 +134,8 @@ export class Visualisation {
                 uniforms.uTime.value = number_frame;
             }
         }
-    }    
-
+    } 
+    
 
 }
 

@@ -9,6 +9,7 @@ import {Particles} from './GraphicalElement/Particles'
 import { LayoutManager } from './LayoutManager';
 import { Visualisation } from './Visualisation';
 import { UI } from './UI';
+import { Map } from './GraphicalElement/Map';
 
 export class Mapping{
 
@@ -20,6 +21,7 @@ export class Mapping{
     particlesObject;
     tracksObject;
     UI;
+    mapDrawing;
 
 
     constructor(div, width, height, color, alpha, visualisation){
@@ -119,40 +121,10 @@ export class Mapping{
         // this.viz.with_absolute_time();
         return this;
     }
-    // stop(){
-    //     // this.viz.stop_renderer();
-    //     return this;
-    // }
-    // pause(){
-    //     // this.viz.pause_renderer();
-    //     return this;
-    // }
-    // network(visual_attr, amount){
-        
-    // }
-    // controls(bool) {
-    //     // if (bool == true) this.viz.add_controls_anim();
-    //     return this;
-    // }
-    // zoom(bool) {
-    //     // console.log("LAUNCH ZOOM", bool)
-    //     // if (bool == true) this.viz._UI.mouse_event();
-    //     return this;
-    // }
-    // setZoom(value){
-    //     // this.viz._UI.setZoom(value);
-    //     return this;
-    // }
-    // on(parameter, callback){
-        
-    //     switch(parameter) {
-            
-    //         case "end":
-    //             this.sparkiz.callback = callback;
-    //             return this;
-    //     }
-        
-    // }
+    map(projection, path, callback){
+        this.mapDrawing = new Map(this.visualisation.scene, projection, path, callback);
+        return this
+    }
     particles(visual_attr, callback, gate){
         // console.log("GATE", gate)
         this.create_WEBGL_element();

@@ -34,16 +34,16 @@ export class UI{
 
     particles;
 
-    constructor(scene, div, particles){
+    constructor(visualisation, div, particles){
         // this.particleVis = particleVis;
         //this.state_machine = {state: "nothing"};
         this.state_machine = "hover";
         this.mouse_raycaster = {position :new THREE.Vector2() , beginning : false};
         this.div = div;
-        this.scene = scene; 
-        this.camera = scene.camera;
-        this.renderer = scene.renderer;
-        this.raycaster = scene.raycaster;
+        this.scene = visualisation.scene; 
+        this.camera = visualisation.camera;
+        this.renderer = visualisation.renderer;
+        this.raycaster = visualisation.raycaster;
         this.particles = particles;
 
         
@@ -110,7 +110,7 @@ export class UI{
 
        var canvas = document.getElementById(self.div.slice( 1 ));
         console.log("CANVAS", canvas)
-        // canvas.addEventListener("mousedown", mouseDown, false);
+        canvas.addEventListener("mousedown", mouseDown, false);
         // canvas.addEventListener("mouseup", mouseUp, false);
         // canvas.addEventListener("mousemove", mouseMove, false);
         // canvas.addEventListener("mousewheel", mouseWheel, false);
@@ -151,38 +151,38 @@ export class UI{
             //console.log( self.temporary_object)
             self.update()
         }
-        function mouseMove(event){
-            // console.log(self.state_machine)
-            //self.state_machine = "hover";
+        // function mouseMove(event){
+        //     // console.log(self.state_machine)
+        //     //self.state_machine = "hover";
             
-            if (self.state_machine == "down"){
-                self.state_machine = "drag";
-            }
-            if (self.state_machine == "drag"){
-                // event.preventDefault();
-                // event.stopPropagation();
-                self.panOffset = [event.clientX - self.mouseStart[0], event.clientY - self.mouseStart[1]]
-                self.mouseStart = [event.clientX, event.clientY]
-            }
+        //     if (self.state_machine == "down"){
+        //         self.state_machine = "drag";
+        //     }
+        //     if (self.state_machine == "drag"){
+        //         // event.preventDefault();
+        //         // event.stopPropagation();
+        //         self.panOffset = [event.clientX - self.mouseStart[0], event.clientY - self.mouseStart[1]]
+        //         self.mouseStart = [event.clientX, event.clientY]
+        //     }
         
-            self.update()
-            //self.mouse_raycaster.beginning = false;
+        //     self.update()
+        //     //self.mouse_raycaster.beginning = false;
 
             
-        }
-        function mouseUp(event){
-            //console.log("HEY")
+        // }
+        // function mouseUp(event){
+        //     //console.log("HEY")
             
-            if (self.state_machine == "drag"){
-                self.state_machine = "drop";
-                self.state_machine = "hover";
-            }
-            if (self.state_machine == "down"){
-                self.state_machine = "hover";
-            }
-            self.update()
-            //console.log(self.state_machine, self.temporary_object)
-        }
+        //     if (self.state_machine == "drag"){
+        //         self.state_machine = "drop";
+        //         self.state_machine = "hover";
+        //     }
+        //     if (self.state_machine == "down"){
+        //         self.state_machine = "hover";
+        //     }
+        //     self.update()
+        //     //console.log(self.state_machine, self.temporary_object)
+        // }
         // function mouseUp(event){
         //     console.log(self.temporary_object)
         //     self.temporary_object = null;
@@ -203,32 +203,32 @@ export class UI{
         //     //}
         // }
 
-        function mouseWheel(event){
-            //console.log("update")
-            // event.preventDefault();
+        // function mouseWheel(event){
+        //     //console.log("update")
+        //     // event.preventDefault();
             
-            // console.log(self.camera.zoom + event.wheelDelta/1000)
-            if (self.camera.zoom + event.wheelDelta/1000 > 0.13){
-                // self.camera.zoom += event.wheelDelta / 1000;
-                // self.camera.verticesNeedUpdate = true;
-                // var zoom = self.camera.position.z + ;
-                // self.camera.translateZ( event.wheelDelta );
-                self.camera.updateProjectionMatrix(); 
+        //     // console.log(self.camera.zoom + event.wheelDelta/1000)
+        //     if (self.camera.zoom + event.wheelDelta/1000 > 0.13){
+        //         // self.camera.zoom += event.wheelDelta / 1000;
+        //         // self.camera.verticesNeedUpdate = true;
+        //         // var zoom = self.camera.position.z + ;
+        //         // self.camera.translateZ( event.wheelDelta );
+        //         self.camera.updateProjectionMatrix(); 
 
-                // console.log(self.camera)
-                // self.particles.updateProjectionMatrix(); 
+        //         // console.log(self.camera)
+        //         // self.particles.updateProjectionMatrix(); 
 
-                // console.log(self.particles)
-                // self.particleVis.updateLabel_scale(self.camera.zoom);
-            }
+        //         // console.log(self.particles)
+        //         // self.particleVis.updateLabel_scale(self.camera.zoom);
+        //     }
             
             
-            //self.ConfluentGraph.updateParticles_Zoom(self.camera.projectionMatrix);
-            //console.log(self.camera.zoom)
-            //console.log(self.ConfluentGraph)
-            // render();
+        //     //self.ConfluentGraph.updateParticles_Zoom(self.camera.projectionMatrix);
+        //     //console.log(self.camera.zoom)
+        //     //console.log(self.ConfluentGraph)
+        //     // render();
 
-        }
+        // }
         // function onMouseMove( event ) {
         //     //console.log("HEY")
         //     //if(event.clientX < window.innerWidth - 300){
@@ -253,15 +253,15 @@ export class UI{
     }
     get_intersections(){
         var self = this;
-        //console.log(self.mouse_raycaster.beginning)
+        // console.log(self.mouse_raycaster.beginning)
         var object;
-        if (self.mouse_raycaster.beginning == false){
+        // if (self.mouse_raycaster.beginning == false){
            
             self.raycaster.setFromCamera( self.mouse_raycaster.position, self.camera );	
             //console.log(self.temporary_object)
-            //console.log(self.drag)
+            console.log(self.scene.children)
             var intersects = self.raycaster.intersectObjects( self.scene.children, true );
-            //console.log("RAYCASTING", self.scene.children)
+            console.log("RAYCASTING", intersects)
             if (intersects.length != 0){
 
                 object = intersects[ 0 ].object;
@@ -326,7 +326,7 @@ export class UI{
                 //_UI.delete_graph();
             }
             
-        }
+        // }
         return object;
     }
     coloriate_tube(id){
