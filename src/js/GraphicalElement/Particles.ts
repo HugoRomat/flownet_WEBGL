@@ -4,6 +4,9 @@ import {Utilities} from '../Utilities'
 import * as VS from './../../shaders/particule.vert'
 import * as FS from './../../shaders/particule.frag'
 
+import * as VS2 from './../../shaders/particule.1.vert'
+import * as FS2 from './../../shaders/particule.2.frag'
+
 import * as textureRectangle from './../../images/rectangle_texture.png'
 
 export class Particles{
@@ -14,6 +17,7 @@ export class Particles{
     number_max_gates = 21;
     FPS = 60;
     camera;
+    isGates = false;
 
     constructor(scene, camera){
         this.utilities = new Utilities();
@@ -28,6 +32,7 @@ export class Particles{
         return this.number_max_gates;
     }
     createParticles(){
+        console.log("CREATE PARTICLES")
         for(var i=0 ; i<this.particles.length ; i++){
 
             this.particles[i].particleSystems = [];
@@ -144,7 +149,9 @@ export class Particles{
             // this.updateParticles_TemporalDistribution(this.links[j].temporal_distribution, this.links[j]._id, this.links[j].temporal_distribution.length)
         }
     }
+    checkIfGates(){
 
+    }
     createParticles_webgl(particles, link_id){
 
         // console.log(particles, link_id)
@@ -209,45 +216,74 @@ export class Particles{
             offset += offsetBetweenGates * gate_velocity[i];
         }
 
-        // console.log(posistion_gate_after_speed, offsetArray)
-        // console.log("TEMPORAL", offsetArray)
-        /* Détermines mes uniforms pour les transmettre au shaders */
-        var uniforms = {
-            "gapTwoGates": { type: "i", value: gap },
-            "path_quadratic" :  { type: "v2v", value: path_quadratic },
-            "temporal_delay" : { type: "iv1", value: temporal },
-            "gate_velocity" : { type: "iv1", value: gate_velocity },
-            "size" : { type: "fv1", value: size },
-            "gate_opacity" : { type: "fv1", value: gate_opacity },
-            "wiggling_gate" : { type: "fv1", value: wiggling_gate },
-            "gate_position" : { type: "iv1", value: posistion_gate_after_speed },
-            "gate_colors" : { type: "v3v", value: gate_colors },
-            "particles_number" : { type: "iv1", value: particles },  
-            "number_segmentation" : { type: "iv1", value: number_segmentation }, 
-            "offsetArray": { type: "iv1", value: offsetArray },
-            "number_segmentation_pattern_fitting" : { type: "iv1", value: number_segmentation_pattern_fitting },  
-            uTime: { type: "f", value: 1.0 },
-            time: { type: "f", value: 1.0 },
-            delta: { type: "f", value: 0.0 },
-            // "ProjectionMatrix": { type: "m4", value: self.camera.projectionMatrix },
-            texture: { value: texture, name: this.particles[link_id].texture }
+        // console.log(this.isGates)
+        // var gates = this.checkIfGates();
+        if (this.isGates == false){
+            var uniforms = {
+                "path_quadratic" :  { type: "v2v", value: path_quadratic },
+                "temporal_delay" : { type: "iv1", value: temporal },
+                "gate_velocity" : { type: "iv1", value: gate_velocity[0] },
+                "size" : { type: "fv1", value: size[0] },
+                "gate_opacity" : { type: "fv1", value: gate_opacity[0] },
+                "gate_colors" : { type: "v3v", value: gate_colors[0] },  
+                "number_segmentation" : { type: "iv1", value: number_segmentation }, 
+                "number_segmentation_pattern_fitting" : { type: "iv1", value: number_segmentation_pattern_fitting },  
+                uTime: { type: "f", value: 1.0 },
+                texture: { value: texture, name: this.particles[link_id].texture }
+            };
+            /************ 2 car les liens exterieur, 1 le lien du milieu, *4 pour DEBUT-POINT DE CONTROLE1- POINT DE CONTROLE2 - ARRIVEE */
+            var path_length = ((2 * this.particles[link_id].number_paths_particule)+1) * 4;
 
-        };
-        /************ 2 car les liens exterieur, 1 le lien du milieu, *4 pour DEBUT-POINT DE CONTROLE1- POINT DE CONTROLE2 - ARRIVEE */
-        var path_length = ((2 * this.particles[link_id].number_paths_particule)+1) * 4;
+            /* Determination d'un shader material qui fait le lien entre mon programme et mes shaders */
+            var shaderMaterial = new THREE.ShaderMaterial( {
+                uniforms:       uniforms,
+                vertexShader:   '#define path_length '+ path_length + 
+                '\n' + '#define real_number_particles '+ this.particles[link_id].temporal_distribution.length + 
+                '\n' + '#define number_max_gates '+ this.number_max_gates + 
+                '\n' + VS,
+                fragmentShader: FS,
+                transparent:    true
+            });
+        }
+        else{
+        //     console.log("HOOO")
+            var uniforms = {
+                "gapTwoGates": { type: "i", value: gap },
+                "path_quadratic" :  { type: "v2v", value: path_quadratic },
+                "temporal_delay" : { type: "iv1", value: temporal },
+                "gate_velocity" : { type: "iv1", value: gate_velocity },
+                "size" : { type: "fv1", value: size },
+                "gate_opacity" : { type: "fv1", value: gate_opacity },
+                "wiggling_gate" : { type: "fv1", value: wiggling_gate },
+                "gate_position" : { type: "iv1", value: posistion_gate_after_speed },
+                "gate_colors" : { type: "v3v", value: gate_colors },
+                "particles_number" : { type: "iv1", value: particles },  
+                "number_segmentation" : { type: "iv1", value: number_segmentation }, 
+                "offsetArray": { type: "iv1", value: offsetArray },
+                "number_segmentation_pattern_fitting" : { type: "iv1", value: number_segmentation_pattern_fitting },  
+                uTime: { type: "f", value: 1.0 },
+                time: { type: "f", value: 1.0 },
+                delta: { type: "f", value: 0.0 },
+                // "ProjectionMatrix": { type: "m4", value: self.camera.projectionMatrix },
+                texture: { value: texture, name: this.particles[link_id].texture }
 
-        /* Determination d'un shader material qui fait le lien entre mon programme et mes shaders */
-        var shaderMaterial = new THREE.ShaderMaterial( {
-            uniforms:       uniforms,
-            vertexShader:   '#define path_length '+ path_length + 
-            '\n' + '#define real_number_particles '+ this.particles[link_id].temporal_distribution.length + 
-            '\n' + '#define number_max_gates '+ this.number_max_gates + 
-            '\n' + VS,
-            fragmentShader: FS,
-            transparent:    true
-        });
+            };
+            /************ 2 car les liens exterieur, 1 le lien du milieu, *4 pour DEBUT-POINT DE CONTROLE1- POINT DE CONTROLE2 - ARRIVEE */
+            var path_length = ((2 * this.particles[link_id].number_paths_particule)+1) * 4;
 
-        // console.log(path_length , this.number_max_gates, this.links[link_id].temporal_distribution.length)
+            /* Determination d'un shader material qui fait le lien entre mon programme et mes shaders */
+            var shaderMaterial = new THREE.ShaderMaterial( {
+                uniforms:       uniforms,
+                vertexShader:   '#define path_length '+ path_length + 
+                '\n' + '#define real_number_particles '+ this.particles[link_id].temporal_distribution.length + 
+                '\n' + '#define number_max_gates '+ this.number_max_gates + 
+                '\n' + VS2,
+                fragmentShader: FS2,
+                transparent:    true
+            });
+        }
+        
+        // console.log(gate_velocity)
         
         /* Met les attributs des particules */
         var radius = 50;
