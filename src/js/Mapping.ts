@@ -28,7 +28,6 @@ export class Mapping{
         // this.sparkiz = this.viz.sparkiz;
         if (visualisation == undefined) this.visualisation = new Visualisation(div, width, height, color, alpha, this);
         else {
-            // console.log("KEEP SCENE")
             this.visualisation = visualisation;
         } 
 
@@ -42,31 +41,36 @@ export class Mapping{
         return this;
     }
     nodes(nodes) {
-        this.nodesObject.data(nodes)
+        this.nodesObject.data(nodes);
+        this.layoutManager.mapNodes(nodes);
         return this;
     }
     links(links) {
         this.linksObject.data(links);
         this.tracksObject.data(links);
         this.particlesObject.data(links);
+        this.layoutManager.mapLinks(links);
         // for(var i=0 ; i<this.sparkiz.links.length ; i++) this.sparkiz.links[i].link_length = 90;
         return this;
     }
-    create_layout(){
-        var dataNodes = this.nodesObject.data();
-        var dataLinks = this.linksObject.data();
-        // console.log(dataNodes, dataLinks)
-        this.layoutManager.map_links_nodes(dataNodes, dataLinks);
+    // create_layout(){
+    //     var dataNodes = this.nodesObject.data();
+    //     var dataLinks = this.linksObject.data();
+    //     // console.log(dataNodes, dataLinks)
+    //     this.layoutManager.map_links_nodes(dataNodes, dataLinks);
 
-        
-        return this;
-    }
+    //     return this;
+    // }
     create_WEBGL_element() {
         
-        this.nodesObject.createNodes();
-        this.linksObject.createTube();
-        this.tracksObject.createTracks();
-        this.particlesObject.createParticles()
+        if (this.visualisation.scene.children.length == 0){
+            console.log("ADD ELEMENTS", this.visualisation.scene.children.length)
+            this.nodesObject.createNodes();
+            this.linksObject.createTube();
+            this.tracksObject.createTracks();
+            this.particlesObject.createParticles()
+        }
+        
 
         return this;
     }
@@ -90,19 +94,23 @@ export class Mapping{
         return this;
     }
     start(time) {
-        this.nodesObject.createLabel();
-        this.tracksObject.updatetracks();
-        // if (time != undefined) this.sparkiz.launch_network(time);
-        // if (time == undefined) this.sparkiz.launch_network_without_computation();
-        // //this.viz.animate();
-        // this.viz.with_absolute_time();
-        this.nodesObject.updateNodes();
-        this.linksObject.updateTube();
+        var that = this;
+        if (time == undefined) time = 0;
 
-        this.particlesObject.fit_all_particles_to_frequence_temporal_distrib();
-        this.particlesObject.updateParticles();
+        setTimeout(function(){ 
+            that.nodesObject.createLabel();
+            that.tracksObject.updatetracks();
+            // if (time != undefined) this.sparkiz.launch_network(time);
+            // if (time == undefined) this.sparkiz.launch_network_without_computation();
+            // //this.viz.animate();
+            // this.viz.with_absolute_time();
+            that.nodesObject.updateNodes();
+            that.linksObject.updateTube();
 
-        this.visualisation.animate();
+            that.particlesObject.fit_all_particles_to_frequence_temporal_distrib();
+            that.particlesObject.updateParticles();
+            that.visualisation.animate();
+        }, time);
         return this;
     }
     startAPIparticule_oneitem(time) {
@@ -147,13 +155,17 @@ export class Mapping{
     // }
     particles(visual_attr, callback, gate){
         // console.log("GATE", gate)
-
+        this.create_WEBGL_element();
         if (gate != undefined && gate > 1){console.log("Gate shoub be comprise between 0 and 1 ..."); return false;}
         var value;
         var gate_position;
-        if (gate != undefined){ gate = Math.round(gate * 20) }
+        if (gate != undefined){ 
+            this.particlesObject.isGates = true;
+            gate = Math.round(gate * 20) 
+        }
         var particles = this.particlesObject.data();
         var maxGates = this.particlesObject.getMaxGates();
+        // console.log(particles)
         switch(visual_attr) {
             
             case "color":
@@ -164,7 +176,9 @@ export class Mapping{
                         value = new THREE.Color(a);}
                     if (gate == undefined){gate_position = 0} 
                     if (gate != undefined){gate_position = gate} 
-                    for(var k = gate_position ; k< maxGates ; k++) { particles[i].gate_colors[k] = value; }
+                    for(var k = gate_position ; k< maxGates ; k++) { 
+                        particles[i].gate_colors[k] = value; 
+                    }
                 }
                 return this;
             case "size":
@@ -251,6 +265,7 @@ export class Mapping{
     
     tracks(visual_attr, callback){
         var value;
+        
         var tracks = this.tracksObject.data();
         switch(visual_attr) {
             case "opacity":
@@ -288,7 +303,11 @@ export class Mapping{
     }
     link_properties(visual_attr, callback){
         var value;
+        this.create_WEBGL_element();
         var links = this.linksObject.data();
+        
+
+        // conso
         switch(visual_attr) {
             case "color":
                 for(var i=0 ; i<links.length ; i++){
@@ -369,6 +388,7 @@ export class Mapping{
     }
     node_properties(visual_attr, callback){
         var value;
+        this.create_WEBGL_element();
         var nodes = this.nodesObject.data();
         // console.log("MES MOEUDS", nodes)
         switch(visual_attr) {

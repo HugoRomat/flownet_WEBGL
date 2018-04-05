@@ -45,14 +45,6 @@
                 rotated.x = rotated.x + mid;
                 rotated.y = rotated.y + mid;
 
-
-
-
-                /*vec2 rotated = vec2(
-                        cos(vRotation) * (gl_PointCoord.x - mid) + sin(vRotation) * (gl_PointCoord.y - mid) + mid,
-                        cos(vRotation) * (gl_PointCoord.y - mid) - sin(vRotation) * (gl_PointCoord.x - mid) + mid);*/
-
-                //Texture 2D return the RGBA
                 vec4 color = vec4(1.0,1.0,1.0, 1.0);
 
                 vec2 new_coord =  my_matrix * gl_PointCoord;
@@ -64,99 +56,13 @@
                 // }
                 float opacityArr = 1.0;
                 float opacityDep = 0.0;
-                /*************************************
-                ARRIVE DE LA PARTICULE 
-
-                3 cas a distinguer : 
-                - Le milieu de la particule est avant le NOEUD
-                - Le milieu de la particule est apres le NOEUD
-                - Le milieu de la particule a depasse le NOEUD
-                
-                *************************************/
-
-                // if (index_ >= segmentation + (0.1 * segmentation)){
-                //   color = vec4(1.0,0.0,0.0, 1.0);
-                // }
-                /*if (distance_with_arrival < (sprite_size * 2.0) && index_ < segmentation + (0.1 * segmentation)){
-                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){
-                    color = vec4(1.0,0.0,0.0, 0.0);
-                  }
-                }
-
-                if (distance_with_arrival < (sprite_size * 2.0) && index_ >= segmentation + (0.1 * segmentation)){
-                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){
-                    color = vec4(0.0,1.0,0.0, 0.0);
-                  }
-                }
-                // // // color = vec4(1.0,0.0,0.0, 1.0);
-                // // //QUAND LA PARTICULE A DEPASSE LE NOEUD
-                if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){
-                    color = vec4(1.0,0.0,0.0, 0.0);
-                }*/
-
-                /*************************************
-                DEPART DE LA PARTICULE 
-                
-                3 cas a distinguer : 
-                - Le milieu de la particule est avant le NOEUD
-                - Le milieu de la particule est apres le NOEUD
-                - Le milieu de la particule a depasse le NOEUD
-
-                *************************************/
+               
                 color = vec4(1.0,1.0,0.0, 1.0);
 
-                // if (distance_with_departure < (sprite_size / 2.0) && index_ < 0.0 + (0.1 * segmentation)){
-                  // if ( rotated.x - 0.5 < (distance_with_departure / sprite_size)){
-                  //   // color = vec4(1.0,0.0,0.0, 0.0);
-                  // }
-                // }
-                // if (distance_with_departure < (sprite_size / 2.0) && index_ >= 0.0 + (0.1 * segmentation)){
-                //   if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){
-                //     color = vec4(0.0,1.0,0.0, 0.0);
-                //   }
-                // }
-
-                // if (distance_with_departure >= (sprite_size / 2.0) && index_ <= 0.0 + (0.1 * segmentation)){
-                //   color = vec4(1.0,0.0,0.0, 0.0);
-                // }
-
-                // if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){
-                //     color = vec4(1.0,0.0,0.0, 0.0);
-                // }
-                // color = vec4(1.0,1.0,0.0, 0.5);
-                // if ( rotated.x > 0.5){ color = vec4(1.0,1.0,1.0, 0.1); }
-                // else { color = vec4(1.0,0.0,0.0, 1.0); }
-
-                // color = vec4(1.0,1.0,0.0, 1.0);
-                //  if (index_ < sprite_size ){
-                //    if ( rotated.x <= (distance_with_departure / sprite_size)){
-                //     color = vec4(1.0,0.0,0.0, 0.1);
-                //   }
-                    
-                // }
-                float opacity = 0.0;
-                if (distance_with_arrival <= (sprite_size / 4.0)){
-                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){
-                    color = vec4(1.0,0.0,0.0, opacity);
-                  }
-                }
+              
                 if (index_ >= segmentation){
-                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){
-                    color = vec4(1.0,0.0,0.0, opacity);
-                  }
+                    color = vec4(1.0,0.0,0.0, 0.0);
                 }
-
-                if (distance_with_departure < (sprite_size / 4.0)){
-                  if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){
-                    color = vec4(1.0,0.0,0.0, opacity);
-                  }
-                }
-
-    
-       
-                // if (index_ >= segmentation){
-                //     color = vec4(1.0,0.0,0.0, 0.0);
-                // }
 
               
 

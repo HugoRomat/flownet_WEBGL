@@ -53722,11 +53722,11 @@ module.exports = __webpack_require__(175);
 Object.defineProperty(exports, "__esModule", { value: true });
 // import {MainClass} from './MainClass'
 var Mapping_1 = __webpack_require__(176);
-function force(div, width, height, color, alpha, visualisation) {
+function graph(div, width, height, color, alpha, visualisation) {
     var mapping = new Mapping_1.Mapping(div, width, height, color, alpha, visualisation);
     return mapping;
 }
-exports.force = force;
+exports.graph = graph;
 
 
 /***/ }),
@@ -53752,7 +53752,6 @@ var Mapping = /** @class */ (function () {
         if (visualisation == undefined)
             this.visualisation = new Visualisation_1.Visualisation(div, width, height, color, alpha, this);
         else {
-            // console.log("KEEP SCENE")
             this.visualisation = visualisation;
         }
         this.linksObject = new Links_1.Links(this.visualisation.scene);
@@ -53765,27 +53764,32 @@ var Mapping = /** @class */ (function () {
     }
     Mapping.prototype.nodes = function (nodes) {
         this.nodesObject.data(nodes);
+        this.layoutManager.mapNodes(nodes);
         return this;
     };
     Mapping.prototype.links = function (links) {
         this.linksObject.data(links);
         this.tracksObject.data(links);
         this.particlesObject.data(links);
+        this.layoutManager.mapLinks(links);
         // for(var i=0 ; i<this.sparkiz.links.length ; i++) this.sparkiz.links[i].link_length = 90;
         return this;
     };
-    Mapping.prototype.create_layout = function () {
-        var dataNodes = this.nodesObject.data();
-        var dataLinks = this.linksObject.data();
-        // console.log(dataNodes, dataLinks)
-        this.layoutManager.map_links_nodes(dataNodes, dataLinks);
-        return this;
-    };
+    // create_layout(){
+    //     var dataNodes = this.nodesObject.data();
+    //     var dataLinks = this.linksObject.data();
+    //     // console.log(dataNodes, dataLinks)
+    //     this.layoutManager.map_links_nodes(dataNodes, dataLinks);
+    //     return this;
+    // }
     Mapping.prototype.create_WEBGL_element = function () {
-        this.nodesObject.createNodes();
-        this.linksObject.createTube();
-        this.tracksObject.createTracks();
-        this.particlesObject.createParticles();
+        if (this.visualisation.scene.children.length == 0) {
+            console.log("ADD ELEMENTS", this.visualisation.scene.children.length);
+            this.nodesObject.createNodes();
+            this.linksObject.createTube();
+            this.tracksObject.createTracks();
+            this.particlesObject.createParticles();
+        }
         return this;
     };
     // start_particle_delay(delay) {
@@ -53808,17 +53812,22 @@ var Mapping = /** @class */ (function () {
         return this;
     };
     Mapping.prototype.start = function (time) {
-        this.nodesObject.createLabel();
-        this.tracksObject.updatetracks();
-        // if (time != undefined) this.sparkiz.launch_network(time);
-        // if (time == undefined) this.sparkiz.launch_network_without_computation();
-        // //this.viz.animate();
-        // this.viz.with_absolute_time();
-        this.nodesObject.updateNodes();
-        this.linksObject.updateTube();
-        this.particlesObject.fit_all_particles_to_frequence_temporal_distrib();
-        this.particlesObject.updateParticles();
-        this.visualisation.animate();
+        var that = this;
+        if (time == undefined)
+            time = 0;
+        setTimeout(function () {
+            that.nodesObject.createLabel();
+            that.tracksObject.updatetracks();
+            // if (time != undefined) this.sparkiz.launch_network(time);
+            // if (time == undefined) this.sparkiz.launch_network_without_computation();
+            // //this.viz.animate();
+            // this.viz.with_absolute_time();
+            that.nodesObject.updateNodes();
+            that.linksObject.updateTube();
+            that.particlesObject.fit_all_particles_to_frequence_temporal_distrib();
+            that.particlesObject.updateParticles();
+            that.visualisation.animate();
+        }, time);
         return this;
     };
     Mapping.prototype.startAPIparticule_oneitem = function (time) {
@@ -53859,6 +53868,7 @@ var Mapping = /** @class */ (function () {
     // }
     Mapping.prototype.particles = function (visual_attr, callback, gate) {
         // console.log("GATE", gate)
+        this.create_WEBGL_element();
         if (gate != undefined && gate > 1) {
             console.log("Gate shoub be comprise between 0 and 1 ...");
             return false;
@@ -53866,10 +53876,12 @@ var Mapping = /** @class */ (function () {
         var value;
         var gate_position;
         if (gate != undefined) {
+            this.particlesObject.isGates = true;
             gate = Math.round(gate * 20);
         }
         var particles = this.particlesObject.data();
         var maxGates = this.particlesObject.getMaxGates();
+        // console.log(particles)
         switch (visual_attr) {
             case "color":
                 for (var i = 0; i < particles.length; i++) {
@@ -54067,7 +54079,9 @@ var Mapping = /** @class */ (function () {
     };
     Mapping.prototype.link_properties = function (visual_attr, callback) {
         var value;
+        this.create_WEBGL_element();
         var links = this.linksObject.data();
+        // conso
         switch (visual_attr) {
             case "color":
                 for (var i = 0; i < links.length; i++) {
@@ -54162,6 +54176,7 @@ var Mapping = /** @class */ (function () {
     };
     Mapping.prototype.node_properties = function (visual_attr, callback) {
         var value;
+        this.create_WEBGL_element();
         var nodes = this.nodesObject.data();
         // console.log("MES MOEUDS", nodes)
         switch (visual_attr) {
@@ -54361,7 +54376,7 @@ var Nodes = /** @class */ (function () {
     Nodes.prototype.updateNodes = function () {
         // console.log("UPDATE NODES", this.webglNodes)
         var self = this;
-        //console.log(self.nodes[0])
+        // console.log("GOOOO", self.nodes[0])
         for (var i = 0; i < this.nodes.length; i++) {
             // console.log(this.nodes[i])
             //     if (this.nodes[i].px != null){this.nodes[i].x = this.nodes[i].px;}
@@ -54404,7 +54419,7 @@ var Nodes = /** @class */ (function () {
                 opacity: this.nodes[i].opacity
             });
             // instantiate a loader
-            var segments = 30;
+            var segments = 20;
             circleGeometry = new THREE.CircleGeometry(1, segments);
             circle = new THREE.Mesh(circleGeometry, material);
             circle.scale.set(10, 10, 10);
@@ -54853,14 +54868,17 @@ exports.Tracks = Tracks;
 Object.defineProperty(exports, "__esModule", { value: true });
 var THREE = __webpack_require__(12);
 var Utilities_1 = __webpack_require__(50);
-var VS = __webpack_require__(182);
-var FS = __webpack_require__(183);
+var VS = __webpack_require__(481);
+var FS = __webpack_require__(482);
+var VS2 = __webpack_require__(182);
+var FS2 = __webpack_require__(183);
 var textureRectangle = __webpack_require__(184);
 var Particles = /** @class */ (function () {
     function Particles(scene, camera) {
         this.particles = [];
         this.number_max_gates = 21;
         this.FPS = 60;
+        this.isGates = false;
         this.utilities = new Utilities_1.Utilities();
         this.scene = scene;
         this.camera = camera;
@@ -54874,6 +54892,7 @@ var Particles = /** @class */ (function () {
         return this.number_max_gates;
     };
     Particles.prototype.createParticles = function () {
+        console.log("CREATE PARTICLES");
         for (var i = 0; i < this.particles.length; i++) {
             this.particles[i].particleSystems = [];
             this.particles[i].number_segmentation = 50;
@@ -54978,6 +54997,8 @@ var Particles = /** @class */ (function () {
             // this.updateParticles_TemporalDistribution(this.links[j].temporal_distribution, this.links[j]._id, this.links[j].temporal_distribution.length)
         }
     };
+    Particles.prototype.checkIfGates = function () {
+    };
     Particles.prototype.createParticles_webgl = function (particles, link_id) {
         // console.log(particles, link_id)
         console.log("CREATE PARTICLES", particles, link_id);
@@ -55034,42 +55055,70 @@ var Particles = /** @class */ (function () {
             offsetArray[i] = (posistion_gate_after_speed[i] * gate_velocity[i]) - offset;
             offset += offsetBetweenGates * gate_velocity[i];
         }
-        // console.log(posistion_gate_after_speed, offsetArray)
-        // console.log("TEMPORAL", offsetArray)
-        /* Détermines mes uniforms pour les transmettre au shaders */
-        var uniforms = {
-            "gapTwoGates": { type: "i", value: gap },
-            "path_quadratic": { type: "v2v", value: path_quadratic },
-            "temporal_delay": { type: "iv1", value: temporal },
-            "gate_velocity": { type: "iv1", value: gate_velocity },
-            "size": { type: "fv1", value: size },
-            "gate_opacity": { type: "fv1", value: gate_opacity },
-            "wiggling_gate": { type: "fv1", value: wiggling_gate },
-            "gate_position": { type: "iv1", value: posistion_gate_after_speed },
-            "gate_colors": { type: "v3v", value: gate_colors },
-            "particles_number": { type: "iv1", value: particles },
-            "number_segmentation": { type: "iv1", value: number_segmentation },
-            "offsetArray": { type: "iv1", value: offsetArray },
-            "number_segmentation_pattern_fitting": { type: "iv1", value: number_segmentation_pattern_fitting },
-            uTime: { type: "f", value: 1.0 },
-            time: { type: "f", value: 1.0 },
-            delta: { type: "f", value: 0.0 },
-            // "ProjectionMatrix": { type: "m4", value: self.camera.projectionMatrix },
-            texture: { value: texture, name: this.particles[link_id].texture }
-        };
-        /************ 2 car les liens exterieur, 1 le lien du milieu, *4 pour DEBUT-POINT DE CONTROLE1- POINT DE CONTROLE2 - ARRIVEE */
-        var path_length = ((2 * this.particles[link_id].number_paths_particule) + 1) * 4;
-        /* Determination d'un shader material qui fait le lien entre mon programme et mes shaders */
-        var shaderMaterial = new THREE.ShaderMaterial({
-            uniforms: uniforms,
-            vertexShader: '#define path_length ' + path_length +
-                '\n' + '#define real_number_particles ' + this.particles[link_id].temporal_distribution.length +
-                '\n' + '#define number_max_gates ' + this.number_max_gates +
-                '\n' + VS,
-            fragmentShader: FS,
-            transparent: true
-        });
-        // console.log(path_length , this.number_max_gates, this.links[link_id].temporal_distribution.length)
+        // console.log(this.isGates)
+        // var gates = this.checkIfGates();
+        if (this.isGates == false) {
+            var uniforms = {
+                "path_quadratic": { type: "v2v", value: path_quadratic },
+                "temporal_delay": { type: "iv1", value: temporal },
+                "gate_velocity": { type: "iv1", value: gate_velocity[0] },
+                "size": { type: "fv1", value: size[0] },
+                "gate_opacity": { type: "fv1", value: gate_opacity[0] },
+                "gate_colors": { type: "v3v", value: gate_colors[0] },
+                "number_segmentation": { type: "iv1", value: number_segmentation },
+                "number_segmentation_pattern_fitting": { type: "iv1", value: number_segmentation_pattern_fitting },
+                uTime: { type: "f", value: 1.0 },
+                texture: { value: texture, name: this.particles[link_id].texture }
+            };
+            /************ 2 car les liens exterieur, 1 le lien du milieu, *4 pour DEBUT-POINT DE CONTROLE1- POINT DE CONTROLE2 - ARRIVEE */
+            var path_length = ((2 * this.particles[link_id].number_paths_particule) + 1) * 4;
+            /* Determination d'un shader material qui fait le lien entre mon programme et mes shaders */
+            var shaderMaterial = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: '#define path_length ' + path_length +
+                    '\n' + '#define real_number_particles ' + this.particles[link_id].temporal_distribution.length +
+                    '\n' + '#define number_max_gates ' + this.number_max_gates +
+                    '\n' + VS,
+                fragmentShader: FS,
+                transparent: true
+            });
+        }
+        else {
+            //     console.log("HOOO")
+            var uniforms = {
+                "gapTwoGates": { type: "i", value: gap },
+                "path_quadratic": { type: "v2v", value: path_quadratic },
+                "temporal_delay": { type: "iv1", value: temporal },
+                "gate_velocity": { type: "iv1", value: gate_velocity },
+                "size": { type: "fv1", value: size },
+                "gate_opacity": { type: "fv1", value: gate_opacity },
+                "wiggling_gate": { type: "fv1", value: wiggling_gate },
+                "gate_position": { type: "iv1", value: posistion_gate_after_speed },
+                "gate_colors": { type: "v3v", value: gate_colors },
+                "particles_number": { type: "iv1", value: particles },
+                "number_segmentation": { type: "iv1", value: number_segmentation },
+                "offsetArray": { type: "iv1", value: offsetArray },
+                "number_segmentation_pattern_fitting": { type: "iv1", value: number_segmentation_pattern_fitting },
+                uTime: { type: "f", value: 1.0 },
+                time: { type: "f", value: 1.0 },
+                delta: { type: "f", value: 0.0 },
+                // "ProjectionMatrix": { type: "m4", value: self.camera.projectionMatrix },
+                texture: { value: texture, name: this.particles[link_id].texture }
+            };
+            /************ 2 car les liens exterieur, 1 le lien du milieu, *4 pour DEBUT-POINT DE CONTROLE1- POINT DE CONTROLE2 - ARRIVEE */
+            var path_length = ((2 * this.particles[link_id].number_paths_particule) + 1) * 4;
+            /* Determination d'un shader material qui fait le lien entre mon programme et mes shaders */
+            var shaderMaterial = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: '#define path_length ' + path_length +
+                    '\n' + '#define real_number_particles ' + this.particles[link_id].temporal_distribution.length +
+                    '\n' + '#define number_max_gates ' + this.number_max_gates +
+                    '\n' + VS2,
+                fragmentShader: FS2,
+                transparent: true
+            });
+        }
+        // console.log(gate_velocity)
         /* Met les attributs des particules */
         var radius = 50;
         var geometry = new THREE.BufferGeometry();
@@ -55133,13 +55182,13 @@ exports.Particles = Particles;
 /* 182 */
 /***/ (function(module, exports) {
 
-module.exports = "#define GLSLIFY 1\n\n\n\n            uniform float time;\n            uniform float uTime;\n\n            uniform int gapTwoGates;\n\n\t\t\tfloat size_fadding;\n            //Correspond au numero du chemin surlequel je suis\n\t\t\tattribute float id;\n\n            //Correspond à l'ID de la particule\n            attribute float id_particle;\n\t\t\tattribute vec3 customColor;\n\n            attribute float iteration;\n            //attribute float actual_velocity;\n            uniform int particles_number;\n\n\n            uniform mat4 ProjectionMatrix;\n\n            uniform int number_segmentation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n            // Si les liens avaient 50 cases alors on aurait 51 * 12\n            // Vu que je ne sais pas combien de cases ils ont je fait 200 * 12\n            //uniform vec2 path_general[ path_length ]; // 200 * 12 ==800\n\n            uniform vec2 path_quadratic[path_length];\n\n            uniform int gate_position[number_max_gates];\n            uniform float size[number_max_gates];\n            uniform float gate_opacity[number_max_gates];\n            uniform float wiggling_gate[number_max_gates];\n            uniform vec3 gate_colors[number_max_gates];\n            uniform float gate_velocity[number_max_gates];\n\n            uniform int temporal_delay[real_number_particles];\n\n\n            uniform int offsetArray[number_max_gates];\n\n            \n            uniform int number_segmentation_pattern_fitting;\n\n\t\t\t varying vec3 vColor;\n            varying float my_opacity;\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            float actual_velocity;\n\n            //int gate_position[10];\n\n            varying float vRotation;\n            int gate = 0;\n\n            int MOD(int a, int b){\n                //Formule du modulo : a - (b * (a \\ b))\n                int result = a / b;\n                result = b * result;\n                result = a - result;\n                return result;\n            }\n            float rand(vec2 co){\n                return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n            }\n            float distance(float x1, float y1, float x2, float y2){\n\n                float longueur = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));\n                return longueur;\n            }\n            int determine_which_gate(int index_thorique){\n\n                for(int i = 0; i < number_max_gates - 1; i++){\n                    int actual_gate_pos = gate_position[i] ;\n                    int next_gate_pos = gate_position[i+1] ;\n                    if(index_thorique <= next_gate_pos && index_thorique > actual_gate_pos){\n                        gate = i;\n                    }\n                    //Si c'est la premiere ou derniere porte\n                    if(index_thorique >= next_gate_pos && index_thorique >= actual_gate_pos &&\n                        next_gate_pos == 0 && actual_gate_pos != 0){\n                        gate = i;\n                    }\n                }\n                return gate;\n            }\n          \n            float fadeSize(float actualSize, float nextSize, int steps, int index){ \n\n                float temporarySize = ((nextSize - actualSize)/ float(steps)) * float(index);\n                return actualSize + temporarySize;\n\n            }\n            float fadeOpacity(float actualSize, float nextSize, int steps, int index){ \n\n                float temporarySize = ((nextSize - actualSize)/ float(steps)) * float(index);\n                return actualSize + temporarySize;\n\n            }\n            vec3 fadeRGB(vec3 oldColor, vec3 newColor, int steps, int index){\n\n                vec3 my_color;\n                float redStepAmount = ((newColor.x - oldColor.x) / float(steps)) * float(index);\n                float greenStepAmount = ((newColor.y - oldColor.y) / float(steps)) * float(index);\n                float blueStepAmount = ((newColor.z - oldColor.z) / float(steps)) * float(index);\n                \n                newColor.x = oldColor.x + redStepAmount;\n                newColor.y = oldColor.y + greenStepAmount;\n                newColor.z = oldColor.z + blueStepAmount;\n\n                my_color = vec3(newColor.x ,newColor.y, newColor.z);\n\n                // if (steps == 150 && index < 150){\n                //     my_color = vec3(1, 1, 0);\n                // }\n                return my_color;\n\n            }\n            float noise(vec2 p){\n                vec2 ip = floor(p);\n                vec2 u = fract(p);\n                u = u*u*(3.0-2.0*u);\n\n                float res = mix(\n                    mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),\n                    mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);\n                return res*res;\n            }\n            vec2 bezier(int t, vec2 p0,vec2 p1,vec2 p2,vec2 p3){\n\n                highp float timer = float(t);\n                //Pour avoir un timer qui va de 0 a 1\n                //highp float time = timer * 1.0/float(number_segmentation);\n                highp float time = (timer * 1.0/(float(number_segmentation) )) ;//- 0.1;\n\n                float cX = 3.0 * (p1.x - p0.x);\n                float bX = 3.0 * (p2.x - p1.x) - cX;\n                float aX = p3.x - p0.x - cX - bX;\n\n                float cY = 3.0 * (p1.y - p0.y);\n                float bY = 3.0 * (p2.y - p1.y) - cY;\n                float aY = p3.y - p0.y - cY - bY;\n\n                float x = (aX * pow(time, 3.0)) + (bX * pow(time, 2.0)) + (cX * time) + p0.x;\n                float y = (aY * pow(time, 3.0)) + (bY * pow(time, 2.0)) + (cY * time) + p0.y;\n\n                vec2 result = vec2( x,y );\n\n                return result;\n            }\n            mat4 rotation(float x) {\n              vec4 line_1 = vec4(cos(x), -sin(x), 0.0, 0.0);\n              vec4 line_2 = vec4(sin(x), cos(x), 0.0, 0.0);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n            mat4 translation(float x, float y) {\n              vec4 line_1 = vec4(1.0, 0.0, 0.0,  x);\n              vec4 line_2 = vec4(0.0, 1.0, 0.0,  y);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n            mat4 changerEchelle(float sx, float sy) {\n              vec4 line_1 = vec4(sx, 0.0, 0.0, 0.0);\n              vec4 line_2 = vec4(0.0, sy, 0.0, 0.0);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n\n\t\t\tvoid main() {\n\n\t\t\t\tvColor = customColor;\n\t\t\t\tvec3 newPosition = position;\n                vec4 mvPosition;\n\t\t\t\tfloat ANGLE = 90.0;\n\n\n                // FAISCEAUX ID\n                highp int id_faisceaux = int(id_particle);\n                actual_velocity = float(gate_velocity[0]);//velocity[0];\n                //actual_velocity = 9.0;\n                //for(int i = 0; i < 10; i++){ gate_position[i] = gate_pos[i]; }\n                \n                \n\n                //float timer =  uTime * actual_velocity;\n                float timer =  uTime;\n                highp int my_time = int(timer);\n\n                //int index = MOD(my_time, number_segmentation);\n        /*************** J'AJOUTE LE TEMPORAL DELAY ****************************/\n                my_time = my_time + temporal_delay[id_faisceaux];\n                // OBtient le nombre de segment a faire\n                int index_old = MOD(my_time , number_segmentation_pattern_fitting);\n                \n\n        /*************** POUR AVOIR LE BON INDEX AVEC LA VITESSE ************/\n                float virtual_index = float(index_old);\n                virtual_index = virtual_index; //* 2.0;// actual_velocity;\n                highp int index2 = int(virtual_index);\n\n        /******** CETTE PARTIE N'EST FAITE QUE POUR DETERMINER LA GATE ******/\n                \n                //gate = determine_which_gate(index);\n                //index = index * gate_velocity[gate];\n                //int last_index = index2 * gate_velocity[0]\n                gate = determine_which_gate(index2);\n\n\n\n                float multiplicateur = 1.0;\n                if (gate_velocity[gate] == 1.0){multiplicateur = 0.0;}\n\n                float difference = 0.0;\n                float difference_gate_before = 0.0;\n                \n\n                /* Ajoute le offset a la vitesse de ma particule */\n                float new_index = (float(index2) * gate_velocity[gate]) - float(offsetArray[gate]);\n                highp int index = int(new_index);\n\n                \n\n      \n\n\n        /************** TO DETERMINE THE PATH ******************************/\n                vec4 path;\n                vec4 path_next;\n                //Determine le numero du chemin sur lequel je suis\n                //4 car j'ai 4 variables : 0 33 66 100 pour faire ma courbe de bezier\n                highp int path_id = int(id) * (4);\n\n\n                path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);\n                path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);\n\n        /************** TO DETERMINE THE DISTANCE WITH ARRIVAL ******************************/\n                distance_with_arrival = distance(path.x, path.y, path_quadratic[path_id+3].x, path_quadratic[path_id+3].y);\n                distance_with_departure = distance(path.x, path.y, path_quadratic[path_id].x, path_quadratic[path_id].y);\n\n        /************** TO DETERMINE THE WIGGLING ******************************/\n                float random = noise(vec2( index , index )) * wiggling_gate[gate];\n                //float random = 0.0;\n\n        /************** TO DETERMINE THE ROTATION ******************************/\n                float angle = atan(path_next.y - path.y, path_next.x - path.x );\n                vRotation =  - angle;\n\n                mat4 my_matrice =  translation(path.x + random,path.y+ random);\n                vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;\n                //vec4 transitionVector = ProjectionMatrix * positionEchelle;\n                mvPosition =  modelViewMatrix * positionEchelle;\n\n\n\n\n        /******************** Determine la couleur en fonction de la porte ******************/\n                size_fadding = size[gate];\n                my_opacity = gate_opacity[gate];\n                \n                \n                \n                vColor = vec3(gate_colors[gate].x ,gate_colors[gate].y, gate_colors[gate].z);\n\n                if (gate_colors[gate] != gate_colors[gate+1]){\n                    vec3 vColorNext = vec3(gate_colors[gate+1].x ,gate_colors[gate+1].y, gate_colors[gate+1].z);\n                    vColor = fadeRGB(vColor, vColorNext, gapTwoGates , index - (gapTwoGates*gate));\n                }\n                if (size[gate] != size[gate+1]){\n                    size_fadding = fadeSize(size[gate], size[gate+1], gapTwoGates , index - (gapTwoGates*gate));\n                }\n                \n                if (gate_opacity[gate] != gate_opacity[gate+1]){\n                   my_opacity = fadeOpacity(gate_opacity[gate], gate_opacity[gate+1], gapTwoGates , index - (gapTwoGates*gate));\n                }\n                \n                // \n\n                 \n                // if(gate == 0){vColor = vec3(1, 1, 0);} // JAUNE\n                // if(gate == 1){vColor = vec3(0, 1, 0);} // VERT\n                // if(gate == 3){vColor = vec3(1, 0, 0);} // ROUGE\n                // if(gate == 4){vColor = vec3(0, 0, 0);} // NOIR\n                // if(gate == 5){vColor = vec3(1, 1, 0);} // JAUNE\n                // if(gate == 6){vColor = vec3(0, 0, 1);} // BLEU\n                // if(gate == 7){vColor = vec3(1, 0, 0);} // ROUGE\n                // if(gate == 8){vColor = vec3(1, 0, 0);} // ROUGE\n                // if(gate == 10){vColor = vec3(1, 1, 0);} // JAUNE\n                // if(gate == 10){vColor = vec3(1, 1, 0);} // JAUNE\n                // if(gate == 11){vColor = vec3(0, 0, 1);} // BLEU\n                // if(gate == 12){vColor = vec3(1, 0, 0);} // ROUGE\n                // if(gate == 13){vColor = vec3(1, 0, 0);} // ROUGE\n                // if(gate == 14){vColor = vec3(1, 1, 0);} // JAUNE\n                // if(gate == 16){vColor = vec3(1, 1, 0);} // JAUNE\n                \n    /**************** PERMET D\"ENLEVER MES PARTICULES DE L'ECRAN *************/\n                // if (index >= number_segmentation  || index <= 0){my_opacity = 0.0;}\n                index_ = float(index);\n                segmentation = float(number_segmentation);\n                \n                // if (index >= number_segmentation || index <= 0){my_opacity = 0.0;}\n                //if(gate == 2){my_opacity = 0;}\n\n                //300 Correspond donc a la size initiale\n                gl_PointSize = size_fadding * ( 1000.0 / length( mvPosition.xyz ) );\n                // gl_PointSize = size_fadding;\n                sprite_size = size_fadding;\n\n                gl_Position = projectionMatrix * mvPosition;\n\n\n\t\t\t}\n"
+module.exports = "#define GLSLIFY 1\n\n            uniform float time;\n            uniform float uTime;\n\n            uniform int gapTwoGates;\n\n\t\t\tfloat size_fadding;\n            //Correspond au numero du chemin surlequel je suis\n\t\t\tattribute float id;\n\n            //Correspond à l'ID de la particule\n            attribute float id_particle;\n\t\t\tattribute vec3 customColor;\n\n            attribute float iteration;\n            //attribute float actual_velocity;\n            uniform int particles_number;\n\n\n            uniform mat4 ProjectionMatrix;\n\n            uniform int number_segmentation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n            // Si les liens avaient 50 cases alors on aurait 51 * 12\n            // Vu que je ne sais pas combien de cases ils ont je fait 200 * 12\n            //uniform vec2 path_general[ path_length ]; // 200 * 12 ==800\n\n            uniform vec2 path_quadratic[path_length];\n\n            uniform int gate_position[number_max_gates];\n            uniform float size[number_max_gates];\n            uniform float gate_opacity[number_max_gates];\n            uniform float wiggling_gate[number_max_gates];\n            uniform vec3 gate_colors[number_max_gates];\n            uniform float gate_velocity[number_max_gates];\n\n            uniform int temporal_delay[real_number_particles];\n\n\n            uniform int offsetArray[number_max_gates];\n\n            \n            uniform int number_segmentation_pattern_fitting;\n\n\t\t\t varying vec3 vColor;\n            varying float my_opacity;\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            float actual_velocity;\n\n            //int gate_position[10];\n\n            varying float vRotation;\n            int gate = 0;\n\n            int MOD(int a, int b){\n                //Formule du modulo : a - (b * (a \\ b))\n                int result = a / b;\n                result = b * result;\n                result = a - result;\n                return result;\n            }\n            float rand(vec2 co){\n                return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n            }\n            float distance(float x1, float y1, float x2, float y2){\n\n                float longueur = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));\n                return longueur;\n            }\n            int determine_which_gate(int index_thorique){\n\n                for(int i = 0; i < number_max_gates - 1; i++){\n                    int actual_gate_pos = gate_position[i] ;\n                    int next_gate_pos = gate_position[i+1] ;\n                    if(index_thorique <= next_gate_pos && index_thorique > actual_gate_pos){\n                        gate = i;\n                    }\n                    //Si c'est la premiere ou derniere porte\n                    if(index_thorique >= next_gate_pos && index_thorique >= actual_gate_pos &&\n                        next_gate_pos == 0 && actual_gate_pos != 0){\n                        gate = i;\n                    }\n                }\n                return gate;\n            }\n          \n            float fadeSize(float actualSize, float nextSize, int steps, int index){ \n\n                float temporarySize = ((nextSize - actualSize)/ float(steps)) * float(index);\n                return actualSize + temporarySize;\n\n            }\n            float fadeOpacity(float actualSize, float nextSize, int steps, int index){ \n\n                float temporarySize = ((nextSize - actualSize)/ float(steps)) * float(index);\n                return actualSize + temporarySize;\n\n            }\n            vec3 fadeRGB(vec3 oldColor, vec3 newColor, int steps, int index){\n\n                vec3 my_color;\n                float redStepAmount = ((newColor.x - oldColor.x) / float(steps)) * float(index);\n                float greenStepAmount = ((newColor.y - oldColor.y) / float(steps)) * float(index);\n                float blueStepAmount = ((newColor.z - oldColor.z) / float(steps)) * float(index);\n                \n                newColor.x = oldColor.x + redStepAmount;\n                newColor.y = oldColor.y + greenStepAmount;\n                newColor.z = oldColor.z + blueStepAmount;\n\n                my_color = vec3(newColor.x ,newColor.y, newColor.z);\n\n                // if (steps == 150 && index < 150){\n                //     my_color = vec3(1, 1, 0);\n                // }\n                return my_color;\n\n            }\n            float noise(vec2 p){\n                vec2 ip = floor(p);\n                vec2 u = fract(p);\n                u = u*u*(3.0-2.0*u);\n\n                float res = mix(\n                    mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),\n                    mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);\n                return res*res;\n            }\n            vec2 bezier(int t, vec2 p0,vec2 p1,vec2 p2,vec2 p3){\n\n                highp float timer = float(t);\n                //Pour avoir un timer qui va de 0 a 1\n                //highp float time = timer * 1.0/float(number_segmentation);\n                highp float time = (timer * 1.0/(float(number_segmentation) )) ;//- 0.1;\n\n                float cX = 3.0 * (p1.x - p0.x);\n                float bX = 3.0 * (p2.x - p1.x) - cX;\n                float aX = p3.x - p0.x - cX - bX;\n\n                float cY = 3.0 * (p1.y - p0.y);\n                float bY = 3.0 * (p2.y - p1.y) - cY;\n                float aY = p3.y - p0.y - cY - bY;\n\n                float x = (aX * pow(time, 3.0)) + (bX * pow(time, 2.0)) + (cX * time) + p0.x;\n                float y = (aY * pow(time, 3.0)) + (bY * pow(time, 2.0)) + (cY * time) + p0.y;\n\n                vec2 result = vec2( x,y );\n\n                return result;\n            }\n            mat4 rotation(float x) {\n              vec4 line_1 = vec4(cos(x), -sin(x), 0.0, 0.0);\n              vec4 line_2 = vec4(sin(x), cos(x), 0.0, 0.0);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n            mat4 translation(float x, float y) {\n              vec4 line_1 = vec4(1.0, 0.0, 0.0,  x);\n              vec4 line_2 = vec4(0.0, 1.0, 0.0,  y);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n            mat4 changerEchelle(float sx, float sy) {\n              vec4 line_1 = vec4(sx, 0.0, 0.0, 0.0);\n              vec4 line_2 = vec4(0.0, sy, 0.0, 0.0);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n\n\t\t\tvoid main() {\n\n\t\t\t\tvColor = customColor;\n\t\t\t\tvec3 newPosition = position;\n                vec4 mvPosition;\n\t\t\t\tfloat ANGLE = 90.0;\n\n\n                // FAISCEAUX ID\n                highp int id_faisceaux = int(id_particle);\n                actual_velocity = float(gate_velocity[0]);//velocity[0];\n                //actual_velocity = 9.0;\n                //for(int i = 0; i < 10; i++){ gate_position[i] = gate_pos[i]; }\n                \n                \n\n                //float timer =  uTime * actual_velocity;\n                float timer =  uTime;\n                highp int my_time = int(timer);\n\n                //int index = MOD(my_time, number_segmentation);\n        /*************** J'AJOUTE LE TEMPORAL DELAY ****************************/\n                my_time = my_time + temporal_delay[id_faisceaux];\n                // OBtient le nombre de segment a faire\n                int index_old = MOD(my_time , number_segmentation_pattern_fitting);\n                \n\n        /*************** POUR AVOIR LE BON INDEX AVEC LA VITESSE ************/\n                float virtual_index = float(index_old);\n                virtual_index = virtual_index; //* 2.0;// actual_velocity;\n                highp int index2 = int(virtual_index);\n\n        /******** CETTE PARTIE N'EST FAITE QUE POUR DETERMINER LA GATE ******/\n                \n                //gate = determine_which_gate(index);\n                //index = index * gate_velocity[gate];\n                //int last_index = index2 * gate_velocity[0]\n                gate = determine_which_gate(index2);\n\n\n\n                float multiplicateur = 1.0;\n                if (gate_velocity[gate] == 1.0){multiplicateur = 0.0;}\n\n                float difference = 0.0;\n                float difference_gate_before = 0.0;\n                \n\n                /* Ajoute le offset a la vitesse de ma particule */\n                float new_index = (float(index2) * gate_velocity[gate]) - float(offsetArray[gate]);\n                highp int index = int(new_index);\n\n                \n\n      \n\n\n        /************** TO DETERMINE THE PATH ******************************/\n                vec4 path;\n                vec4 path_next;\n                //Determine le numero du chemin sur lequel je suis\n                //4 car j'ai 4 variables : 0 33 66 100 pour faire ma courbe de bezier\n                highp int path_id = int(id) * (4);\n\n\n                path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);\n                path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);\n\n        /************** TO DETERMINE THE DISTANCE WITH ARRIVAL ******************************/\n                distance_with_arrival = distance(path.x, path.y, path_quadratic[path_id+3].x, path_quadratic[path_id+3].y);\n                distance_with_departure = distance(path.x, path.y, path_quadratic[path_id].x, path_quadratic[path_id].y);\n\n        /************** TO DETERMINE THE WIGGLING ******************************/\n                float random = noise(vec2( index , index )) * wiggling_gate[gate];\n                //float random = 0.0;\n\n        /************** TO DETERMINE THE ROTATION ******************************/\n                float angle = atan(path_next.y - path.y, path_next.x - path.x );\n                vRotation =  - angle;\n\n                mat4 my_matrice =  translation(path.x + random,path.y+ random);\n                vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;\n                //vec4 transitionVector = ProjectionMatrix * positionEchelle;\n                mvPosition =  modelViewMatrix * positionEchelle;\n\n\n\n\n        /******************** Determine la couleur en fonction de la porte ******************/\n                size_fadding = size[gate];\n                my_opacity = gate_opacity[gate];\n                \n                \n                \n                vColor = vec3(gate_colors[gate].x ,gate_colors[gate].y, gate_colors[gate].z);\n\n                if (gate_colors[gate] != gate_colors[gate+1]){\n                    vec3 vColorNext = vec3(gate_colors[gate+1].x ,gate_colors[gate+1].y, gate_colors[gate+1].z);\n                    vColor = fadeRGB(vColor, vColorNext, gapTwoGates , index - (gapTwoGates*gate));\n                }\n                if (size[gate] != size[gate+1]){\n                    size_fadding = fadeSize(size[gate], size[gate+1], gapTwoGates , index - (gapTwoGates*gate));\n                }\n                \n                if (gate_opacity[gate] != gate_opacity[gate+1]){\n                   my_opacity = fadeOpacity(gate_opacity[gate], gate_opacity[gate+1], gapTwoGates , index - (gapTwoGates*gate));\n                }\n                \n                // \n\n                 \n                // if(gate == 0){vColor = vec3(1, 1, 0);} // JAUNE\n                // if(gate == 1){vColor = vec3(0, 1, 0);} // VERT\n                // if(gate == 3){vColor = vec3(1, 0, 0);} // ROUGE\n                // if(gate == 4){vColor = vec3(0, 0, 0);} // NOIR\n                // if(gate == 5){vColor = vec3(1, 1, 0);} // JAUNE\n                // if(gate == 6){vColor = vec3(0, 0, 1);} // BLEU\n                // if(gate == 7){vColor = vec3(1, 0, 0);} // ROUGE\n                // if(gate == 8){vColor = vec3(1, 0, 0);} // ROUGE\n                // if(gate == 10){vColor = vec3(1, 1, 0);} // JAUNE\n                // if(gate == 10){vColor = vec3(1, 1, 0);} // JAUNE\n                // if(gate == 11){vColor = vec3(0, 0, 1);} // BLEU\n                // if(gate == 12){vColor = vec3(1, 0, 0);} // ROUGE\n                // if(gate == 13){vColor = vec3(1, 0, 0);} // ROUGE\n                // if(gate == 14){vColor = vec3(1, 1, 0);} // JAUNE\n                // if(gate == 16){vColor = vec3(1, 1, 0);} // JAUNE\n                \n    /**************** PERMET D\"ENLEVER MES PARTICULES DE L'ECRAN *************/\n                // if (index >= number_segmentation  || index <= 0){my_opacity = 0.0;}\n                index_ = float(index);\n                segmentation = float(number_segmentation);\n                \n                // if (index >= number_segmentation || index <= 0){my_opacity = 0.0;}\n                //if(gate == 2){my_opacity = 0;}\n\n                //300 Correspond donc a la size initiale\n                gl_PointSize = size_fadding * ( 1000.0 / length( mvPosition.xyz ) );\n                // gl_PointSize = size_fadding;\n                sprite_size = size_fadding;\n\n                gl_Position = projectionMatrix * mvPosition;\n\n\n\t\t\t}"
 
 /***/ }),
 /* 183 */
 /***/ (function(module, exports) {
 
-module.exports = "#define GLSLIFY 1\n//uniform vec3 color;\n            uniform sampler2D texture;\n            //uniform float zoom;\n\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float my_opacity;\n            varying vec3 vColor;\n\n            varying float vRotation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n\n\n            mat2 rotation(float x) {\n              vec2 line_1 = vec2(cos(x), -sin(x));\n              vec2 line_2 = vec2(sin(x), cos(x));\n\n              return mat2(line_1,line_2); \n            }\n            mat2 translation(float x, float y) {\n              vec2 line_1 = vec2(1.0,x);\n              vec2 line_2 = vec2(1.0,y);\n\n              return mat2(line_1,line_2); \n            }\n            mat2 changerEchelle(float sx, float sy) {\n              vec2 line_1 = vec2(sx, 0.0);\n              vec2 line_2 = vec2(0.0, sy);\n\n              return mat2(line_1,line_2); \n            }\n\n\n            void main() {\n\n\n                float mid = 0.5;\n                mat2 my_matrix = /** translation(mid, mid) **/rotation(vRotation) ;\n                vec2 rotated =  my_matrix * vec2(gl_PointCoord.x - mid, gl_PointCoord.y - mid) ;\n                rotated.x = rotated.x + mid;\n                rotated.y = rotated.y + mid;\n\n\n\n\n                /*vec2 rotated = vec2(\n                        cos(vRotation) * (gl_PointCoord.x - mid) + sin(vRotation) * (gl_PointCoord.y - mid) + mid,\n                        cos(vRotation) * (gl_PointCoord.y - mid) - sin(vRotation) * (gl_PointCoord.x - mid) + mid);*/\n\n                //Texture 2D return the RGBA\n                vec4 color = vec4(1.0,1.0,1.0, 1.0);\n\n                vec2 new_coord =  my_matrix * gl_PointCoord;\n\n\n                \n                // if (rotated.x > 0.5){\n                //   color = vec4(1.0,1.0,1.0, 0.0);\n                // }\n                float opacityArr = 1.0;\n                float opacityDep = 0.0;\n                /*************************************\n                ARRIVE DE LA PARTICULE \n\n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n                \n                *************************************/\n\n                // if (index_ >= segmentation + (0.1 * segmentation)){\n                //   color = vec4(1.0,0.0,0.0, 1.0);\n                // }\n                /*if (distance_with_arrival < (sprite_size * 2.0) && index_ < segmentation + (0.1 * segmentation)){\n                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                  }\n                }\n\n                if (distance_with_arrival < (sprite_size * 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){\n                    color = vec4(0.0,1.0,0.0, 0.0);\n                  }\n                }\n                // // // color = vec4(1.0,0.0,0.0, 1.0);\n                // // //QUAND LA PARTICULE A DEPASSE LE NOEUD\n                if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                }*/\n\n                /*************************************\n                DEPART DE LA PARTICULE \n                \n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n\n                *************************************/\n                color = vec4(1.0,1.0,0.0, 1.0);\n\n                // if (distance_with_departure < (sprite_size / 2.0) && index_ < 0.0 + (0.1 * segmentation)){\n                  // if ( rotated.x - 0.5 < (distance_with_departure / sprite_size)){\n                  //   // color = vec4(1.0,0.0,0.0, 0.0);\n                  // }\n                // }\n                // if (distance_with_departure < (sprite_size / 2.0) && index_ >= 0.0 + (0.1 * segmentation)){\n                //   if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){\n                //     color = vec4(0.0,1.0,0.0, 0.0);\n                //   }\n                // }\n\n                // if (distance_with_departure >= (sprite_size / 2.0) && index_ <= 0.0 + (0.1 * segmentation)){\n                //   color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n\n                // if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                //     color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n                // color = vec4(1.0,1.0,0.0, 0.5);\n                // if ( rotated.x > 0.5){ color = vec4(1.0,1.0,1.0, 0.1); }\n                // else { color = vec4(1.0,0.0,0.0, 1.0); }\n\n                // color = vec4(1.0,1.0,0.0, 1.0);\n                //  if (index_ < sprite_size ){\n                //    if ( rotated.x <= (distance_with_departure / sprite_size)){\n                //     color = vec4(1.0,0.0,0.0, 0.1);\n                //   }\n                    \n                // }\n                float opacity = 0.0;\n                if (distance_with_arrival <= (sprite_size / 4.0)){\n                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, opacity);\n                  }\n                }\n                if (index_ >= segmentation){\n                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, opacity);\n                  }\n                }\n\n                if (distance_with_departure < (sprite_size / 4.0)){\n                  if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, opacity);\n                  }\n                }\n\n    \n       \n                // if (index_ >= segmentation){\n                //     color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n\n              \n\n                vec4 rotatedTexture = texture2D( texture,  rotated) * color;\n\n                gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;\n\n\n\n\n            }"
+module.exports = "#define GLSLIFY 1\n\n            uniform sampler2D texture;\n            //uniform float zoom;\n\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float my_opacity;\n            varying vec3 vColor;\n\n            varying float vRotation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n\n\n            mat2 rotation(float x) {\n              vec2 line_1 = vec2(cos(x), -sin(x));\n              vec2 line_2 = vec2(sin(x), cos(x));\n\n              return mat2(line_1,line_2); \n            }\n            mat2 translation(float x, float y) {\n              vec2 line_1 = vec2(1.0,x);\n              vec2 line_2 = vec2(1.0,y);\n\n              return mat2(line_1,line_2); \n            }\n            mat2 changerEchelle(float sx, float sy) {\n              vec2 line_1 = vec2(sx, 0.0);\n              vec2 line_2 = vec2(0.0, sy);\n\n              return mat2(line_1,line_2); \n            }\n\n\n            void main() {\n\n\n                float mid = 0.5;\n                mat2 my_matrix = /** translation(mid, mid) **/rotation(vRotation) ;\n                vec2 rotated =  my_matrix * vec2(gl_PointCoord.x - mid, gl_PointCoord.y - mid) ;\n                rotated.x = rotated.x + mid;\n                rotated.y = rotated.y + mid;\n\n\n\n\n                /*vec2 rotated = vec2(\n                        cos(vRotation) * (gl_PointCoord.x - mid) + sin(vRotation) * (gl_PointCoord.y - mid) + mid,\n                        cos(vRotation) * (gl_PointCoord.y - mid) - sin(vRotation) * (gl_PointCoord.x - mid) + mid);*/\n\n                //Texture 2D return the RGBA\n                vec4 color = vec4(1.0,1.0,1.0, 1.0);\n\n                vec2 new_coord =  my_matrix * gl_PointCoord;\n\n\n                \n                // if (rotated.x > 0.5){\n                //   color = vec4(1.0,1.0,1.0, 0.0);\n                // }\n                float opacityArr = 1.0;\n                float opacityDep = 0.0;\n                /*************************************\n                ARRIVE DE LA PARTICULE \n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n                \n                *************************************/\n\n                // if (index_ >= segmentation + (0.1 * segmentation)){\n                //   color = vec4(1.0,0.0,0.0, 1.0);\n                // }\n                /*if (distance_with_arrival < (sprite_size * 2.0) && index_ < segmentation + (0.1 * segmentation)){\n                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                  }\n                }\n                if (distance_with_arrival < (sprite_size * 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){\n                    color = vec4(0.0,1.0,0.0, 0.0);\n                  }\n                }\n                // // // color = vec4(1.0,0.0,0.0, 1.0);\n                // // //QUAND LA PARTICULE A DEPASSE LE NOEUD\n                if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                }*/\n\n                /*************************************\n                DEPART DE LA PARTICULE \n                \n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n                *************************************/\n                color = vec4(1.0,1.0,0.0, 1.0);\n\n                // if (distance_with_departure < (sprite_size / 2.0) && index_ < 0.0 + (0.1 * segmentation)){\n                  // if ( rotated.x - 0.5 < (distance_with_departure / sprite_size)){\n                  //   // color = vec4(1.0,0.0,0.0, 0.0);\n                  // }\n                // }\n                // if (distance_with_departure < (sprite_size / 2.0) && index_ >= 0.0 + (0.1 * segmentation)){\n                //   if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){\n                //     color = vec4(0.0,1.0,0.0, 0.0);\n                //   }\n                // }\n\n                // if (distance_with_departure >= (sprite_size / 2.0) && index_ <= 0.0 + (0.1 * segmentation)){\n                //   color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n\n                // if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                //     color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n                // color = vec4(1.0,1.0,0.0, 0.5);\n                // if ( rotated.x > 0.5){ color = vec4(1.0,1.0,1.0, 0.1); }\n                // else { color = vec4(1.0,0.0,0.0, 1.0); }\n\n                // color = vec4(1.0,1.0,0.0, 1.0);\n                //  if (index_ < sprite_size ){\n                //    if ( rotated.x <= (distance_with_departure / sprite_size)){\n                //     color = vec4(1.0,0.0,0.0, 0.1);\n                //   }\n                    \n                // }\n                float opacity = 0.0;\n                if (distance_with_arrival <= (sprite_size / 4.0)){\n                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, opacity);\n                  }\n                }\n                if (index_ >= segmentation){\n                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, opacity);\n                  }\n                }\n\n                if (distance_with_departure < (sprite_size / 4.0)){\n                  if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, opacity);\n                  }\n                }\n\n    \n       \n                // if (index_ >= segmentation){\n                //     color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n\n              \n\n                vec4 rotatedTexture = texture2D( texture,  rotated) * color;\n\n                gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;\n\n\n\n\n            }"
 
 /***/ }),
 /* 184 */
@@ -55161,6 +55210,14 @@ var LayoutManager = /** @class */ (function () {
         this.links = [];
         this.initSimulation();
     }
+    LayoutManager.prototype.mapNodes = function (nodes) {
+        this.nodes = nodes;
+        this.simulation.nodes(this.nodes);
+    };
+    LayoutManager.prototype.mapLinks = function (links) {
+        this.links = links;
+        this.simulation.force("link").links(this.links);
+    };
     LayoutManager.prototype.map_links_nodes = function (nodes, links) {
         this.nodes = nodes;
         this.links = links;
@@ -55168,13 +55225,17 @@ var LayoutManager = /** @class */ (function () {
         this.simulation.force("link").links(this.links);
     };
     LayoutManager.prototype.initSimulation = function () {
+        var that = this;
         this.simulation = d3.forceSimulation()
             .force("charge", d3.forceManyBody().strength(-200).distanceMin(50).distanceMax(500))
-            .force("collide", d3.forceCollide().strength(1).radius(function (d) { return d['r'] + 5; }).iterations(1))
-            .force("link", d3.forceLink().id(function (d) { return d['id']; }).distance(30))
-            .velocityDecay(0.85);
+            .force("link", d3.forceLink().id(function (d) { return d['id']; }).distance(200));
+        // .velocityDecay(0.85)
         // .on("tick", that.onTick.call(that));
         // .on("tick", function(){ that.onTick.call(that); });
+    };
+    LayoutManager.prototype.onTick = function () {
+        // console.log("TICK");
+        // console.log(this.nodes[0]['x'])
     };
     return LayoutManager;
 }());
@@ -123370,6 +123431,18 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
+
+/***/ }),
+/* 481 */
+/***/ (function(module, exports) {
+
+module.exports = "#define GLSLIFY 1\n\n            \n\n\t\t\t\n            //Correspond au numero du chemin surlequel je suis\n\t\t\t\n\n            //Correspond à l'ID de la particule\n            attribute float id;\n            attribute float id_particle;\n\t\t\tattribute vec3 customColor;\n\n    \n            \n            varying float sprite_size;\n            varying float segmentation;\n            varying float index_;\n\n            uniform vec2 path_quadratic[path_length];\n            uniform float size;\n            uniform float gate_opacity;\n            uniform vec3 gate_colors;\n            uniform float gate_velocity;\n            uniform int temporal_delay[real_number_particles];\n            uniform int number_segmentation_pattern_fitting;\n            uniform int number_segmentation;\n            uniform float uTime;\n\n\t\t\tvarying vec3 vColor;\n            varying float my_opacity;\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float vRotation;\n\n            int MOD(int a, int b){\n                //Formule du modulo : a - (b * (a \\ b))\n                int result = a / b;\n                result = b * result;\n                result = a - result;\n                return result;\n            }\n            vec2 bezier(int t, vec2 p0,vec2 p1,vec2 p2,vec2 p3){\n\n                highp float timer = float(t);\n                //Pour avoir un timer qui va de 0 a 1\n                //highp float time = timer * 1.0/float(number_segmentation);\n                highp float time = (timer * 1.0/(float(number_segmentation) )) ;//- 0.1;\n\n                float cX = 3.0 * (p1.x - p0.x);\n                float bX = 3.0 * (p2.x - p1.x) - cX;\n                float aX = p3.x - p0.x - cX - bX;\n\n                float cY = 3.0 * (p1.y - p0.y);\n                float bY = 3.0 * (p2.y - p1.y) - cY;\n                float aY = p3.y - p0.y - cY - bY;\n\n                float x = (aX * pow(time, 3.0)) + (bX * pow(time, 2.0)) + (cX * time) + p0.x;\n                float y = (aY * pow(time, 3.0)) + (bY * pow(time, 2.0)) + (cY * time) + p0.y;\n\n                vec2 result = vec2( x,y );\n\n                return result;\n            }\n            mat4 rotation(float x) {\n              vec4 line_1 = vec4(cos(x), -sin(x), 0.0, 0.0);\n              vec4 line_2 = vec4(sin(x), cos(x), 0.0, 0.0);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n            mat4 translation(float x, float y) {\n              vec4 line_1 = vec4(1.0, 0.0, 0.0,  x);\n              vec4 line_2 = vec4(0.0, 1.0, 0.0,  y);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n            mat4 changerEchelle(float sx, float sy) {\n              vec4 line_1 = vec4(sx, 0.0, 0.0, 0.0);\n              vec4 line_2 = vec4(0.0, sy, 0.0, 0.0);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n\n\t\t\tvoid main() {\n\n\t\t\t\tvColor = customColor;\n\t\t\t\tvec3 newPosition = position;\n                vec4 mvPosition;\n                float size_fadding;\n                // FAISCEAUX ID\n                highp int id_faisceaux = int(id_particle);\n\n                float timer =  uTime;\n                highp int my_time = int(timer);\n\n        /*************** J'AJOUTE LE TEMPORAL DELAY ****************************/\n                my_time = my_time + temporal_delay[id_faisceaux];\n                // OBtient le nombre de segment a faire\n                int index_old = MOD(my_time , number_segmentation_pattern_fitting);\n\n        /*************** POUR AVOIR LE BON INDEX AVEC LA VITESSE ************/\n                float newIndex = float(index_old);\n\n        /******** CETTE PARTIE N'EST FAITE QUE POUR DETERMINER LA GATE ******/   \n            \n                /* Ajoute le offset a la vitesse de ma particule */\n                newIndex = (float(newIndex) * gate_velocity);// - float(offsetArray[gate]);\n                highp int index = int(newIndex);\n\n        /************** TO DETERMINE THE PATH ******************************/\n                vec4 path;\n                vec4 path_next;\n                //Determine le numero du chemin sur lequel je suis\n                //4 car j'ai 4 variables : 0 33 66 100 pour faire ma courbe de bezier\n                highp int path_id = int(id) * (4);\n                path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);\n                path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);\n\n        /************** TO DETERMINE THE ROTATION ******************************/\n                float angle = atan(path_next.y - path.y, path_next.x - path.x );\n                vRotation =  - angle;\n\n                mat4 my_matrice =  translation(path.x,path.y);\n                vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;\n                //vec4 transitionVector = ProjectionMatrix * positionEchelle;\n                mvPosition =  modelViewMatrix * positionEchelle;\n\n\n\n\n        /******************** Determine la couleur en fonction de la porte ******************/\n                size_fadding = size;\n                my_opacity = gate_opacity;\n                vColor = vec3(gate_colors.x ,gate_colors.y, gate_colors.z);\n                index_ = float(index);\n                segmentation = float(number_segmentation);\n                \n                // gl_PointSize = size_fadding * ( 1000.0 / length( mvPosition.xyz ) );\n                gl_PointSize = size_fadding;\n                sprite_size = size_fadding;\n\n                gl_Position = projectionMatrix * mvPosition;\n\n\n\t\t\t}\n"
+
+/***/ }),
+/* 482 */
+/***/ (function(module, exports) {
+
+module.exports = "#define GLSLIFY 1\n//uniform vec3 color;\n            uniform sampler2D texture;\n            //uniform float zoom;\n\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float my_opacity;\n            varying vec3 vColor;\n\n            varying float vRotation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n\n\n            mat2 rotation(float x) {\n              vec2 line_1 = vec2(cos(x), -sin(x));\n              vec2 line_2 = vec2(sin(x), cos(x));\n\n              return mat2(line_1,line_2); \n            }\n            mat2 translation(float x, float y) {\n              vec2 line_1 = vec2(1.0,x);\n              vec2 line_2 = vec2(1.0,y);\n\n              return mat2(line_1,line_2); \n            }\n            mat2 changerEchelle(float sx, float sy) {\n              vec2 line_1 = vec2(sx, 0.0);\n              vec2 line_2 = vec2(0.0, sy);\n\n              return mat2(line_1,line_2); \n            }\n\n\n            void main() {\n\n\n                float mid = 0.5;\n                mat2 my_matrix = /** translation(mid, mid) **/rotation(vRotation) ;\n                vec2 rotated =  my_matrix * vec2(gl_PointCoord.x - mid, gl_PointCoord.y - mid) ;\n                rotated.x = rotated.x + mid;\n                rotated.y = rotated.y + mid;\n\n                vec4 color = vec4(1.0,1.0,1.0, 1.0);\n\n                vec2 new_coord =  my_matrix * gl_PointCoord;\n\n\n                \n                // if (rotated.x > 0.5){\n                //   color = vec4(1.0,1.0,1.0, 0.0);\n                // }\n                float opacityArr = 1.0;\n                float opacityDep = 0.0;\n               \n                color = vec4(1.0,1.0,0.0, 1.0);\n\n              \n                if (index_ >= segmentation){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                }\n\n              \n\n                vec4 rotatedTexture = texture2D( texture,  rotated) * color;\n\n                gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;\n\n\n\n\n            }"
 
 /***/ })
 /******/ ]);

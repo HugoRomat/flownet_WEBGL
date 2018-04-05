@@ -56,13 +56,14 @@ export class Nodes{
     updateNodes(){
         // console.log("UPDATE NODES", this.webglNodes)
         var self = this;
-        //console.log(self.nodes[0])
+        // console.log("GOOOO", self.nodes[0])
         for(var i=0 ; i<this.nodes.length ; i++)
         {   
             // console.log(this.nodes[i])
         //     if (this.nodes[i].px != null){this.nodes[i].x = this.nodes[i].px;}
         //     if (this.nodes[i].py != null){this.nodes[i].y = this.nodes[i].py;}
         //     if (this.nodes[i].pz != null){this.nodes[i].z = this.nodes[i].pz;}
+
             this.webglNodes[i].position.set(this.nodes[i].x,this.nodes[i].y, 3);
             this.webglNodes[i].scale.set(this.nodes[i].scale,this.nodes[i].scale, 3)
             this.webglNodes[i].material.opacity = this.nodes[i].opacity; 
@@ -104,7 +105,7 @@ export class Nodes{
                 opacity: this.nodes[i].opacity
             });
             // instantiate a loader
-            var segments = 30 ;
+            var segments = 20 ;
             circleGeometry = new THREE.CircleGeometry(1, segments );
             
             circle = new THREE.Mesh( circleGeometry, material );
