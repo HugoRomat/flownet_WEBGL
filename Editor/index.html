@@ -43,7 +43,7 @@ var graph = {
     ]
 }
 var flownetGraph = flownet.graph('#view')
-   <!--  .nodes(graph.nodes)
+   .nodes(graph.nodes)
     .links(graph.links)
 
     .link_properties('points', function(d,i){ return d.points})
@@ -64,50 +64,14 @@ var flownetGraph = flownet.graph('#view')
     .node_properties('label_font', 'arial')
     .node_properties('label_color', 'black')
         
-    .particles("color", "black")
-        .particles("size", 10)
-    .particles("speed", 3*12)
-        .particles("pattern", function(d, i) {return [0, 0.2, 0.4, 0.6]; })
-       
-        .particles("frequency", 1)
-
-         .particles("color", "red", 0.5) -->
-
-          .nodes(graph.nodes)
-        .links(graph.links)
-      
-        .tracks("count", 1 )
-
-      
-        .link_properties("curvature", -5)
-        .link_properties("color", "#D3D3D3")
-        .link_properties("size", 5)
-       
-        .node_properties("color", "#000000")
-        .node_properties("size", 8)
-
-
-        .tracks("opacity", 0.2)
-        .particles("color", "black")
-        .particles("size", 10)
-
-
-        .particles("speed", 3*12)
-        .particles("pattern", function(d, i) {return [0, 0.2, 0.4, 0.6]; })
-       
-        .particles("frequency", 1)
-       
-         .particles("color", "red", 0.5)
-         .force_layout("2000")
-         .start()
 
     
-   <!-- .particles("frequency", 1)
+  .particles("frequency", 1)
     .particles('pattern', function(d,i){ return d.patternParticule})
     .particles('speed', function(d,i){ return d.speedParticule})
     .particles('color', function(d,i){ return d.colorParticule})
     .particles('size', function(d,i){ return d.widthParticule})
-    .particles('height', function(d,i){ return d.heightParticule}) -->
+    .particles('height', function(d,i){ return d.heightParticule}) 
 
     
     
