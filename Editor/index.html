@@ -27,46 +27,91 @@ var graph = {
             points:[{x:100,y:300},{x:450-100,y:50+300},{x:600,y:300}], 
             interpolation:'cardinal', 
             colorLink:'lightGrey',
-            sizeLink:12, 
+            sizeLink:20, 
             colorParticule:'black', 
             widthParticule:20, 
             heightParticule:3,
             patternParticule:[10,2,10], 
             patternType:'absolute', 
             frequencyParticule:1, 
-            speedParticule:150
+            speedParticule:300,
+            source:0,
+            target:1
         }
 
        
     ]
 }
-var flownetGraph = flownet.graph('test', document.getElementById('view'))
-    .nodes(graph.nodes)
+var flownetGraph = flownet.graph('#view')
+   <!--  .nodes(graph.nodes)
     .links(graph.links)
-    .nodes_properties('x', function(d, i){  return d.x})
-    .nodes_properties('y', function(d, i){  return d.y})
-    .nodes_properties('color', function(d, i){ return d.color})
-    .nodes_properties('size', function(d, i){  return d.size})
 
-    .nodes_properties('label_text', function(d, i){return 'id:'+d.id})
-    .nodes_properties('label_size', 16)
-    .nodes_properties('label_x', function(d, i){  return d.x+10})
-    .nodes_properties('label_y', function(d, i){  return d.y-10})
-    .nodes_properties('label_font', 'arial')
-    .nodes_properties('label_color', 'black')
-    .particule_properties('color', function(d,i){ return d.colorParticule})
-    .particule_properties('width', function(d,i){ return d.widthParticule})
-    .particule_properties('height', function(d,i){ return d.heightParticule})
+    .link_properties('points', function(d,i){ return d.points})
+    .link_properties('interpolation', function(d,i){ return d.interpolation})
+    .link_properties('color', function(d,i){ return d.colorLink})
+    .link_properties('size', function(d,i){ return d.sizeLink})
     
-    .particule_properties('pattern', function(d,i){ return d.patternParticule})
-    .particule_properties('speed', function(d,i){ return d.speedParticule})
-    <!-- .particule_properties('spacing',function(d,i){ return 14}) -->
-    .particule_properties('frequency',function(d,i){ return d.frequencyParticule})
+
+    .node_properties('x', function(d, i){  return d.x})
+    .node_properties('y', function(d, i){  return d.y})
+    .node_properties('color', function(d, i){ return d.color})
+    .node_properties('size', function(d, i){  return d.size})
+
+    .node_properties('label_text', function(d, i){return 'id:'+d.id})
+    .node_properties('label_size', 16)
+    .node_properties('label_x', function(d, i){  return d.x+10})
+    .node_properties('label_y', function(d, i){  return d.y-10})
+    .node_properties('label_font', 'arial')
+    .node_properties('label_color', 'black')
+        
+    .particles("color", "black")
+        .particles("size", 10)
+    .particles("speed", 3*12)
+        .particles("pattern", function(d, i) {return [0, 0.2, 0.4, 0.6]; })
+       
+        .particles("frequency", 1)
+
+         .particles("color", "red", 0.5) -->
+
+          .nodes(graph.nodes)
+        .links(graph.links)
+      
+        .tracks("count", 1 )
+
+      
+        .link_properties("curvature", -5)
+        .link_properties("color", "#D3D3D3")
+        .link_properties("size", 5)
+       
+        .node_properties("color", "#000000")
+        .node_properties("size", 8)
+
+
+        .tracks("opacity", 0.2)
+        .particles("color", "black")
+        .particles("size", 10)
+
+
+        .particles("speed", 3*12)
+        .particles("pattern", function(d, i) {return [0, 0.2, 0.4, 0.6]; })
+       
+        .particles("frequency", 1)
+       
+         .particles("color", "red", 0.5)
+         .force_layout("2000")
+         .start()
+
     
-    .links_properties('points', function(d,i){ return d.points})
-    .links_properties('interpolation', function(d,i){ return d.interpolation})
-    .links_properties('color', function(d,i){ return d.colorLink})
-    .links_properties('size', function(d,i){ return d.sizeLink})
+   <!-- .particles("frequency", 1)
+    .particles('pattern', function(d,i){ return d.patternParticule})
+    .particles('speed', function(d,i){ return d.speedParticule})
+    .particles('color', function(d,i){ return d.colorParticule})
+    .particles('size', function(d,i){ return d.widthParticule})
+    .particles('height', function(d,i){ return d.heightParticule}) -->
+
+    
+    
+   
     .start()
 
 
