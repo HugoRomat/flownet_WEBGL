@@ -454,12 +454,21 @@ export class Mapping{
                     // console.log("VALUE", value)
                 }
                 return this;
+
+            // case "texture":
+            //     for(var i=0 ; i<particles.length ; i++){
+            //         if ( typeof(arguments[1]) == 'string'){value = arguments[1];}
+            //         else{value = callback(particles[i], i);}
+            //         particles[i].texture = value;
+            //     }
+            //     return this;
             case "image":
                 //console.log("CHANGE VALUE")
                 for(var i=0 ; i<nodes.length ; i++){
                     if (typeof(arguments[1]) == 'string'){value = arguments[1];}
                     else{value = callback(nodes[i], i);}
-                    nodes[i].load_texture_nodes(i, value);
+                    console.log(value)
+                    nodes[i].texture = value;
                 }
                 return this;
         }

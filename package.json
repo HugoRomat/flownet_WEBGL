@@ -4,8 +4,6 @@
   "description": "",
   "main": "dist/main.entry.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha --require test/setup.ts --compilers ts:ts-node/register --recursive",
-    "Test": "./node_modules/.bin/mocha --compilers ts:ts-node/register test/**/*.ts",
     "tsc": "tsc",
     "php": "php -S 0.0.0.0:8081 -t .",
     "start": "npm run build",
@@ -17,7 +15,6 @@
   },
   "dependencies": {
     "@types/three": "^0.89.0",
-    "buffertools": "^2.1.6",
     "d3": "^4.12.0",
     "d3-color": "^1.0.3",
     "glslify-loader": "^1.0.2",

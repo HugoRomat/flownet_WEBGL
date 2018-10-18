@@ -54280,6 +54280,13 @@ var Mapping = /** @class */ (function () {
                     // console.log("VALUE", value)
                 }
                 return this;
+            // case "texture":
+            //     for(var i=0 ; i<particles.length ; i++){
+            //         if ( typeof(arguments[1]) == 'string'){value = arguments[1];}
+            //         else{value = callback(particles[i], i);}
+            //         particles[i].texture = value;
+            //     }
+            //     return this;
             case "image":
                 //console.log("CHANGE VALUE")
                 for (var i = 0; i < nodes.length; i++) {
@@ -54289,7 +54296,8 @@ var Mapping = /** @class */ (function () {
                     else {
                         value = callback(nodes[i], i);
                     }
-                    nodes[i].load_texture_nodes(i, value);
+                    console.log(value);
+                    nodes[i].texture = value;
                 }
                 return this;
         }
@@ -54350,6 +54358,22 @@ var Nodes = /** @class */ (function () {
             }
         }
     };
+    Nodes.prototype.load_texture_nodes = function (index_node, path) {
+        //console.log(index_node)
+        var self = this;
+        var loader = new THREE.TextureLoader();
+        loader.load(
+        // resource URL
+        path, function (texture) {
+            var material = new THREE.MeshBasicMaterial({ map: texture });
+            //console.log("CA PASSE ICI", index_node)
+            //console.log(self.webGL_nodes[index_node])
+            self.webglNodes[index_node].material.map = material.map;
+            //self.webGL_nodes[index_node].material.transparent = true;
+            //self.webGL_nodes[index_node].material.opacity = 0;
+            self.webglNodes[index_node].material.needsUpdate = true;
+        });
+    };
     Nodes.prototype.updateNodes = function () {
         // console.log("UPDATE NODES", this.webglNodes)
         var self = this;
@@ -54359,6 +54383,9 @@ var Nodes = /** @class */ (function () {
             //     if (this.nodes[i].px != null){this.nodes[i].x = this.nodes[i].px;}
             //     if (this.nodes[i].py != null){this.nodes[i].y = this.nodes[i].py;}
             //     if (this.nodes[i].pz != null){this.nodes[i].z = this.nodes[i].pz;}
+            // console.log(this.nodes[i])
+            if (this.nodes[i]['texture'] != undefined)
+                this.load_texture_nodes(i, this.nodes[i]['texture']);
             this.webglNodes[i].position.set(this.nodes[i].x, this.nodes[i].y, 3);
             this.webglNodes[i].scale.set(this.nodes[i].scale, this.nodes[i].scale, 3);
             this.webglNodes[i].material.opacity = this.nodes[i].opacity;
