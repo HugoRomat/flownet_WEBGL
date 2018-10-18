@@ -37,10 +37,14 @@ export class LayoutManager{
             .force("link", d3.forceLink().id(function(d) { return d['id']; }).distance(200))
             // .velocityDecay(0.85)
             // .on("tick", that.onTick.call(that));
-            // .on("tick", function(){ that.onTick.call(that); });
+            .on("tick", function(){ that.onTick.call(that); });
+        this.simulation.stop();
+    }
+    restartLayout(){
+        this.simulation.restart(1);
     }
     onTick(){
-        // console.log("TICK");
+        console.log("TICK");
         // console.log(this.nodes[0]['x'])
     }
     

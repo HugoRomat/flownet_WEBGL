@@ -97,18 +97,16 @@ export class Mapping{
     }
     start(time) {
         var that = this;
-        if (time == undefined) time = 0;
-
+        if (time != undefined) {
+            this.layoutManager.restartLayout();
+        }
+        else time = 0;
+        
         setTimeout(function(){ 
             that.nodesObject.createLabel();
             that.tracksObject.updatetracks();
-            // if (time != undefined) this.sparkiz.launch_network(time);
-            // if (time == undefined) this.sparkiz.launch_network_without_computation();
-            // //this.viz.animate();
-            // this.viz.with_absolute_time();
             that.nodesObject.updateNodes();
             that.linksObject.updateTube();
-
             that.particlesObject.fit_all_particles_to_frequence_temporal_distrib();
             that.particlesObject.updateParticles();
             that.visualisation.animate();
@@ -141,14 +139,20 @@ export class Mapping{
         switch(visual_attr) {
             
             case "color":
-
                 for(var i=0 ; i<particles.length ; i++){
-                    if ( typeof(arguments[1]) == 'string'){value = new THREE.Color(arguments[1]);}
-                    else{var a = callback(particles[i], i);
-                        value = new THREE.Color(a);}
+                    if ( typeof(arguments[1]) == 'string'){
+                        arguments[1].replace("#", "0x");
+                        value = new THREE.Color(arguments[1]);
+                    }
+                    else{
+                        var a = callback(particles[i], i);
+                        a.replace("#", "0x");
+                        value = new THREE.Color(a);
+                    }
                     if (gate == undefined){gate_position = 0} 
                     if (gate != undefined){gate_position = gate} 
                     for(var k = gate_position ; k< maxGates ; k++) { 
+                        // console.log(arguments[1], value)
                         particles[i].gate_colors[k] = value; 
                     }
                 }
@@ -181,7 +185,7 @@ export class Mapping{
                     if (gate == undefined){ gate_position = 0 } 
                     if (gate != undefined){ gate_position = gate } 
                     //for(var k=0 ; k<this.sparkiz.number_max_gates ; k++) this.sparkiz.links[i].gate_velocity[k] = value + 1;
-                    for(var k = gate_position ; k< maxGates ; k++) {particles[i].gate_velocity[k] = value; }
+                    for(var k = gate_position ; k< maxGates ; k++) {particles[i].gate_velocity[k] = value/12; }
                 }
                 return this;
             case "wiggling":

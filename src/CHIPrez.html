@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>particles</title>
+
+  <script src="../static/lib/d3.v4.js"></script>
+  <script src="../dist/main.entry.js"></script>
+    <style>
+        div{
+            /* float: left;
+            margin-right: 5px; */
+        }
+      html { width: 100%; height:100%; /*overflow:hidden;*/ }
+      body{
+        width: 100%;
+        height:100%;
+        font-family: Lato;
+        margin: 0;
+        padding: 0;
+          /*background-color: black;*/
+      }
+
+
+    </style>
+
+
+</head>
+<body>
+
+
+	<div id="visFrame"></div>
+
+	<script>
+
+        // console.log(yo)
+    var color_scale_delay_dep = d3.scaleLinear()
+                   .domain([0, 23])
+                   .range([2,10])
+
+    var freq = d3.scaleLinear()
+                   .domain([0, 28])
+                   .range([0.1,0.8])
+                //    .interpolate(d3.interpolateHcl);
+
+    // var proj = d3.geo.miller()
+    //                 .scale(328)
+    //                 .translate([-50,-10]);
+
+    d3.json("../static/data/starWars.json", function(json) {
+
+              json = {
+            "nodes":[
+              {"name":"bonjour", "id":101, "X": -300,"Y":-50},
+              {"name":"hugo", "id":102, "X": 200,"Y":-50},
+            ],
+            "links":[
+              {"source":101, "id":0, "target":102, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "textu": "images/circle_texture.png"}
+              
+            ]}
+            var n = 50;
+            var m = 50;
+           
+
+            var app = flownet.graph("#visFrame", 800, 800, "#E4E4E4", 1)
+                  // .nodes(json.nodes)
+                  // .links(json.links)
+                  .nodes(json.nodes)
+                  .links(json.links)
+                  // .layout("linkDistance", 500)
+                  // .create_layout()
+                  .tracks("count", 1 )
+
+                  // .create_WEBGL_element()
+                  // .zoom(true)
+                  // .controls(false)
+
+                  .link_properties("curvature", 50000)
+                  .link_properties("color", "#C1C1C1")
+                  .link_properties("size", 8)
+                  //  .link_properties("opacity", 0.2) //function(d, i) {return color_scale_delay_dep(d.value); })
+                  // //
+                  .node_properties("color", "#000000")
+                  .node_properties("size", 10)
+                  // .node_properties("x", function(d, i) {return 50; })
+                  // .node_properties("y", function(d, i) {return (100 * i);  })
+                  //.node_properties("image", function(d, i) {return "images/" + d.label + ".jpg"; })
+                  .node_properties("x", function(d, i) {return d.X; })
+                  .node_properties("y", function(d, i) {return d.Y;  })
+
+                  .tracks("opacity", 0.2)
+                  .particles("color", "black")
+                  .particles("size", 10)
+
+
+                  .particles("speed", 36)
+                  .particles("pattern", function(d, i) {return [0]; })
+                  // .particles("track", 0)
+                  .particles("frequency", 1.2)
+                  // .particles("frequency", function(d, i) {return freq(d.value); })
+                  // .particles("speed", 10, 0.0)
+                  // .particles("speed", 3, 0.2)
+                  // .particles("speed", 5, 0.5)
+                  // .particles("color", "red", 0.5)
+                  // .particles("size", 20, 0.7)
+                  // .particles("size", 100, 0.5)
+                  // .particles("size", 4, 0.5)
+                  .particles("speed", 72, 0.5)
+                  // .particles("texture", "images/plane.png")
+                  // .particles("speed", 3, 0.8)
+                  // .start_particle_delay(200000)
+                  .start()
+
+            });
+
+
+      function randomChoose (s, k) { // returns a random k element subset of s
+  var a = [], i = -1, j;
+  while (++i < k) {
+    j = Math.floor(Math.random() * s.length);
+    a.push(s.splice(j, 1)[0]);
+  };
+  return a;
+}
+
+function unorderedPairs (s) { // returns the list of all unordered pairs from s
+  var i = -1, a = [], j;
+  while (++i < s.length) {
+    j = i;
+    while (++j < s.length) a.push([s[i],s[j]])
+  };
+  return a;
+}
+
+	</script>
+
+
+</body>
+</html>

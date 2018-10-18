@@ -57,15 +57,15 @@
                 float opacityArr = 1.0;
                 float opacityDep = 0.0;
                
-                color = vec4(1.0,1.0,0.0, 1.0);
+                color = vec4(1.0,1.0,1.0, 1.0);
 
               
                 if (index_ >= segmentation){
-                    color = vec4(1.0,0.0,0.0, 0.0);
+                    color = vec4(1.0,1.0,0.0, 0.0);
                 }
 
               
-
+                // vColor = vec3(0.27, 0.45, 0.7);
                 vec4 rotatedTexture = texture2D( texture,  rotated) * color;
 
                 gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;

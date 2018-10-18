@@ -137,6 +137,7 @@
                 size_fadding = size;
                 my_opacity = gate_opacity;
                 vColor = vec3(gate_colors.x ,gate_colors.y, gate_colors.z);
+                // vColor = vec3(0.27, 0.45, 0.7);
                 index_ = float(index);
                 segmentation = float(number_segmentation);
                 

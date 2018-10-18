@@ -88,8 +88,8 @@
               // {"source":8, "target":9, "freq":0.3, "sp" : 1, "temp": [0]},
               // {"source":10, "target":11, "freq":0.6, "sp" : 1, "temp": [0]}
             ]}
-            var n = 1000;
-            var m = 1000;
+            var n = 50;
+            var m = 50;
             var nodes = d3.range(n).map(function (a, i) { return { id: i, name:i} });
                 list  = randomChoose(unorderedPairs(d3.range(n)), m),
                 links = list.map(function (a, i) { return {source: a[0], target: a[1], id: i} });
@@ -130,7 +130,7 @@
                   .particles("size", 10)
 
 
-                  .particles("speed", 3)
+                  .particles("speed", 36)
                   .particles("pattern", function(d, i) {return [0, 0.2, 0.4, 0.6, 0.4, 0.6]; })
                   .particles("track", [0, 0, 1, 1, 2, 2])
                   .particles("frequency", 1)

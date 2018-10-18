@@ -48,6 +48,7 @@ export class Links{
 
             var distance = this.utilities.get_distance(x1, y1, x2, y2);
             this.links[i].number_segmentation = Math.round(distance) * 5;
+            // console.log(this.links[i].number_segmentation)
 
             // console.log(distance)
 

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>particles</title>
+
+  <script src="../static/lib/d3.v4.js"></script>
+  <script src="../dist/main.entry.js"></script>
+    <style>
+        div{
+            /* float: left;
+            margin-right: 5px; */
+        }
+      html { width: 100%; height:100%; /*overflow:hidden;*/ }
+      body{
+        width: 100%;
+        height:100%;
+        font-family: Lato;
+        margin: 0;
+        padding: 0;
+          /*background-color: black;*/
+      }
+
+
+    </style>
+
+
+</head>
+<body>
+
+
+	<div id="visFrame"></div>
+
+	<script>
+
+        // console.log(yo)
+    var color_scale_delay_dep = d3.scaleLinear()
+                   .domain([0, 23])
+                   .range([2,10])
+
+    var freq = d3.scaleLinear()
+                   .domain([0, 28])
+                   .range([0.1,0.8])
+                //    .interpolate(d3.interpolateHcl);
+    function guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000);
+        }
+        return s4() + s4() + '' + s4() + '' + s4() + '' +s4() + '' + s4() + s4() + s4();
+    }
+	var json = {
+	"nodes":[
+	  // {"id":100, "X": -200,"Y":100},
+	  // {"id":101, "X": -200,"Y":50},
+	  // {"id":102, "X": -200,"Y":0},
+	  // {"id":103, "X": -200,"Y":-50},
+	  // {"id":104, "X": -200,"Y":-100},
+	  // {"id":105, "X": -200,"Y":-150},
+
+	  // {"id":106, "X": -350,"Y":100},
+	  // {"id":107, "X": -350,"Y":50},
+	  // {"id":108, "X": -350,"Y":0},
+	  // {"id":109, "X": -350,"Y":-50},
+	  // {"id":110, "X": -350,"Y":-100},
+	  // {"id":111, "X": -350,"Y":-150}
+
+	  
+	],
+	"links":[
+	  // {"source":100, "id":0, "target":102, "freq":2, "sp":4}
+	 
+	]}
+// 11
+// 21
+
+// 12
+// 22
+
+// 13
+// 23
+	var offset = 0;
+	for (var i = 0; i < 6; i++){
+		if (i%2 == 0) offset+= 100;
+		for (var j = 0; j < 6; j++){
+			json.nodes.push({"id": i+""+j, "X": ((i * 150) - offset) - 300,"Y":j * 40})
+		}
+	}
+
+
+	var id = 0;
+	var sp = [12,18,30,51,88,150];
+	var j = 0 ;
+	for (var i = -1; i < 5; i++){
+		json.links.push({"source":0+''+(i+1), "id":id, "target":1+''+(i+1), "sp": sp[j], 'tp':[0], 'fr':1.2})
+		id ++;
+		j++;
+	}
+	var fr = [2.3, 1.5, 1.0, 0.7, 0.5, 0.3];
+	var j = 0 ;
+	for (var i = -1; i < 5; i++){
+		json.links.push({"source":2+''+(i+1), "id":id, "target":3+''+(i+1), "sp": 24, 'tp':[0], 'fr':fr[j]})
+		id ++;
+		j++;
+	}
+	
+	// json.links.push({"source":4+''+0, "id":id, "target":5+''+0, "sp":24, 'tp':[0, 0.5, 0.75], 'fr':0.3})
+	// // id++;
+	// json.links.push({"source":4+''+1, "id":id, "target":5+''+1, "sp":100, 'tp':[0,0.25, 0.5, 0.75, 1.0], 'fr':0.3})
+	var temporal = [[0.0],[0.0, 0.25], [0.0, 0.25, 0.5],[0.0, 0.5, 0.75, 1.0], [0, 0.25,0.5,0.75], [0.0, 0.25,0.5,0.75, 1.0]]
+	// var temporal = [[0.25,0.5, 0.75], [0.0, 0.25, 0.5]]
+	var j = 0 ;
+	for (var i = -1; i < 5; i++){
+		// console.log()
+		json.links.push({"source":4+''+(i+1), "id":id, "target":5+''+(i+1), "sp":20, 'tp':temporal[j], 'fr':0.3})
+		// console.log(temporal[j])
+		id ++;
+		j++;
+	}
+
+	var n = 10;
+	var m = 10;
+	
+	    var width = window.innerWidth;
+	    var height = window.innerHeight
+
+	    console.log(json)
+	var app = flownet.graph("#visFrame", width, height, "white", 1)
+	      // .nodes(json.nodes)
+	      // .links(json.links)
+	      .nodes(json.nodes)
+	      .links(json.links)
+	      // .layout("linkDistance", 500)
+	      // .create_layout()
+	      .tracks("count", 1 )
+
+	      // .create_WEBGL_element()
+	      // .zoom(true)
+	      // .controls(false)
+
+	      .link_properties("curvature", 50000)
+	      .link_properties("color", "#D3D3D3")
+	      .link_properties("size", 5)
+	      //  .link_properties("opacity", 0.2) //function(d, i) {return color_scale_delay_dep(d.value); })
+	      // //
+	      .node_properties("color", "#000000")
+	      .node_properties("size", 8)
+	      // .node_properties("x", function(d, i) {return 50; })
+	      // .node_properties("y", function(d, i) {return (100 * i);  })
+	      //.node_properties("image", function(d, i) {return "images/" + d.label + ".jpg"; })
+	      .node_properties("x", function(d, i) {return d.X; })
+	      .node_properties("y", function(d, i) {return d.Y;  })
+
+	      .tracks("opacity", 0.2)
+	      .particles("color", "#4575b4")
+	      .particles("size", 10)
+
+
+	      .particles("speed",  function(d, i) {return d.sp; })
+	      .particles("speed",  10, 0.5)
+	      .particles("pattern", function(d, i) {return d.tp; })
+	      // .particles("track", [0])
+	      .particles("frequency", function(d, i) {return d.fr; })
+	      // .particles("frequency", function(d, i) {return freq(d.value); })
+	      // .particles("speed", 35, 0.5)
+	      // .particles("speed", 3, 0.2)
+	      // .particles("speed", 36, 0.5)
+	      // .particles("color", "red", 0.5)
+	      // .particles("size", 20, 0.7)
+	      // .particles("size", 100, 0.5)
+	      // .particles("size", 4, 0.5)
+	      // .particles("speed", 1, 0.5)
+	      // .particles("texture", "images/plane.png")
+	      // .particles("speed", 3, 0.8)
+	      // .start_particle_delay(200000)
+	      .start()
+
+      
+
+	</script>
+
+
+</body>
+</html>

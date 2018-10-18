@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>particles</title>
+
+  <script src="../static/lib/d3.v4.js"></script>
+  <script src="../dist/main.entry.js"></script>
+    <style>
+        div{
+            /* float: left;
+            margin-right: 5px; */
+        }
+      html { width: 100%; height:100%; /*overflow:hidden;*/ }
+      body{
+        width: 100%;
+        height:100%;
+        font-family: Lato;
+        margin: 0;
+        padding: 0;
+          /*background-color: black;*/
+      }
+
+
+    </style>
+
+
+</head>
+<body>
+
+
+	<div id="visFrame"></div>
+
+	<script>
+
+        // console.log(yo)
+    var color_scale_delay_dep = d3.scaleLinear()
+                   .domain([0, 23])
+                   .range([2,10])
+
+    var freq = d3.scaleLinear()
+                   .domain([0, 28])
+                   .range([0.1,0.8])
+                //    .interpolate(d3.interpolateHcl);
+
+    // var proj = d3.geo.miller()
+    //                 .scale(328)
+    //                 .translate([-50,-10]);
+
+    d3.json("../static/data/starWars.json", function(json) {
+
+              json = {
+            "nodes":[
+              {"name":"bonjour", "id":100, "X": -150,"Y":-150},
+              {"name":"hugo", "id":101, "X": 150,"Y":-100},
+              {"name":"yann", "id":102, "X": -100,"Y":0}
+              // {"name":"edge_base", "id":102, "X": 600,"Y":0},
+              // {"name":"edge_base", "id":103, "X": -600,"Y":0},
+              // {"name":"edge_base", "id":104, "X": 600,"Y":0},
+              // {"name":"edge_base", "id":105, "X": -600,"Y":0}
+              
+              // {"name":"edge_base", "id":103, "X": -600,"Y":50},
+              // {"name":"edge_base", "id":104, "X": -000,"Y":50}
+              
+              // {"name":"edge_base", "id":0, "X": -600,"Y":150},
+              // {"name":"edge_base", "id":1, "X": -400,"Y":150},
+              // {"name":"edge_base", "id":0, "X": -600,"Y":200},
+              // {"name":"edge_base", "id":1, "X": -400,"Y":200},
+        
+              // {"name":"edge_base", "id":0, "X": -600,"Y":250},
+              // {"name":"edge_base", "id":1, "X": -400,"Y":250},
+              // {"name":"edge_base", "id":0, "X": -600,"Y":300},
+              // {"name":"edge_base", "id":1, "X": -400,"Y":300}
+            ],
+            "links":[
+              {"source":101, "id":0, "target":100, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "textu": "images/circle_texture.png"},
+              {"source":101, "id":1, "target":102, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "textu": "images/circle_texture.png"}
+              // {"source":101, "id":0, "target":100, "freq":2, "sp":4, "temp": [0], "width": 10, "colour": "black", "textu": "images/circle_texture.png"}
+              // {"source":101, "target":102, "freq":2, "sp":4, "temp": [0], "width": 10, "couleur": "black", "textu": "images/circle_texture.png"},
+              // {"source":101, "target":103, "freq":2, "sp":4, "temp": [0], "width": 10, "couleur": "black", "textu": "images/circle_texture.png"},
+              // {"source":101, "target":104, "freq":2, "sp":4, "temp": [0], "width": 10, "couleur": "black", "textu": "images/circle_texture.png"},
+              // {"source":101, "target":105, "freq":2, "sp":4, "temp": [0], "width": 10, "couleur": "black", "textu": "images/circle_texture.png"}
+              // {"source":103, "target":104, "freq":5, "sp":10, "temp": [0], "width": 10, "couleur": "black", "textu": "images/rectangle_texture.png"}
+              
+              // {"source":4, "target":5, "freq":0.2, "sp" : 1, "temp": [0, 0.2]},
+              // {"source":6, "target":7, "freq":0.2, "sp" : 4, "temp": [0, 0.2]},
+              
+              // {"source":8, "target":9, "freq":0.3, "sp" : 1, "temp": [0]},
+              // {"source":10, "target":11, "freq":0.6, "sp" : 1, "temp": [0]}
+            ]}
+            var n = 20;
+            var m = 20;
+            var nodes = d3.range(n).map(Object),
+                list = randomChoose(unorderedPairs(d3.range(n)), m),
+                links = list.map(function(a){return {source:a[0], target:a[1]}});
+
+              console.log(nodes, links)
+                var width = window.innerWidth;
+                var height = window.innerHeight
+            var app = flownet.force("#visFrame", width, height, "grey",1)
+                  .nodes(json.nodes)
+                  .links(json.links)
+                  // .layout("linkDistance", 500)
+                  .create_layout()
+                  .tracks("count", 1 )
+                  
+                  .create_WEBGL_element()
+                  // .zoom(true)
+                  // .controls(false)
+        
+                  .link_properties("curvature", -5)
+                  // .link_properties("color", "#b5b5b5")
+                  .link_properties("size", 2)
+                  //  .link_properties("opacity", 0.2) //function(d, i) {return color_scale_delay_dep(d.value); })
+                  // //
+                  .node_properties("color", "#000000")
+                  // .node_properties("size", 100)
+                  // .node_properties("label", function(d, i) {return d.name; })
+                  // .node_properties("label", function(d, i) {return d.city; })
+                  // .node_properties("label", function(d, i) {return d.label; })
+                  .node_properties("size", 0.1)
+                  // .node_properties("x", function(d, i) {return 50; })
+                  // .node_properties("y", function(d, i) {return (100 * i);  })
+                  //.node_properties("image", function(d, i) {return "images/" + d.label + ".jpg"; })
+                  .node_properties("x", function(d, i) {return d.X; })
+                  .node_properties("y", function(d, i) {return d.Y;  })
+                  // var coordinates = my_projection([nodes[i].attr('long'),nodes[i].attr('lat')]);
+                  // // .particles("wiggling",5)
+        
+                  // .node_properties("x", function(d, i) {console.log(proj([d.lon,d.lat])[0]);return proj([d.lon,d.lat])[0]; })
+                  // .node_properties("y", function(d, i) {console.log(proj([d.lon,d.lat])[1]);return - proj([d.lon,d.lat])[1];  })
+        
+                  // .link_properties("color", "steelblue")
+                  // .link_properties("size", 10)
+                  // .link_properties("opacity", 0.2)
+                  // .link_properties("size", 3)
+        
+        
+                  .tracks("opacity", 0.4)
+                  // .tracks("color", "#000000")
+        
+                  // // .node_properties("size", 10)
+                  // // .node_properties("color", "#d8f0ff")
+                  // //.node_properties("image", function(d, i) {return "images/particle3.png"; })
+        
+        
+                  .node_properties("label", function(d, i) {return d.name; })
+                  .node_properties("label_size", 10)
+                  .node_properties("label_x", 15)
+                  .node_properties("label_y", -5)
+                  .node_properties("label_color", "#FFFFFF")
+                  //
+                  .particles("color", "black")
+                  .particles("size", 15)
+                  .particles("color", "red", 0.8)
+        
+                  // .particles("wiggling_0", 1.0)
+                  // .particles("wiggling_1", 0.0)
+                  // .particles("wiggling_2", 1.0)
+                  // .particles("wiggling_3", 0.0)
+                  // .particles("wiggling_4", 1.0)
+                  // .particles("wiggling_5", 0.0)
+                  // .particles("wiggling_16", 3.0)
+        
+                  // .particles("wiggling", 1.0)
+                  // .particles("color", "green", 2)
+                  // .particles("size", 5, 2)
+        
+                  // .particles("color", "black", 0.2)
+        
+        
+        
+                  // .particles("opacity_0", 0.0)
+                  // .particles("opacity_1", 0.5)
+                  // .particles("opacity_2", 0)
+                  // .particles("opacity_3", 0)
+                  // .particles("opacity_4", 0)
+                  // .particles("opacity_5", 1)
+                  // .particles("opacity_6", 1)
+                  // .particles("opacity_7", 0.5)
+                  // .particles("opacity_8", 0.0)
+                  // .particles("opacity_9", 0.5)
+                  // .particles("opacity_10", 1)
+                  // .particles("opacity_11", 0.5)
+                  // .particles("opacity_12", 0.0)
+                  // .particles("opacity_13", 0.5)
+                  // .particles("opacity_14", 1)
+                  // .particles("opacity_15", 0.5)
+                  // .particles("opacity_16", 0.0)
+                  // .particles("opacity_17", 0.5)
+                  // .particles("opacity_18", 1.0)
+        
+        
+                  //.particles("color", '#d53e4f')
+                  // .particles("size", function(d, i) {return d.size_message; })
+                  //.particles("frequency", 2)
+                  //.particles("spatial_distribution", function(d, i) {return d.spatial; })
+                  //.particles("spatial_distribution", [0,])
+                  //.particles("pattern", function(d, i) {return d.temp; })
+                  //.particles("speed", function(d, i) {return d.speed; })
+                  //.particles("speed", 1)//function(d, i) {return d.fre; })
+        
+                  //.particles("frequency", 1)
+                  //.particles("pattern",  [ 0.0, 0.3, 0.6 ])
+                  //.particles("pattern",  [ 0.0, 0.8])
+                  //.particles("spatial_distribution", [0])
+                  
+                  //.particles("frequency", function(d, i) {return d.freq; })
+                  //.particles("speed", 1)
+                  //.particles("speed", 10, 14)
+                  //.particles("pattern",  function(d, i) {return d.temp; })
+                  //.particles("pattern", [0.0])
+                  //.on("end", function() { alert("PROUT"); })
+        
+                  // ATTENTION CHANGEMENT d'OPACITY due AU FADDING
+                  // .particles("opacity", 0.1, 0.4)
+                  // .particles("speed", 1, 0)
+                  // .particles("speed", 8, 0.1)
+                  // .particles("speed", 2, 0.1)
+                  // .particles("speed", 1, 0.2)
+        
+                  // .particles("speed", 2, 0.0)
+                  // .particles("speed", 1, 0.25)
+        
+                  // .particles("speed", 4, 0.5)
+                  
+                  // .particles("speed", 10, 0.2)
+                  // // .particles("speed", 10, 0.6)
+                  // // .particles("speed", 10, 0.7)
+                  // .particles("speed", 10, 0.9)
+                  // // .particles("speed", 1 , 0.25)
+                  // // .particles("color", "white" , 0.2)
+        
+                  // // .particles("color", "green" , 0.5)
+                  // // .particles("color", "red" , 0.55)
+                  // .particles("color", "red" , 0.6)
+                  // .particles("color", "yellow" , 0.5)
+        //           .particles("opacity", 1, 0)
+        //           // .particles("speed", 1, 0.75)
+        // // 
+                  // .particles("opacity", 0, 0)
+        //           .particles("opacity", 1, 0.3)
+                  // .particles("opacity", 0, 0.05)
+                  .particles("opacity", 1.0, 0)
+                  .particles("opacity", 0.2, 0.5)
+                  .particles("opacity", 1.0, 0.6)
+                  
+                  // .particles("speed", 11, 0.1)
+                  // .particles("speed", 10, 0.2)
+                  // .particles("speed", 9, 0.3)
+                  // .particles("speed", 8, 0.4)
+                  
+                  // .particles("speed", 12, 0.6)
+                  // .particles("speed", 5, 0.7)
+                  // .particles("speed", 10, 0.8)
+                  // .particles("texture", "../static/images/rectangle_texture.png")
+                  //.particles("texture", function(d, i) {return d.textu; })
+        
+                  // .particles("pattern", function(d, i) {return [0, 0, 0, 0.6]; })
+                  .particles("pattern", function(d, i) {return [0.0]; })
+                  // .particles("track", [0, 0, 0])
+                  .particles("frequency", 1)
+                  // .particles("frequency", function(d, i) {return freq(d.value); })
+                  .particles("speed", 10, 0.0)
+                  .particles("speed", 3, 0.2)
+                  .particles("speed", 1, 0.5)
+                  // .particles("size", 100, 0.5)
+                  // .particles("size", 4, 0.5)
+                  // .particles("speed", 1, 0.5)
+        
+                  // .particles("speed", 3, 0.8)
+                  // .start_particle_delay(200000)
+                  .start(0)
+                  // // .startAPIparticule_oneitem(0);
+        
+                  
+      //             // app.sparkiz.draw_map(proj, 'data/worldID.json');
+        
+      //     setTimeout(function(){
+      //       console.log(app)
+      //   var posLink = app.sparkiz.get_links();
+      //   console.log(posLink)
+
+      // }, 1000)
+        
+            });
+
+	</script>
+
+
+</body>
+</html>

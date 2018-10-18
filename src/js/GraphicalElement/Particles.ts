@@ -75,33 +75,40 @@ export class Particles{
         }
     }
     fit_to_frequence_temporal_distrib(id){
-        
-        //.slice();
         // Je recois une frequence exprimant quand j'envoi chaque pattern (exprimé en secondes)
         // J'ai 60 fps donc je multiplie par 60 pour avoir l'equivalent en frame
         var frequence_patttern = this.particles[id].frequency_pattern;
         // console.log(frequence_patttern)
         var temporal_distribution = this.particles[id].temporal_distribution2;
-        var speed = 10//this.links[id].gate_velocity[0];
+        // var speed = 10//this.links[id].gate_velocity[0];
         frequence_patttern = this.FPS * frequence_patttern; 
         //Je multiplie par frequence pattern pour partir d'une echelle sur [O,1] en entrée vers [0,-frequence_patttern]
         //Négatif pour que ca parte vers l'arriere
         //Divise par speed pour que cela soit proportionnel si l'on change la vitesse
+        var speed0 = this.particles[id].gate_velocity[0];
+        // console.log(frequence_patttern)
+        // frequence_patttern = frequence_patttern/speed0;
+        // console.log(frequence_patttern)
+        
         var temporal_dis = [];
         for (var i = 0;i<temporal_distribution.length; i++){
             temporal_dis.push(temporal_distribution[i] * -frequence_patttern);
         }
-
+        // console.log(temporal_dis)
+        
         var gateSpeed = this.particles[id].gate_velocity;
         var motifs = 0;
         for(var i = 0; i< this.particles[id].gate_velocity.length; i++){
             var lengthBetweenTwoGates = ((this.particles[id].number_segmentation/5)/this.particles[id].gate_velocity.length);
             // console.log(lengthBetweenTwoGates / (gateSpeed[i]*12.5))
             var numberSecondToArrive = lengthBetweenTwoGates / (gateSpeed[i] * 12);
+            // var numberSecondToArrive = lengthBetweenTwoGates / (gateSpeed[i]);
             // console.log(numberSecondToArrive)
             var numberPatterEdge = numberSecondToArrive * (1 / this.particles[id].frequency_pattern);
             motifs += numberPatterEdge;
         }
+        // motifs = motifs*speed0
+        // console.log(motifs)
         // console.log(this.particles[id].number_segmentation/5, motifs)
         // JE RAJOUTE UN POUR PAR QUE CA PARTE
         motifs = Math.ceil(motifs);
@@ -117,23 +124,49 @@ export class Particles{
         // console.log("NB SEG", this.links[id].number_segmentation)
         // console.log("NUMBER PARTICLES", motifs, this.links[id].number_segmentation, frequence_patttern, this.links[id].number_segmentation_pattern_fitting)
         // console.log("FREQUENCE PATTERN", frequence_patttern, speed)
-        var total_for_pattern = 0;
+        // var total_for_pattern = 0;
         var id_particle = 0;
         var delay = 0;
-        for(var k=1 ; k < motifs+1; k++){
-            total_for_pattern = 0
-            //J'ajoute frequence pattern a chaque nouveau pattern
-            delay = frequence_patttern * (k -1)//- 1)
+        // console.log(temporal_dis)
 
+
+        for(var k=1 ; k < motifs+1; k++){
+            // console.log("MOTIF", k)
+            // total_for_pattern = 0
+            //J'ajoute frequence pattern a chaque nouveau pattern
+            //- 1)
+            delay = frequence_patttern * (k -1)
             for(var j=0 ; j<temporal_distribution.length; j++){
-                //Pour chaque element du tableau donnée, j'ajoute frequence_pattern + le delay.
-                this.particles[id].temporal_distribution[id_particle] = (delay + temporal_dis[j]);
-                // console.log()
-                total_for_pattern += delay + temporal_dis[j];
+                
+                //Pour chaque element du tableau donnée, j'ajoute frequence_pattern + le delay;
+                // console.log((delay + temporal_dis[j]));
+                // console.log(frequence_patttern);
+                // console.log(frequence_patttern)
+                // var diffOfSpacing = 
+                // console.log(j, temporal_distribution.length)
+                var valueToChangePattern = temporal_dis[j];
+                // var valueToChangePattern = 0;
+                if (j%temporal_distribution.length != 0){
+                    valueToChangePattern = temporal_dis[0] + ((temporal_dis[j] - temporal_dis[0])/speed0);
+                    // valueToChangePattern = (temporal_dis[j-1] - temporal_dis[j])/speed0;
+                    // console.log(valueToChangePattern,temporal_dis[j] )
+                } 
+                // console.log(temporal_dis[j], valueToChangePattern)
+                // else{ valueToChangePattern = temporal_dis[j]}
+                // console.log(temporal_dis[j], delay)
+                // else{
+                //     var firstEntryMotif = temporal_dis[j];
+                // }
+                // console.log(delay + valueToChangePattern)
+                this.particles[id].temporal_distribution[id_particle] = (delay + valueToChangePattern);
+                // this.particles[id].temporal_distribution[id_particle] = (delay + temporal_dis[j]);
+                // console.log(delay)
+                // total_for_pattern += delay + temporal_dis[j];
                 id_particle +=1;
             }
         }      
-        // console.log("FIIIIIT", this.links[id]) 
+        
+        // console.log("FIIIIIT", this.particles[id].temporal_distribution) 
         this.particles[id].number_particles = this.particles[id].temporal_distribution.length;
 
         // console.log("TEMPORAL", this.links[id].temporal_distribution, this.links[id].number_particles, motifs)
@@ -143,7 +176,7 @@ export class Particles{
     updateParticles(){
         for ( var j = 0;  j < this.particles.length; j ++ ){
             //console.log(this.links[j])
-            this.createParticles_webgl(this.particles[j].number_particles, this.particles[j].id);
+            this.createParticles_webgl(this.particles[j].number_particles, this.particles[j].index);
             // permits to update the spatial and temporal after resizing links
             // this.updateParticles_SpatialDistribution(this.links[j].spatial_distribution, this.links[j]._id);
             // this.updateParticles_TemporalDistribution(this.links[j].temporal_distribution, this.links[j]._id, this.links[j].temporal_distribution.length)
@@ -180,6 +213,8 @@ export class Particles{
         texture.magFilter = THREE.LinearFilter;
         var number = 0;
         var posistion_gate_after_speed = [];
+
+        // console.log(temporal)
         /**
          * Met a jour le tableau contenant la position des gates.
          * en fonction de la vitesse de mes élèments
@@ -215,8 +250,8 @@ export class Particles{
             offsetArray[i] = (posistion_gate_after_speed[i] * gate_velocity[i]) - offset;
             offset += offsetBetweenGates * gate_velocity[i];
         }
-
-        // console.log(this.isGates)
+        // console.log(gate_colors[0])
+        // console.log(temporal)
         // var gates = this.checkIfGates();
         if (this.isGates == false){
             var uniforms = {
@@ -303,8 +338,8 @@ export class Particles{
             positions[ i3 + 1 ] = 0 * radius;
             positions[ i3 + 2 ] = 0 * radius;
 
-            colors[ i3 + 0 ] = 1; //this.hslToRgb(1,1,0.5)[0];
-            colors[ i3 + 1 ] = 1; //this.hslToRgb(1,1,0.5)[1];
+            colors[ i3 + 0 ] = 0; //this.hslToRgb(1,1,0.5)[0];
+            colors[ i3 + 1 ] = 0; //this.hslToRgb(1,1,0.5)[1];
             colors[ i3 + 2 ] = 0; //this.hslToRgb(1 ,1,0.5)[2];
             my_velocity[ i ] = 1.0;
             iterations[i] = 0.0;

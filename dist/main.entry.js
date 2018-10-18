@@ -53814,15 +53814,14 @@ var Mapping = /** @class */ (function () {
     };
     Mapping.prototype.start = function (time) {
         var that = this;
-        if (time == undefined)
+        if (time != undefined) {
+            this.layoutManager.restartLayout();
+        }
+        else
             time = 0;
         setTimeout(function () {
             that.nodesObject.createLabel();
             that.tracksObject.updatetracks();
-            // if (time != undefined) this.sparkiz.launch_network(time);
-            // if (time == undefined) this.sparkiz.launch_network_without_computation();
-            // //this.viz.animate();
-            // this.viz.with_absolute_time();
             that.nodesObject.updateNodes();
             that.linksObject.updateTube();
             that.particlesObject.fit_all_particles_to_frequence_temporal_distrib();
@@ -53861,10 +53860,12 @@ var Mapping = /** @class */ (function () {
             case "color":
                 for (var i = 0; i < particles.length; i++) {
                     if (typeof (arguments[1]) == 'string') {
+                        arguments[1].replace("#", "0x");
                         value = new THREE.Color(arguments[1]);
                     }
                     else {
                         var a = callback(particles[i], i);
+                        a.replace("#", "0x");
                         value = new THREE.Color(a);
                     }
                     if (gate == undefined) {
@@ -53874,6 +53875,7 @@ var Mapping = /** @class */ (function () {
                         gate_position = gate;
                     }
                     for (var k = gate_position; k < maxGates; k++) {
+                        // console.log(arguments[1], value)
                         particles[i].gate_colors[k] = value;
                     }
                 }
@@ -53933,7 +53935,7 @@ var Mapping = /** @class */ (function () {
                     }
                     //for(var k=0 ; k<this.sparkiz.number_max_gates ; k++) this.sparkiz.links[i].gate_velocity[k] = value + 1;
                     for (var k = gate_position; k < maxGates; k++) {
-                        particles[i].gate_velocity[k] = value;
+                        particles[i].gate_velocity[k] = value / 12;
                     }
                 }
                 return this;
@@ -54462,6 +54464,7 @@ var Links = /** @class */ (function () {
             y2 = path[1].y;
             var distance = this.utilities.get_distance(x1, y1, x2, y2);
             this.links[i].number_segmentation = Math.round(distance) * 5;
+            // console.log(this.links[i].number_segmentation)
             // console.log(distance)
             // console.log(x1, y1, x2, y2)
             object = this.tube[i].children[0];
@@ -54904,31 +54907,38 @@ var Particles = /** @class */ (function () {
         }
     };
     Particles.prototype.fit_to_frequence_temporal_distrib = function (id) {
-        //.slice();
         // Je recois une frequence exprimant quand j'envoi chaque pattern (exprimé en secondes)
         // J'ai 60 fps donc je multiplie par 60 pour avoir l'equivalent en frame
         var frequence_patttern = this.particles[id].frequency_pattern;
         // console.log(frequence_patttern)
         var temporal_distribution = this.particles[id].temporal_distribution2;
-        var speed = 10; //this.links[id].gate_velocity[0];
+        // var speed = 10//this.links[id].gate_velocity[0];
         frequence_patttern = this.FPS * frequence_patttern;
         //Je multiplie par frequence pattern pour partir d'une echelle sur [O,1] en entrée vers [0,-frequence_patttern]
         //Négatif pour que ca parte vers l'arriere
         //Divise par speed pour que cela soit proportionnel si l'on change la vitesse
+        var speed0 = this.particles[id].gate_velocity[0];
+        // console.log(frequence_patttern)
+        // frequence_patttern = frequence_patttern/speed0;
+        // console.log(frequence_patttern)
         var temporal_dis = [];
         for (var i = 0; i < temporal_distribution.length; i++) {
             temporal_dis.push(temporal_distribution[i] * -frequence_patttern);
         }
+        // console.log(temporal_dis)
         var gateSpeed = this.particles[id].gate_velocity;
         var motifs = 0;
         for (var i = 0; i < this.particles[id].gate_velocity.length; i++) {
             var lengthBetweenTwoGates = ((this.particles[id].number_segmentation / 5) / this.particles[id].gate_velocity.length);
             // console.log(lengthBetweenTwoGates / (gateSpeed[i]*12.5))
             var numberSecondToArrive = lengthBetweenTwoGates / (gateSpeed[i] * 12);
+            // var numberSecondToArrive = lengthBetweenTwoGates / (gateSpeed[i]);
             // console.log(numberSecondToArrive)
             var numberPatterEdge = numberSecondToArrive * (1 / this.particles[id].frequency_pattern);
             motifs += numberPatterEdge;
         }
+        // motifs = motifs*speed0
+        // console.log(motifs)
         // console.log(this.particles[id].number_segmentation/5, motifs)
         // JE RAJOUTE UN POUR PAR QUE CA PARTE
         motifs = Math.ceil(motifs);
@@ -54942,22 +54952,45 @@ var Particles = /** @class */ (function () {
         // console.log("NB SEG", this.links[id].number_segmentation)
         // console.log("NUMBER PARTICLES", motifs, this.links[id].number_segmentation, frequence_patttern, this.links[id].number_segmentation_pattern_fitting)
         // console.log("FREQUENCE PATTERN", frequence_patttern, speed)
-        var total_for_pattern = 0;
+        // var total_for_pattern = 0;
         var id_particle = 0;
         var delay = 0;
+        // console.log(temporal_dis)
         for (var k = 1; k < motifs + 1; k++) {
-            total_for_pattern = 0;
+            // console.log("MOTIF", k)
+            // total_for_pattern = 0
             //J'ajoute frequence pattern a chaque nouveau pattern
-            delay = frequence_patttern * (k - 1); //- 1)
+            //- 1)
+            delay = frequence_patttern * (k - 1);
             for (var j = 0; j < temporal_distribution.length; j++) {
-                //Pour chaque element du tableau donnée, j'ajoute frequence_pattern + le delay.
-                this.particles[id].temporal_distribution[id_particle] = (delay + temporal_dis[j]);
-                // console.log()
-                total_for_pattern += delay + temporal_dis[j];
+                //Pour chaque element du tableau donnée, j'ajoute frequence_pattern + le delay;
+                // console.log((delay + temporal_dis[j]));
+                // console.log(frequence_patttern);
+                // console.log(frequence_patttern)
+                // var diffOfSpacing = 
+                // console.log(j, temporal_distribution.length)
+                var valueToChangePattern = temporal_dis[j];
+                // var valueToChangePattern = 0;
+                if (j % temporal_distribution.length != 0) {
+                    valueToChangePattern = temporal_dis[0] + ((temporal_dis[j] - temporal_dis[0]) / speed0);
+                    // valueToChangePattern = (temporal_dis[j-1] - temporal_dis[j])/speed0;
+                    // console.log(valueToChangePattern,temporal_dis[j] )
+                }
+                // console.log(temporal_dis[j], valueToChangePattern)
+                // else{ valueToChangePattern = temporal_dis[j]}
+                // console.log(temporal_dis[j], delay)
+                // else{
+                //     var firstEntryMotif = temporal_dis[j];
+                // }
+                // console.log(delay + valueToChangePattern)
+                this.particles[id].temporal_distribution[id_particle] = (delay + valueToChangePattern);
+                // this.particles[id].temporal_distribution[id_particle] = (delay + temporal_dis[j]);
+                // console.log(delay)
+                // total_for_pattern += delay + temporal_dis[j];
                 id_particle += 1;
             }
         }
-        // console.log("FIIIIIT", this.links[id]) 
+        // console.log("FIIIIIT", this.particles[id].temporal_distribution) 
         this.particles[id].number_particles = this.particles[id].temporal_distribution.length;
         // console.log("TEMPORAL", this.links[id].temporal_distribution, this.links[id].number_particles, motifs)
         // console.log("Fitting", this.links[id].number_segmentation_pattern_fitting,  this.links[id].number_segmentation)
@@ -54966,7 +54999,7 @@ var Particles = /** @class */ (function () {
     Particles.prototype.updateParticles = function () {
         for (var j = 0; j < this.particles.length; j++) {
             //console.log(this.links[j])
-            this.createParticles_webgl(this.particles[j].number_particles, this.particles[j].id);
+            this.createParticles_webgl(this.particles[j].number_particles, this.particles[j].index);
             // permits to update the spatial and temporal after resizing links
             // this.updateParticles_SpatialDistribution(this.links[j].spatial_distribution, this.links[j]._id);
             // this.updateParticles_TemporalDistribution(this.links[j].temporal_distribution, this.links[j]._id, this.links[j].temporal_distribution.length)
@@ -55000,6 +55033,7 @@ var Particles = /** @class */ (function () {
         texture.magFilter = THREE.LinearFilter;
         var number = 0;
         var posistion_gate_after_speed = [];
+        // console.log(temporal)
         /**
          * Met a jour le tableau contenant la position des gates.
          * en fonction de la vitesse de mes élèments
@@ -55030,7 +55064,8 @@ var Particles = /** @class */ (function () {
             offsetArray[i] = (posistion_gate_after_speed[i] * gate_velocity[i]) - offset;
             offset += offsetBetweenGates * gate_velocity[i];
         }
-        // console.log(this.isGates)
+        // console.log(gate_colors[0])
+        // console.log(temporal)
         // var gates = this.checkIfGates();
         if (this.isGates == false) {
             var uniforms = {
@@ -55110,8 +55145,8 @@ var Particles = /** @class */ (function () {
             positions[i3 + 0] = 0 * radius;
             positions[i3 + 1] = 0 * radius;
             positions[i3 + 2] = 0 * radius;
-            colors[i3 + 0] = 1; //this.hslToRgb(1,1,0.5)[0];
-            colors[i3 + 1] = 1; //this.hslToRgb(1,1,0.5)[1];
+            colors[i3 + 0] = 0; //this.hslToRgb(1,1,0.5)[0];
+            colors[i3 + 1] = 0; //this.hslToRgb(1,1,0.5)[1];
             colors[i3 + 2] = 0; //this.hslToRgb(1 ,1,0.5)[2];
             my_velocity[i] = 1.0;
             iterations[i] = 0.0;
@@ -55157,13 +55192,13 @@ exports.Particles = Particles;
 /* 182 */
 /***/ (function(module, exports) {
 
-module.exports = "#define GLSLIFY 1\n\n            \n\n\t\t\t\n            //Correspond au numero du chemin surlequel je suis\n\t\t\t\n\n            //Correspond à l'ID de la particule\n            attribute float id;\n            attribute float id_particle;\n\t\t\tattribute vec3 customColor;\n\n    \n            \n            varying float sprite_size;\n            varying float segmentation;\n            varying float index_;\n\n            uniform vec2 path_quadratic[path_length];\n            uniform float size;\n            uniform float gate_opacity;\n            uniform vec3 gate_colors;\n            uniform float gate_velocity;\n            uniform int temporal_delay[real_number_particles];\n            uniform int number_segmentation_pattern_fitting;\n            uniform int number_segmentation;\n            uniform float uTime;\n\n\t\t\tvarying vec3 vColor;\n            varying float my_opacity;\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float vRotation;\n\n            int MOD(int a, int b){\n                //Formule du modulo : a - (b * (a \\ b))\n                int result = a / b;\n                result = b * result;\n                result = a - result;\n                return result;\n            }\n            vec2 bezier(int t, vec2 p0,vec2 p1,vec2 p2,vec2 p3){\n\n                highp float timer = float(t);\n                //Pour avoir un timer qui va de 0 a 1\n                //highp float time = timer * 1.0/float(number_segmentation);\n                highp float time = (timer * 1.0/(float(number_segmentation) )) ;//- 0.1;\n\n                float cX = 3.0 * (p1.x - p0.x);\n                float bX = 3.0 * (p2.x - p1.x) - cX;\n                float aX = p3.x - p0.x - cX - bX;\n\n                float cY = 3.0 * (p1.y - p0.y);\n                float bY = 3.0 * (p2.y - p1.y) - cY;\n                float aY = p3.y - p0.y - cY - bY;\n\n                float x = (aX * pow(time, 3.0)) + (bX * pow(time, 2.0)) + (cX * time) + p0.x;\n                float y = (aY * pow(time, 3.0)) + (bY * pow(time, 2.0)) + (cY * time) + p0.y;\n\n                vec2 result = vec2( x,y );\n\n                return result;\n            }\n            mat4 rotation(float x) {\n              vec4 line_1 = vec4(cos(x), -sin(x), 0.0, 0.0);\n              vec4 line_2 = vec4(sin(x), cos(x), 0.0, 0.0);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n            mat4 translation(float x, float y) {\n              vec4 line_1 = vec4(1.0, 0.0, 0.0,  x);\n              vec4 line_2 = vec4(0.0, 1.0, 0.0,  y);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n            mat4 changerEchelle(float sx, float sy) {\n              vec4 line_1 = vec4(sx, 0.0, 0.0, 0.0);\n              vec4 line_2 = vec4(0.0, sy, 0.0, 0.0);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n\n\t\t\tvoid main() {\n\n\t\t\t\tvColor = customColor;\n\t\t\t\tvec3 newPosition = position;\n                vec4 mvPosition;\n                float size_fadding;\n                // FAISCEAUX ID\n                highp int id_faisceaux = int(id_particle);\n\n                float timer =  uTime;\n                highp int my_time = int(timer);\n\n        /*************** J'AJOUTE LE TEMPORAL DELAY ****************************/\n                my_time = my_time + temporal_delay[id_faisceaux];\n                // OBtient le nombre de segment a faire\n                int index_old = MOD(my_time , number_segmentation_pattern_fitting);\n\n        /*************** POUR AVOIR LE BON INDEX AVEC LA VITESSE ************/\n                float newIndex = float(index_old);\n\n        /******** CETTE PARTIE N'EST FAITE QUE POUR DETERMINER LA GATE ******/   \n            \n                /* Ajoute le offset a la vitesse de ma particule */\n                newIndex = (float(newIndex) * gate_velocity);// - float(offsetArray[gate]);\n                highp int index = int(newIndex);\n\n        /************** TO DETERMINE THE PATH ******************************/\n                vec4 path;\n                vec4 path_next;\n                //Determine le numero du chemin sur lequel je suis\n                //4 car j'ai 4 variables : 0 33 66 100 pour faire ma courbe de bezier\n                highp int path_id = int(id) * (4);\n                path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);\n                path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);\n\n        /************** TO DETERMINE THE ROTATION ******************************/\n                float angle = atan(path_next.y - path.y, path_next.x - path.x );\n                vRotation =  - angle;\n\n                mat4 my_matrice =  translation(path.x,path.y);\n                vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;\n                //vec4 transitionVector = ProjectionMatrix * positionEchelle;\n                mvPosition =  modelViewMatrix * positionEchelle;\n\n\n\n\n        /******************** Determine la couleur en fonction de la porte ******************/\n                size_fadding = size;\n                my_opacity = gate_opacity;\n                vColor = vec3(gate_colors.x ,gate_colors.y, gate_colors.z);\n                index_ = float(index);\n                segmentation = float(number_segmentation);\n                \n                // gl_PointSize = size_fadding * ( 1000.0 / length( mvPosition.xyz ) );\n                gl_PointSize = size_fadding;\n                sprite_size = size_fadding;\n\n                gl_Position = projectionMatrix * mvPosition;\n\n\n\t\t\t}\n"
+module.exports = "#define GLSLIFY 1\n\n            \n\n\t\t\t\n            //Correspond au numero du chemin surlequel je suis\n\t\t\t\n\n            //Correspond à l'ID de la particule\n            attribute float id;\n            attribute float id_particle;\n\t\t\tattribute vec3 customColor;\n\n    \n            \n            varying float sprite_size;\n            varying float segmentation;\n            varying float index_;\n\n            uniform vec2 path_quadratic[path_length];\n            uniform float size;\n            uniform float gate_opacity;\n            uniform vec3 gate_colors;\n            uniform float gate_velocity;\n            uniform int temporal_delay[real_number_particles];\n            uniform int number_segmentation_pattern_fitting;\n            uniform int number_segmentation;\n            uniform float uTime;\n\n\t\t\tvarying vec3 vColor;\n            varying float my_opacity;\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float vRotation;\n\n            int MOD(int a, int b){\n                //Formule du modulo : a - (b * (a \\ b))\n                int result = a / b;\n                result = b * result;\n                result = a - result;\n                return result;\n            }\n            vec2 bezier(int t, vec2 p0,vec2 p1,vec2 p2,vec2 p3){\n\n                highp float timer = float(t);\n                //Pour avoir un timer qui va de 0 a 1\n                //highp float time = timer * 1.0/float(number_segmentation);\n                highp float time = (timer * 1.0/(float(number_segmentation) )) ;//- 0.1;\n\n                float cX = 3.0 * (p1.x - p0.x);\n                float bX = 3.0 * (p2.x - p1.x) - cX;\n                float aX = p3.x - p0.x - cX - bX;\n\n                float cY = 3.0 * (p1.y - p0.y);\n                float bY = 3.0 * (p2.y - p1.y) - cY;\n                float aY = p3.y - p0.y - cY - bY;\n\n                float x = (aX * pow(time, 3.0)) + (bX * pow(time, 2.0)) + (cX * time) + p0.x;\n                float y = (aY * pow(time, 3.0)) + (bY * pow(time, 2.0)) + (cY * time) + p0.y;\n\n                vec2 result = vec2( x,y );\n\n                return result;\n            }\n            mat4 rotation(float x) {\n              vec4 line_1 = vec4(cos(x), -sin(x), 0.0, 0.0);\n              vec4 line_2 = vec4(sin(x), cos(x), 0.0, 0.0);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n            mat4 translation(float x, float y) {\n              vec4 line_1 = vec4(1.0, 0.0, 0.0,  x);\n              vec4 line_2 = vec4(0.0, 1.0, 0.0,  y);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n            mat4 changerEchelle(float sx, float sy) {\n              vec4 line_1 = vec4(sx, 0.0, 0.0, 0.0);\n              vec4 line_2 = vec4(0.0, sy, 0.0, 0.0);\n              vec4 line_3 = vec4(0.0, 0.0, 1.0, 0.0);\n              vec4 line_4 = vec4(0.0, 0.0, 0.0, 1.0);\n\n              return mat4(line_1,line_2,line_3,line_4);\n            }\n\n\t\t\tvoid main() {\n\n\t\t\t\tvColor = customColor;\n\t\t\t\tvec3 newPosition = position;\n                vec4 mvPosition;\n                float size_fadding;\n                // FAISCEAUX ID\n                highp int id_faisceaux = int(id_particle);\n\n                float timer =  uTime;\n                highp int my_time = int(timer);\n\n        /*************** J'AJOUTE LE TEMPORAL DELAY ****************************/\n                my_time = my_time + temporal_delay[id_faisceaux];\n                // OBtient le nombre de segment a faire\n                int index_old = MOD(my_time , number_segmentation_pattern_fitting);\n\n        /*************** POUR AVOIR LE BON INDEX AVEC LA VITESSE ************/\n                float newIndex = float(index_old);\n\n        /******** CETTE PARTIE N'EST FAITE QUE POUR DETERMINER LA GATE ******/   \n            \n                /* Ajoute le offset a la vitesse de ma particule */\n                newIndex = (float(newIndex) * gate_velocity);// - float(offsetArray[gate]);\n                highp int index = int(newIndex);\n\n        /************** TO DETERMINE THE PATH ******************************/\n                vec4 path;\n                vec4 path_next;\n                //Determine le numero du chemin sur lequel je suis\n                //4 car j'ai 4 variables : 0 33 66 100 pour faire ma courbe de bezier\n                highp int path_id = int(id) * (4);\n                path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);\n                path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);\n\n        /************** TO DETERMINE THE ROTATION ******************************/\n                float angle = atan(path_next.y - path.y, path_next.x - path.x );\n                vRotation =  - angle;\n\n                mat4 my_matrice =  translation(path.x,path.y);\n                vec4 positionEchelle = vec4(0.0,0.0,1.0,1.0) * my_matrice;\n                //vec4 transitionVector = ProjectionMatrix * positionEchelle;\n                mvPosition =  modelViewMatrix * positionEchelle;\n\n\n\n\n        /******************** Determine la couleur en fonction de la porte ******************/\n                size_fadding = size;\n                my_opacity = gate_opacity;\n                vColor = vec3(gate_colors.x ,gate_colors.y, gate_colors.z);\n                // vColor = vec3(0.27, 0.45, 0.7);\n                index_ = float(index);\n                segmentation = float(number_segmentation);\n                \n                // gl_PointSize = size_fadding * ( 1000.0 / length( mvPosition.xyz ) );\n                gl_PointSize = size_fadding;\n                sprite_size = size_fadding;\n\n                gl_Position = projectionMatrix * mvPosition;\n\n\n\t\t\t}\n"
 
 /***/ }),
 /* 183 */
 /***/ (function(module, exports) {
 
-module.exports = "#define GLSLIFY 1\n//uniform vec3 color;\n            uniform sampler2D texture;\n            //uniform float zoom;\n\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float my_opacity;\n            varying vec3 vColor;\n\n            varying float vRotation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n\n\n            mat2 rotation(float x) {\n              vec2 line_1 = vec2(cos(x), -sin(x));\n              vec2 line_2 = vec2(sin(x), cos(x));\n\n              return mat2(line_1,line_2); \n            }\n            mat2 translation(float x, float y) {\n              vec2 line_1 = vec2(1.0,x);\n              vec2 line_2 = vec2(1.0,y);\n\n              return mat2(line_1,line_2); \n            }\n            mat2 changerEchelle(float sx, float sy) {\n              vec2 line_1 = vec2(sx, 0.0);\n              vec2 line_2 = vec2(0.0, sy);\n\n              return mat2(line_1,line_2); \n            }\n\n\n            void main() {\n\n\n                float mid = 0.5;\n                mat2 my_matrix = /** translation(mid, mid) **/rotation(vRotation) ;\n                vec2 rotated =  my_matrix * vec2(gl_PointCoord.x - mid, gl_PointCoord.y - mid) ;\n                rotated.x = rotated.x + mid;\n                rotated.y = rotated.y + mid;\n\n                vec4 color = vec4(1.0,1.0,1.0, 1.0);\n\n                vec2 new_coord =  my_matrix * gl_PointCoord;\n\n\n                \n                // if (rotated.x > 0.5){\n                //   color = vec4(1.0,1.0,1.0, 0.0);\n                // }\n                float opacityArr = 1.0;\n                float opacityDep = 0.0;\n               \n                color = vec4(1.0,1.0,0.0, 1.0);\n\n              \n                if (index_ >= segmentation){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                }\n\n              \n\n                vec4 rotatedTexture = texture2D( texture,  rotated) * color;\n\n                gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;\n\n\n\n\n            }"
+module.exports = "#define GLSLIFY 1\n//uniform vec3 color;\n            uniform sampler2D texture;\n            //uniform float zoom;\n\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float my_opacity;\n            varying vec3 vColor;\n\n            varying float vRotation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n\n\n            mat2 rotation(float x) {\n              vec2 line_1 = vec2(cos(x), -sin(x));\n              vec2 line_2 = vec2(sin(x), cos(x));\n\n              return mat2(line_1,line_2); \n            }\n            mat2 translation(float x, float y) {\n              vec2 line_1 = vec2(1.0,x);\n              vec2 line_2 = vec2(1.0,y);\n\n              return mat2(line_1,line_2); \n            }\n            mat2 changerEchelle(float sx, float sy) {\n              vec2 line_1 = vec2(sx, 0.0);\n              vec2 line_2 = vec2(0.0, sy);\n\n              return mat2(line_1,line_2); \n            }\n\n\n            void main() {\n\n\n                float mid = 0.5;\n                mat2 my_matrix = /** translation(mid, mid) **/rotation(vRotation) ;\n                vec2 rotated =  my_matrix * vec2(gl_PointCoord.x - mid, gl_PointCoord.y - mid) ;\n                rotated.x = rotated.x + mid;\n                rotated.y = rotated.y + mid;\n\n                vec4 color = vec4(1.0,1.0,1.0, 1.0);\n\n                vec2 new_coord =  my_matrix * gl_PointCoord;\n\n\n                \n                // if (rotated.x > 0.5){\n                //   color = vec4(1.0,1.0,1.0, 0.0);\n                // }\n                float opacityArr = 1.0;\n                float opacityDep = 0.0;\n               \n                color = vec4(1.0,1.0,1.0, 1.0);\n\n              \n                if (index_ >= segmentation){\n                    color = vec4(1.0,1.0,0.0, 0.0);\n                }\n\n              \n                // vColor = vec3(0.27, 0.45, 0.7);\n                vec4 rotatedTexture = texture2D( texture,  rotated) * color;\n\n                gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;\n\n\n\n\n            }"
 
 /***/ }),
 /* 184 */
@@ -55175,7 +55210,7 @@ module.exports = "#define GLSLIFY 1\n\n            uniform float time;\n        
 /* 185 */
 /***/ (function(module, exports) {
 
-module.exports = "#define GLSLIFY 1\n\n            uniform sampler2D texture;\n            //uniform float zoom;\n\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float my_opacity;\n            varying vec3 vColor;\n\n            varying float vRotation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n\n\n            mat2 rotation(float x) {\n              vec2 line_1 = vec2(cos(x), -sin(x));\n              vec2 line_2 = vec2(sin(x), cos(x));\n\n              return mat2(line_1,line_2); \n            }\n            mat2 translation(float x, float y) {\n              vec2 line_1 = vec2(1.0,x);\n              vec2 line_2 = vec2(1.0,y);\n\n              return mat2(line_1,line_2); \n            }\n            mat2 changerEchelle(float sx, float sy) {\n              vec2 line_1 = vec2(sx, 0.0);\n              vec2 line_2 = vec2(0.0, sy);\n\n              return mat2(line_1,line_2); \n            }\n\n\n            void main() {\n\n\n                float mid = 0.5;\n                mat2 my_matrix = /** translation(mid, mid) **/rotation(vRotation) ;\n                vec2 rotated =  my_matrix * vec2(gl_PointCoord.x - mid, gl_PointCoord.y - mid) ;\n                rotated.x = rotated.x + mid;\n                rotated.y = rotated.y + mid;\n\n\n\n\n                /*vec2 rotated = vec2(\n                        cos(vRotation) * (gl_PointCoord.x - mid) + sin(vRotation) * (gl_PointCoord.y - mid) + mid,\n                        cos(vRotation) * (gl_PointCoord.y - mid) - sin(vRotation) * (gl_PointCoord.x - mid) + mid);*/\n\n                //Texture 2D return the RGBA\n                vec4 color = vec4(1.0,1.0,1.0, 1.0);\n\n                vec2 new_coord =  my_matrix * gl_PointCoord;\n\n\n                \n                // if (rotated.x > 0.5){\n                //   color = vec4(1.0,1.0,1.0, 0.0);\n                // }\n                float opacityArr = 1.0;\n                float opacityDep = 0.0;\n                /*************************************\n                ARRIVE DE LA PARTICULE \n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n                \n                *************************************/\n\n                // if (index_ >= segmentation + (0.1 * segmentation)){\n                //   color = vec4(1.0,0.0,0.0, 1.0);\n                // }\n                /*if (distance_with_arrival < (sprite_size * 2.0) && index_ < segmentation + (0.1 * segmentation)){\n                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                  }\n                }\n                if (distance_with_arrival < (sprite_size * 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){\n                    color = vec4(0.0,1.0,0.0, 0.0);\n                  }\n                }\n                // // // color = vec4(1.0,0.0,0.0, 1.0);\n                // // //QUAND LA PARTICULE A DEPASSE LE NOEUD\n                if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                }*/\n\n                /*************************************\n                DEPART DE LA PARTICULE \n                \n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n                *************************************/\n                color = vec4(1.0,1.0,0.0, 1.0);\n\n                // if (distance_with_departure < (sprite_size / 2.0) && index_ < 0.0 + (0.1 * segmentation)){\n                  // if ( rotated.x - 0.5 < (distance_with_departure / sprite_size)){\n                  //   // color = vec4(1.0,0.0,0.0, 0.0);\n                  // }\n                // }\n                // if (distance_with_departure < (sprite_size / 2.0) && index_ >= 0.0 + (0.1 * segmentation)){\n                //   if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){\n                //     color = vec4(0.0,1.0,0.0, 0.0);\n                //   }\n                // }\n\n                // if (distance_with_departure >= (sprite_size / 2.0) && index_ <= 0.0 + (0.1 * segmentation)){\n                //   color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n\n                // if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                //     color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n                // color = vec4(1.0,1.0,0.0, 0.5);\n                // if ( rotated.x > 0.5){ color = vec4(1.0,1.0,1.0, 0.1); }\n                // else { color = vec4(1.0,0.0,0.0, 1.0); }\n\n                // color = vec4(1.0,1.0,0.0, 1.0);\n                //  if (index_ < sprite_size ){\n                //    if ( rotated.x <= (distance_with_departure / sprite_size)){\n                //     color = vec4(1.0,0.0,0.0, 0.1);\n                //   }\n                    \n                // }\n                float opacity = 0.0;\n                if (distance_with_arrival <= (sprite_size / 4.0)){\n                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, opacity);\n                  }\n                }\n                if (index_ >= segmentation){\n                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, opacity);\n                  }\n                }\n\n                if (distance_with_departure < (sprite_size / 4.0)){\n                  if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, opacity);\n                  }\n                }\n\n    \n       \n                // if (index_ >= segmentation){\n                //     color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n\n              \n\n                vec4 rotatedTexture = texture2D( texture,  rotated) * color;\n\n                gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;\n\n\n\n\n            }"
+module.exports = "#define GLSLIFY 1\n\n            uniform sampler2D texture;\n            //uniform float zoom;\n\n            varying float distance_with_arrival;\n            varying float distance_with_departure;\n            varying float my_opacity;\n            varying vec3 vColor;\n\n            varying float vRotation;\n\n            varying float sprite_size;\n\n            varying float segmentation;\n            varying float index_;\n\n\n\n            mat2 rotation(float x) {\n              vec2 line_1 = vec2(cos(x), -sin(x));\n              vec2 line_2 = vec2(sin(x), cos(x));\n\n              return mat2(line_1,line_2); \n            }\n            mat2 translation(float x, float y) {\n              vec2 line_1 = vec2(1.0,x);\n              vec2 line_2 = vec2(1.0,y);\n\n              return mat2(line_1,line_2); \n            }\n            mat2 changerEchelle(float sx, float sy) {\n              vec2 line_1 = vec2(sx, 0.0);\n              vec2 line_2 = vec2(0.0, sy);\n\n              return mat2(line_1,line_2); \n            }\n\n\n            void main() {\n\n\n                float mid = 0.5;\n                mat2 my_matrix = /** translation(mid, mid) **/rotation(vRotation) ;\n                vec2 rotated =  my_matrix * vec2(gl_PointCoord.x - mid, gl_PointCoord.y - mid) ;\n                rotated.x = rotated.x + mid;\n                rotated.y = rotated.y + mid;\n\n\n\n\n                /*vec2 rotated = vec2(\n                        cos(vRotation) * (gl_PointCoord.x - mid) + sin(vRotation) * (gl_PointCoord.y - mid) + mid,\n                        cos(vRotation) * (gl_PointCoord.y - mid) - sin(vRotation) * (gl_PointCoord.x - mid) + mid);*/\n\n                //Texture 2D return the RGBA\n                vec4 color = vec4(1.0,1.0,1.0, 1.0);\n\n                vec2 new_coord =  my_matrix * gl_PointCoord;\n\n\n                \n                // if (rotated.x > 0.5){\n                //   color = vec4(1.0,1.0,1.0, 0.0);\n                // }\n                float opacityArr = 1.0;\n                float opacityDep = 0.0;\n                /*************************************\n                ARRIVE DE LA PARTICULE \n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n                \n                *************************************/\n\n                // if (index_ >= segmentation + (0.1 * segmentation)){\n                //   color = vec4(1.0,0.0,0.0, 1.0);\n                // }\n                /*if (distance_with_arrival < (sprite_size * 2.0) && index_ < segmentation + (0.1 * segmentation)){\n                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                  }\n                }\n                if (distance_with_arrival < (sprite_size * 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){\n                    color = vec4(0.0,1.0,0.0, 0.0);\n                  }\n                }\n                // // // color = vec4(1.0,0.0,0.0, 1.0);\n                // // //QUAND LA PARTICULE A DEPASSE LE NOEUD\n                if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                    color = vec4(1.0,0.0,0.0, 0.0);\n                }*/\n\n                /*************************************\n                DEPART DE LA PARTICULE \n                \n                3 cas a distinguer : \n                - Le milieu de la particule est avant le NOEUD\n                - Le milieu de la particule est apres le NOEUD\n                - Le milieu de la particule a depasse le NOEUD\n                *************************************/\n                color = vec4(1.0,1.0,1.0, 1.0);\n\n                // if (distance_with_departure < (sprite_size / 2.0) && index_ < 0.0 + (0.1 * segmentation)){\n                  // if ( rotated.x - 0.5 < (distance_with_departure / sprite_size)){\n                  //   // color = vec4(1.0,0.0,0.0, 0.0);\n                  // }\n                // }\n                // if (distance_with_departure < (sprite_size / 2.0) && index_ >= 0.0 + (0.1 * segmentation)){\n                //   if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){\n                //     color = vec4(0.0,1.0,0.0, 0.0);\n                //   }\n                // }\n\n                // if (distance_with_departure >= (sprite_size / 2.0) && index_ <= 0.0 + (0.1 * segmentation)){\n                //   color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n\n                // if (distance_with_arrival > (sprite_size / 2.0) && index_ >= segmentation + (0.1 * segmentation)){\n                //     color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n                // color = vec4(1.0,1.0,0.0, 0.5);\n                // if ( rotated.x > 0.5){ color = vec4(1.0,1.0,1.0, 0.1); }\n                // else { color = vec4(1.0,0.0,0.0, 1.0); }\n\n                // color = vec4(1.0,1.0,0.0, 1.0);\n                //  if (index_ < sprite_size ){\n                //    if ( rotated.x <= (distance_with_departure / sprite_size)){\n                //     color = vec4(1.0,0.0,0.0, 0.1);\n                //   }\n                    \n                // }\n                float opacity = 0.0;\n                if (distance_with_arrival <= (sprite_size / 4.0)){\n                  if ( rotated.x - 0.5 > (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,1.0,1.0, opacity);\n                  }\n                }\n                if (index_ >= segmentation){\n                  if (rotated.x >= 0.5 - (distance_with_arrival / sprite_size)){\n                    color = vec4(1.0,1.0,1.0, opacity);\n                  }\n                }\n\n                if (distance_with_departure < (sprite_size / 4.0)){\n                  if ( rotated.x <= 0.5 - (distance_with_departure / sprite_size)){\n                    color = vec4(1.0,1.0,1.0, opacity);\n                  }\n                }\n\n    \n       \n                // if (index_ >= segmentation){\n                //     color = vec4(1.0,0.0,0.0, 0.0);\n                // }\n\n              \n\n                vec4 rotatedTexture = texture2D( texture,  rotated) * color;\n\n                gl_FragColor = vec4( vColor, my_opacity ) * rotatedTexture;\n\n\n\n\n            }"
 
 /***/ }),
 /* 186 */
@@ -55215,13 +55250,15 @@ var LayoutManager = /** @class */ (function () {
         var that = this;
         this.simulation = d3.forceSimulation()
             .force("charge", d3.forceManyBody().strength(-200).distanceMin(50).distanceMax(500))
-            .force("link", d3.forceLink().id(function (d) { return d['id']; }).distance(200));
-        // .velocityDecay(0.85)
-        // .on("tick", that.onTick.call(that));
-        // .on("tick", function(){ that.onTick.call(that); });
+            .force("link", d3.forceLink().id(function (d) { return d['id']; }).distance(200))
+            .on("tick", function () { that.onTick.call(that); });
+        this.simulation.stop();
+    };
+    LayoutManager.prototype.restartLayout = function () {
+        this.simulation.restart(1);
     };
     LayoutManager.prototype.onTick = function () {
-        // console.log("TICK");
+        console.log("TICK");
         // console.log(this.nodes[0]['x'])
     };
     return LayoutManager;
@@ -68367,12 +68404,14 @@ var Visualisation = /** @class */ (function () {
     Visualisation.prototype.animate = function () {
         this.delay_time_due_to_stop = new Date().getTime();
         this.delta = (new Date().getTime() - this.then) / 1000;
+        // this.number_frame = 60 * this.delta;
+        // JE PARCOURS 60px par seconde de BASE / 50 = 12
         this.number_frame = 60 * this.delta;
         //console.log("ElementsNeedUpdate :" + this.sparkiz.tube[0].children[0].geometry.elementsNeedUpdate);
         //this.sparkiz.tube[0].children[0].geometry.elementsNeedUpdate = true;
         this.render(this.number_frame);
         // this.frame++;
-        //console.log(this)
+        // console.log(this.number_frame)
         this.refreshIntervalId = requestAnimationFrame(this.animate.bind(this));
         // console.log(this)
         // setInterval(()=>{

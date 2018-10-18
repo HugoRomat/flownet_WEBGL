@@ -96,6 +96,9 @@ export class Visualisation {
 
         this.delay_time_due_to_stop = new Date().getTime();
         this.delta = (new Date().getTime() - this.then)/1000;
+        // this.number_frame = 60 * this.delta;
+
+        // JE PARCOURS 60px par seconde de BASE / 50 = 12
         this.number_frame = 60 * this.delta;
         
         //console.log("ElementsNeedUpdate :" + this.sparkiz.tube[0].children[0].geometry.elementsNeedUpdate);
@@ -103,7 +106,7 @@ export class Visualisation {
 
         this.render(this.number_frame);
         // this.frame++;
-        //console.log(this)
+        // console.log(this.number_frame)
         this.refreshIntervalId = requestAnimationFrame(this.animate.bind(this));
         // console.log(this)
         // setInterval(()=>{
