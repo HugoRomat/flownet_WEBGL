@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>particles</title>
+
+  <script src="../static/lib/d3.v4.js"></script>
+  <script src="../dist/main.entry.js"></script>
+    <style>
+        div{
+            /* float: left;
+            margin-right: 5px; */
+        }
+      html { width: 100%; height:100%; /*overflow:hidden;*/ }
+      body{
+        width: 100%;
+        height:100%;
+        font-family: Lato;
+        margin: 0;
+        padding: 0;
+          /*background-color: black;*/
+      }
+
+
+    </style>
+
+
+</head>
+<body>
+
+
+	<div id="visFrame"></div>
+
+	<script>
+
+        // console.log(yo)
+    var color_scale_delay_dep = d3.scaleLinear()
+                   .domain([0, 23])
+                   .range([2,10])
+
+    var freq = d3.scaleLinear()
+                   .domain([0, 28])
+                   .range([0.1,0.8])
+                //    .interpolate(d3.interpolateHcl);
+
+ var size = d3.scaleLinear()
+                   .domain([50, 100])
+                   .range([50, 100])
+    // var proj = d3.geo.miller()
+    //                 .scale(328)
+    //                 .translate([-50,-10]);
+
+    d3.json("../static/data/starWars.json", function(json) {
+
+              json = {
+            "nodes":[
+              // {"name":"bonjour", "id":101, "X": -300,"Y":-50},
+              // {"name":"hugo", "id":102, "X": 200,"Y":-50},
+              {"name":"France", "id":101, "textu": "images/france.png"},
+              {"name":"Germany", "id":102, "textu": "images/USA.png"},
+              {"name":"USA", "id":103, "textu": "images/germany.png"},
+            ],
+            "links":[
+              {"source":101, "id":0, "target":102, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'wheel1', "textu": "images/car.png", 'fromP': 50},
+              {"source":101, "id":11, "target":102, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'pollution1', "textu": "images/pollution.png", 'fromP': 50},
+              
+
+              {"source":101, "id":3, "target":103, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'wheel1', "textu": "images/car.png", 'fromP': 50},
+              {"source":101, "id":10, "target":103, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'pollution2', "textu": "images/pollution.png", 'fromP': 50},
+              
+
+              {"source":102, "id":6, "target":103, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'wheel1', "textu": "images/car.png", 'fromP': 50},
+              {"source":102, "id":9, "target":103, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'pollution3', "textu": "images/pollution.png", 'fromP': 50},
+              
+            ]}
+            var n = 50;
+            var sizeParticule = 60;
+           
+                var size = 150;
+            var app = flownet.graph("#visFrame", 800, 800, "#E4E4E4", 1)
+                  // .nodes(json.nodes)
+                  // .links(json.links)
+                  .nodes(json.nodes)
+                  .links(json.links)
+                  .layout("linkDistance", 300)
+                  // .create_layout()
+                  .tracks("count", 1 )
+
+                  // .create_WEBGL_element()
+                  // .zoom(true)
+                  // .controls(false)
+
+                 
+                  .link_properties("curvature", 10)
+                  .link_properties("color", "#C1C1C1")
+                  .link_properties("size", 1)
+                   .link_properties("opacity", 0) //function(d, i) {return color_scale_delay_dep(d.value); })
+                  // //
+                  //  .node_properties("color", "red")
+                  .node_properties("size", 50)
+                  // .node_properties("x", function(d, i) {return 50; })
+                  // .node_properties("y", function(d, i) {return (100 * i);  })
+                  .node_properties("image",  function(d, i) {return d.textu; })
+                  // .node_properties("x", function(d, i) {return d.X; })
+                  // .node_properties("y", function(d, i) {return d.Y;  })
+
+                  .tracks("opacity", 0)
+
+                  .particles("opacity",function(d, i) {
+                    if (d.nameV == 'pollution1') return 1
+                    if (d.nameV == 'pollution2') return 1
+                    if (d.nameV == 'pollution3') return 1
+                    return 1
+                  })
+                  .particles("color",function(d, i) {
+                    
+                    // console.log(d)
+                    // if (d.nameV == 'wheel1') return '#fbe275';
+                    // if (d.nameV == 'wheel2') return '#ff0000';
+                    // if (d.nameV == 'carcasse') return '#45de88';
+                    if (d.nameV == 'pollution1') return 'rgb(218, 223, 225)'
+                    if (d.nameV == 'pollution2') return 'rgb(218, 223, 225)'
+                    if (d.nameV == 'pollution3') return 'rgb(218, 223, 225)'
+                    return 'grey'
+                  })
+                  .particles("size", function(d, i) {
+                    if (d.nameV == 'pollution1') return 100 
+                    if (d.nameV == 'pollution2') return 200 
+                    if (d.nameV == 'pollution3') return 400 
+                    else return 50
+                  })
+
+
+                  .particles("speed", 200)
+                  .particles("pattern", function(d, i) {return [0]; })
+                  // .particles("track", 0)
+                  .particles("frequency", 1)
+                  // .particles("frequency", function(d, i) {return freq(d.value); })
+                  // .particles("speed", 10, 0.0)
+                  // .particles("speed", 3, 0.2)
+                  // .particles("speed", 5, 0.5)
+                  // .particles("color", "red", 0.1)
+                  // .particles("color", "blue", 0.2)
+                  // .particles("color", "red", 0.3)
+                  // .particles("color", "blue", 0.4)
+                  // .particles("color", "red", 0.5)
+                  // .particles("color", "red", 0.6)
+                  // .particles("color", "blue", 0.7)
+                  // .particles("color", "red", 0.8)
+                  // .particles("color", "blue", 0.9)
+
+                  // .particles("color",function(d, i) {
+                  //     if (d.nameV == 'wheel1') return 'red';
+                  //     if (d.nameV == 'wheel2') return 'blue';
+                  //     if (d.nameV == 'carcasse') return 'yellow';
+                  //     else 
+                  //     return 'black'
+                  //   }, 0.5)
+
+
+                  .particles("size",function(d, i) {
+                    if (d.nameV == 'pollution1') return 60;
+                    return sizeParticule
+                   }, 0.1)
+                   .particles("size",function(d, i) {
+                    if (d.nameV == 'pollution1') return 75;
+                    return sizeParticule
+                   }, 0.2)
+                   .particles("size",function(d, i) {
+                    if (d.nameV == 'pollution1') return 90;
+                    return sizeParticule
+                   }, 0.3)
+                   .particles("size",function(d, i) {
+                    if (d.nameV == 'pollution1') return 105;
+                    return sizeParticule
+                   }, 0.4)
+                   .particles("size",function(d, i) {
+                    if (d.nameV == 'pollution1') return 120;
+                    return sizeParticule
+                   }, 0.5)
+                   .particles("size",function(d, i) {
+                    if (d.nameV == 'pollution1') return 135;
+                    return sizeParticule
+                   }, 0.6)
+                   .particles("size",function(d, i) {
+                    if (d.nameV == 'pollution1') return 150;
+                    return sizeParticule
+                   }, 0.7)
+                   .particles("size",function(d, i) {
+                    if (d.nameV == 'pollution1') return 165;
+                    return sizeParticule
+                   }, 0.8)
+                   .particles("size",function(d, i) {
+                    if (d.nameV == 'pollution1') return 180;
+                    return sizeParticule
+                   }, 0.9)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution1') {return 100} else {return 100}}, 0.1)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution') {return size} else {return 100}}, 0.2)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution1') {return 100} else {return 100}}, 0.3)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution'){return size} else {return 100}}, 0.4)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution1') {return 100} else {return 100}}, 0.5)
+                  // .particles("size",function(d, i) {if (d.nameV == 'pollution') {return size} else {return 100}}, 0.6)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution1') {return 100} else {return 100}}, 0.7)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution') {return size} else {return 100}}, 0.8)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution1') {return 100} else {return 100}}, 0.9)
+
+                  
+                  // .particles("size", 100, 0.7)
+                  // .particles("size", 100, 0.5)
+                  // .particles("size", 4, 0.5)
+                  // .particles("speed", 72, 0.5)
+                  .particles("texture", function(d, i) {return d.textu; })
+                  
+                  // .particles("speed", 3, 0.8)
+                  // .start_particle_delay(200000)
+                  .start(1000)
+                  console.log(app)
+            });
+
+
+      function randomChoose (s, k) { // returns a random k element subset of s
+  var a = [], i = -1, j;
+  while (++i < k) {
+    j = Math.floor(Math.random() * s.length);
+    a.push(s.splice(j, 1)[0]);
+  };
+  return a;
+}
+
+function unorderedPairs (s) { // returns the list of all unordered pairs from s
+  var i = -1, a = [], j;
+  while (++i < s.length) {
+    j = i;
+    while (++j < s.length) a.push([s[i],s[j]])
+  };
+  return a;
+}
+
+	</script>
+
+
+</body>
+</html>

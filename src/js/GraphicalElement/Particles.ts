@@ -175,7 +175,7 @@ export class Particles{
     }
     updateParticles(){
         for ( var j = 0;  j < this.particles.length; j ++ ){
-            //console.log(this.links[j])
+            console.log(this.particles)
             this.createParticles_webgl(this.particles[j].number_particles, this.particles[j].index);
             // permits to update the spatial and temporal after resizing links
             // this.updateParticles_SpatialDistribution(this.links[j].spatial_distribution, this.links[j]._id);

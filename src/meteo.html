@@ -32,7 +32,7 @@
         .land {
           fill: none;
           stroke: grey;
-          opacity: 0.6;
+          opacity: 0.2;
         }
 
         .county-boundary {
@@ -71,7 +71,7 @@
 
     var speed_scale = d3.scaleLinear()
                     .domain([0,40000])
-                    .range([1, 15 ])
+                    .range([5, 30 ])
 
     var opacity_scale = d3.scaleLinear()
                     .domain([0,10000])
@@ -117,11 +117,11 @@
     //   // {"source":10, "target":11, "freq":0.6, "sp" : 1, "temp": [0]}
     // ]}
 
-    var app = flownet.force("#visFrame", 800 ,500, "grey",0)
+    var app = flownet.graph("#visFrame", 800 ,500, "grey",0)
           .nodes(json.nodes)
           .links(json.links)
-          .layout("linkDistance", 200)
-          .create_layout()
+          // .layout("linkDistance", 200)
+          // .create_layout()
           // .numberSegmentation("numberSpacedPoints", function (d, i){
           //     // var X1 = proj([d.source.long,d.source.lat])[0];
           //     // var X2 = proj([d.target.long,d.target.lat])[0];
@@ -220,7 +220,7 @@
           .particles("frequency", function(d, i) { 
             // return 1;
             // console.log(speed_scale(d.passengers) / space_scale(d.number_plane), d.number_plane); 
-            return speed_scale(d.passengers) / space_scale(d.number);
+            return speed_scale(d.passengers) / 20//space_scale(d.number);
           })
           
           // .start_particle_delay(200000000)

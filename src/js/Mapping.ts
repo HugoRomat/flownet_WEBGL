@@ -43,15 +43,17 @@ export class Mapping{
         return this;
     }
     nodes(nodes) {
-        this.nodesObject.data(nodes);
+        
         this.layoutManager.mapNodes(nodes);
+        this.nodesObject.data(nodes);
         return this;
     }
     links(links) {
+        
+        this.layoutManager.mapLinks(links);
         this.linksObject.data(links);
         this.tracksObject.data(links);
         this.particlesObject.data(links);
-        this.layoutManager.mapLinks(links);
         // for(var i=0 ; i<this.sparkiz.links.length ; i++) this.sparkiz.links[i].link_length = 90;
         return this;
     }
@@ -97,12 +99,22 @@ export class Mapping{
     }
     start(time) {
         var that = this;
-        if (time != undefined) {
+        // this.layoutManager.restartLayout();
+        // if (time != undefined) {
+        //     this.layoutManager.restartLayout();
+        // }
+        // else time = 0;
+        if (time == undefined) {
+            time = 0;
+            
+        }
+        else{
             this.layoutManager.restartLayout();
         }
-        else time = 0;
         
+        console.log('WAIT LAYOUT', time)
         setTimeout(function(){ 
+            console.log("GOOO")
             that.nodesObject.createLabel();
             that.tracksObject.updatetracks();
             that.nodesObject.updateNodes();
@@ -110,6 +122,7 @@ export class Mapping{
             that.particlesObject.fit_all_particles_to_frequence_temporal_distrib();
             that.particlesObject.updateParticles();
             that.visualisation.animate();
+            that.layoutManager.stopLayout();
         }, time);
         return this;
     }
@@ -346,7 +359,10 @@ export class Mapping{
                     if ( typeof(arguments[1]) == 'number'){value = arguments[1];}
                     else{var value = callback(links[i], i);}
                     links[i].link_length = value;
+
+                    console.log('LAYOUT UPDATE')
                 }
+                this.layoutManager.updateDistance();
                 return this;
         }
     }
@@ -369,6 +385,7 @@ export class Mapping{
         // console.log("MES MOEUDS", nodes)
         switch(visual_attr) {
             case "color":
+            // console.log("HEY COLOR")
                 for(var i=0 ; i<nodes.length ; i++){
                     var color;
                     if ( typeof(arguments[1]) == 'string'){color = new THREE.Color(arguments[1]);}

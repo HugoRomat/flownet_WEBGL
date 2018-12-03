@@ -7,8 +7,7 @@
     "tsc": "tsc",
     "php": "php -S 0.0.0.0:8081 -t .",
     "start": "npm run build",
-    "build": "webpack --watch",
-    "log": "mocha"
+    "build": "webpack --watch"
   },
   "directories": {
     "lib": "lib"

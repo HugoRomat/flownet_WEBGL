@@ -53764,15 +53764,15 @@ var Mapping = /** @class */ (function () {
         return this;
     }
     Mapping.prototype.nodes = function (nodes) {
-        this.nodesObject.data(nodes);
         this.layoutManager.mapNodes(nodes);
+        this.nodesObject.data(nodes);
         return this;
     };
     Mapping.prototype.links = function (links) {
+        this.layoutManager.mapLinks(links);
         this.linksObject.data(links);
         this.tracksObject.data(links);
         this.particlesObject.data(links);
-        this.layoutManager.mapLinks(links);
         // for(var i=0 ; i<this.sparkiz.links.length ; i++) this.sparkiz.links[i].link_length = 90;
         return this;
     };
@@ -53814,12 +53814,20 @@ var Mapping = /** @class */ (function () {
     };
     Mapping.prototype.start = function (time) {
         var that = this;
-        if (time != undefined) {
+        // this.layoutManager.restartLayout();
+        // if (time != undefined) {
+        //     this.layoutManager.restartLayout();
+        // }
+        // else time = 0;
+        if (time == undefined) {
+            time = 0;
+        }
+        else {
             this.layoutManager.restartLayout();
         }
-        else
-            time = 0;
+        console.log('WAIT LAYOUT', time);
         setTimeout(function () {
+            console.log("GOOO");
             that.nodesObject.createLabel();
             that.tracksObject.updatetracks();
             that.nodesObject.updateNodes();
@@ -53827,6 +53835,7 @@ var Mapping = /** @class */ (function () {
             that.particlesObject.fit_all_particles_to_frequence_temporal_distrib();
             that.particlesObject.updateParticles();
             that.visualisation.animate();
+            that.layoutManager.stopLayout();
         }, time);
         return this;
     };
@@ -54131,7 +54140,9 @@ var Mapping = /** @class */ (function () {
                         var value = callback(links[i], i);
                     }
                     links[i].link_length = value;
+                    console.log('LAYOUT UPDATE');
                 }
+                this.layoutManager.updateDistance();
                 return this;
         }
     };
@@ -54158,6 +54169,7 @@ var Mapping = /** @class */ (function () {
         // console.log("MES MOEUDS", nodes)
         switch (visual_attr) {
             case "color":
+                // console.log("HEY COLOR")
                 for (var i = 0; i < nodes.length; i++) {
                     var color;
                     if (typeof (arguments[1]) == 'string') {
@@ -54389,7 +54401,9 @@ var Nodes = /** @class */ (function () {
             this.webglNodes[i].position.set(this.nodes[i].x, this.nodes[i].y, 3);
             this.webglNodes[i].scale.set(this.nodes[i].scale, this.nodes[i].scale, 3);
             this.webglNodes[i].material.opacity = this.nodes[i].opacity;
-            this.webglNodes[i].material.color = this.nodes[i].color;
+            // console.log(this.nodes[i].color)
+            if (this.nodes[i].color != undefined)
+                this.webglNodes[i].material.color = this.nodes[i].color;
         }
     };
     /**
@@ -54413,7 +54427,7 @@ var Nodes = /** @class */ (function () {
             this.nodes[i].label_color = "#FFFFFF";
             this.nodes[i].opacity = 1;
             this.nodes[i].z = 0;
-            this.nodes[i].color = "#FFFFFF";
+            // this.nodes[i].color = "#FFFFFF";
             this.nodes[i].scale = 1;
             // this.nodes[i].px = null;
             // this.nodes[i].py = null;
@@ -54473,7 +54487,7 @@ var Links = /** @class */ (function () {
         this.links = data;
     };
     Links.prototype.updateTube = function () {
-        console.log("UPDATE TUBE");
+        console.log("UPDATE TUBE YO");
         var p, splineObject;
         var path = [];
         var x1, y1, x2, y2;
@@ -54482,6 +54496,7 @@ var Links = /** @class */ (function () {
         // console.log("Update", this.tube)
         //console.log(this.curveSplines.length)
         for (var i = 0; i < this.tube.length; i++) {
+            // console.log('LENGTH', this.links[i]['link_length']);
             path[0] = { x: this.links[i].source.x, y: this.links[i].source.y };
             path[1] = { x: this.links[i].target.x, y: this.links[i].target.y };
             //var number_segmentation = this.links[i]
@@ -54586,6 +54601,7 @@ var Links = /** @class */ (function () {
         var splineObject;
         var size;
         var curve, curve2, curve3, curve4;
+        console.log('CREATE TUBE');
         // LINKS
         //console.log(this.links)
         for (var i = 0; i < this.links.length; i++) {
@@ -54593,6 +54609,8 @@ var Links = /** @class */ (function () {
             this.links[i].linkColor = new THREE.Color('grey');
             this.links[i].tube_opacity = 1;
             this.links[i].spatial_distribution = [];
+            if (this.links[i].link_length == undefined)
+                this.links[i].link_length = 200;
             //this.links[i].particleSystems = [];
             var octagon = new THREE.Object3D();
             var vertices = [];
@@ -54697,6 +54715,7 @@ var Tracks = /** @class */ (function () {
             // this.tracks[i].gates = [];
             // this.tracks[i].gates.push({object:"null", position:0})
             var multi_line = new THREE.Object3D();
+            // console.log(this.tracks[i])
             //ASSIGN RANDOM POSITION FOR THE BEGINNING OF MY APP
             this.tracks[i].source.x = Math.random() * 100;
             this.tracks[i].target.y = Math.random() * 100;
@@ -55025,7 +55044,7 @@ var Particles = /** @class */ (function () {
     };
     Particles.prototype.updateParticles = function () {
         for (var j = 0; j < this.particles.length; j++) {
-            //console.log(this.links[j])
+            console.log(this.particles);
             this.createParticles_webgl(this.particles[j].number_particles, this.particles[j].index);
             // permits to update the spatial and temporal after resizing links
             // this.updateParticles_SpatialDistribution(this.links[j].spatial_distribution, this.links[j]._id);
@@ -55260,32 +55279,66 @@ var LayoutManager = /** @class */ (function () {
         this.initSimulation();
     }
     LayoutManager.prototype.mapNodes = function (nodes) {
+        // console.log('map nodes')
         this.nodes = nodes;
         this.simulation.nodes(this.nodes);
+        // this.sourceTargetNodesLinks();
     };
     LayoutManager.prototype.mapLinks = function (links) {
+        console.log('map links');
         this.links = links;
+        // this.simulation.force("link", d3.forceLink().id(function(d) { return d['id']; }).distance(function(d){ return d['link_length']}))
+        // this.simulation.force("link", d3.forceLink().id(function(d) { return d['id']; }))//.strength(10))
+        // this.simulation.force("link", d3.forceLink().id(function(d) { return d['id']; }).distance(function(d) {return  d['link_length'];}).strength(1))
+        this.sourceTargetNodesLinks();
+        // console.log('map links')
         this.simulation.force("link").links(this.links);
     };
+    LayoutManager.prototype.updateDistance = function () {
+        var that = this;
+        // this.simulation.force("link", d3.forceLink().id(function(d) { return d['id']; }))
+        // this.simulation.force("link", d3.forceLink().distance(function(d) {console.log(d); return 100;}).strength(0.1))
+        this.simulation.force("link").links(this.links).distance(function (d) { return d['link_length']; }).strength(0.1);
+        console.log('GOO', this.links[0]['link_length']);
+    };
     LayoutManager.prototype.map_links_nodes = function (nodes, links) {
-        this.nodes = nodes;
-        this.links = links;
-        this.simulation.nodes(this.nodes);
-        this.simulation.force("link").links(this.links);
+        // this.nodes = nodes;
+        // this.links = links;
+        // this.simulation.nodes(this.nodes);
+        // this.simulation.force("link").links(this.links);
+        // console.log('GOO', this.links)
+        // this.simulation.force("link", d3.forceLink().id(function(d) { return d['id']; }).distance(function(d) {return  d['link_length'];}).strength(1))
     };
     LayoutManager.prototype.initSimulation = function () {
         var that = this;
+        // console.log('init simulation')
         this.simulation = d3.forceSimulation()
-            .force("charge", d3.forceManyBody().strength(-200).distanceMin(50).distanceMax(500))
-            .force("link", d3.forceLink().id(function (d) { return d['id']; }).distance(200))
+            .force("charge", d3.forceManyBody()) //.strength(-10))//.distanceMin(50).distanceMax(500))
+            .force("link", d3.forceLink().id(function (d) { return d['id']; }))
             .on("tick", function () { that.onTick.call(that); });
         this.simulation.stop();
     };
+    LayoutManager.prototype.sourceTargetNodesLinks = function () {
+        var _this = this;
+        for (var i in this.links) {
+            var node1 = this.nodes.find(function (item) { return item.id == _this.links[i]['source']; });
+            var node2 = this.nodes.find(function (item) { return item.id == _this.links[i]['target']; });
+            this.links[i]['source'] = node1;
+            this.links[i]['target'] = node2;
+            this.links[i]['index'] = i;
+            // console.log(this.links[i],node1)
+        }
+    };
     LayoutManager.prototype.restartLayout = function () {
-        this.simulation.restart(1);
+        // console.log('RESTA', this.nodes, this.links)
+        this.simulation.alphaTarget(1).restart();
+    };
+    LayoutManager.prototype.stopLayout = function () {
+        this.simulation.stop();
     };
     LayoutManager.prototype.onTick = function () {
-        console.log("TICK");
+        // console.log("TICK", this.nodes[0]);
+        // this.simulation.stop();
         // console.log(this.nodes[0]['x'])
     };
     return LayoutManager;

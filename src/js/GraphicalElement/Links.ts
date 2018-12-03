@@ -25,7 +25,7 @@ export class Links{
         this.links = data;
     }
     updateTube() {
-        console.log("UPDATE TUBE")
+        console.log("UPDATE TUBE YO")
         var p, splineObject;
         var path = [];
         var x1, y1, x2, y2;
@@ -37,7 +37,7 @@ export class Links{
         for(var i=0 ; i<this.tube.length ; i++)
         {   
             
-            
+            // console.log('LENGTH', this.links[i]['link_length']);
             path[0] = {x:this.links[i].source.x, y:this.links[i].source.y}
             path[1] = {x:this.links[i].target.x, y:this.links[i].target.y}
             //var number_segmentation = this.links[i]
@@ -161,6 +161,7 @@ export class Links{
         var splineObject;
         var size;
         var curve, curve2, curve3, curve4;
+        console.log('CREATE TUBE')
         // LINKS
         //console.log(this.links)
         for(var i=0 ; i<this.links.length ; i++)
@@ -168,7 +169,8 @@ export class Links{
             this.links[i].width_tube = 1;
             this.links[i].linkColor = new THREE.Color('grey');
             this.links[i].tube_opacity = 1;
-            this.links[i].spatial_distribution = []
+            this.links[i].spatial_distribution = [];
+            if (this.links[i].link_length == undefined) this.links[i].link_length = 200;
 
             //this.links[i].particleSystems = [];
             var octagon = new THREE.Object3D();

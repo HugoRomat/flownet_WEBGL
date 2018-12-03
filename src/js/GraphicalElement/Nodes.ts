@@ -87,7 +87,9 @@ export class Nodes{
             this.webglNodes[i].position.set(this.nodes[i].x,this.nodes[i].y, 3);
             this.webglNodes[i].scale.set(this.nodes[i].scale,this.nodes[i].scale, 3)
             this.webglNodes[i].material.opacity = this.nodes[i].opacity; 
-            this.webglNodes[i].material.color = this.nodes[i].color;
+            
+            // console.log(this.nodes[i].color)
+            if (this.nodes[i].color != undefined) this.webglNodes[i].material.color = this.nodes[i].color;
         }
     }
     /**
@@ -113,7 +115,7 @@ export class Nodes{
             this.nodes[i].label_color = "#FFFFFF";
             this.nodes[i].opacity = 1;
             this.nodes[i].z = 0;
-            this.nodes[i].color = "#FFFFFF";
+            // this.nodes[i].color = "#FFFFFF";
             this.nodes[i].scale = 1;
 
             // this.nodes[i].px = null;

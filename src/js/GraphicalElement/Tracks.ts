@@ -43,6 +43,7 @@ export class Tracks{
 
             var multi_line = new THREE.Object3D();
 
+            // console.log(this.tracks[i])
             //ASSIGN RANDOM POSITION FOR THE BEGINNING OF MY APP
             this.tracks[i].source.x = Math.random()*100; 
             this.tracks[i].target.y = Math.random()*100; 
