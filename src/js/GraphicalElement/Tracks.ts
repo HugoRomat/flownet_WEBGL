@@ -159,14 +159,19 @@ export class Tracks{
             var segmentation = this.tracks[i].number_segmentation;
             var courbure = this.tracks[i].courbure;
             // console.log(segmentation, courbure)
-            var middle_point = this.utilities.get_middle_position_normal(x1, y1, x2, y2, segmentation, courbure)
+            var middle_point = this.utilities.get_middle_position_normal(x1, y1, x2, y2, segmentation, courbure, this.tracks[i]['pointsInterpolation'], this.tracks[i])
 
             
-
+            
             var array = [new THREE.Vector2(this.tracks[i].source.x, this.tracks[i].source.y),
                     new THREE.Vector2(middle_point.x1, middle_point.y1),
                     new THREE.Vector2(middle_point.x2, middle_point.y2),
                     new THREE.Vector2(this.tracks[i].target.x, this.tracks[i].target.y)];
+
+            // console.log(this.tracks[i])
+
+
+
             this.tracks[i].path_quadratic[0]= array;
             var quadratic_path = [];
             var object = this.curveSplines[i].children[0];
@@ -205,13 +210,15 @@ export class Tracks{
 
                 var segmentation = this.tracks[i].number_segmentation;
                 var courbure = this.tracks[i].courbure;
-                var middle_point = this.utilities.get_middle_position_normal(position[j].x, position[j].y,position[j+1].x, position[j+1].y, segmentation, courbure)
+                var middle_point = this.utilities.get_middle_position_normal(position[j].x, position[j].y,position[j+1].x, position[j+1].y, segmentation, courbure, this.tracks[i]['pointsInterpolation'],this.tracks[i])
                 
                 // console.log("middle point", middle_point)
                 var array = [new THREE.Vector2(position[j].x, position[j].y),
                     new THREE.Vector2(middle_point.x1, middle_point.y1),
                     new THREE.Vector2(middle_point.x2, middle_point.y2),
                     new THREE.Vector2(position[j+1].x, position[j+1].y)];
+
+
                 this.tracks[i].path_quadratic[f]= array;
                 var quadratic_path = [];
                 //console.log(object)

@@ -67,45 +67,82 @@ export class Links{
             /*********** 2 SEGMENT ********************************/
             var segmentation = this.links[i].number_segmentation;
             var courbure = this.links[i].courbure;
-            // console.log(segmentation, courbure)
-            middle_point = this.utilities.get_middle_position_normal(position[2].x, position[2].y,position[3].x, position[3].y, segmentation, courbure)
-            point1 = new THREE.Vector2(middle_point.x1, middle_point.y1);
-            point2 = new THREE.Vector2(middle_point.x2, middle_point.y2);
-            quadratic_path1 = [];
-            
-            
-
             var dist = this.utilities.get_distance(this.links[i].source.x, this.links[i].source.y, this.links[i].target.x, this.links[i].target.y)
             this.links[i].numberSpacedPoints = parseInt(dist/ 50.0);
-
-            
-
             if (this.links[i].numberSpacedPoints < 10) this.links[i].numberSpacedPoints = 10;
-            // console.log( this.links[i].numberSpacedPoints)
 
-            pas = 1.0 /  this.links[i].numberSpacedPoints;
-            // console.log("PAS", pas)
-            for (var k=0; k<1; k+=pas){
-                quadratic_path1.push(this.utilities.bezier(k, position[2],point1, point2,position[3]));
-            }
+
+            /**** 2 ------> 3 ******/
+            // console.log(segmentation, courbure)
+            // if (this.links[i].pointsInterpolation == null){
+                middle_point = this.utilities.get_middle_position_normal(position[2].x, position[2].y,position[3].x, position[3].y, segmentation, courbure, this.links[i]['pointsInterpolation'],this.links[i])
+                point1 = new THREE.Vector2(middle_point.x1, middle_point.y1);
+                point2 = new THREE.Vector2(middle_point.x2, middle_point.y2);
+            // }
+            //SI AUCUN POINT d'INTERPOLATION
+            // else {
+            //     middle_point = this.utilities.get_middle_position_normal(position[2].x, position[2].y,position[3].x, position[3].y, segmentation, courbure)
+            //     point1 = new THREE.Vector2(middle_point.x1, middle_point.y1);
+            //     point2 = new THREE.Vector2(middle_point.x2, middle_point.y2);
+            //     // point2 = new THREE.Vector2(middle_point.x1 + 100, middle_point.y1 + 100)//[0,0]//ew THREE.Vector2(middle_point.x2, middle_point.y2);
+            // }
+
+            console.log(this.links[i])
+
+            quadratic_path1 = [];
+            console.log(middle_point.x2, middle_point.y2)
             
-            /*********** 3 SEGMENT ********************************/
+            
+            pas = 1.0 /  this.links[i].numberSpacedPoints;
+            for (var k=0; k<1; k+=pas){
+                quadratic_path1.push(this.utilities.bezier(k, position[2], point1, point2, position[3]));
+            }
+            /****** END ******/
+            
             var curve3 = new THREE.SplineCurve([
                     new THREE.Vector2(position[3].x, position[3].y),
                     new THREE.Vector2(position[1].x, position[1].y)        
             ]);
-            // console.log(curve)
-            /*********** 4 SEGMENT ********************************/
+            /**** 0 ------> 1 ******/
 
+            // if (this.links[i].pointsInterpolation == null){
+            //     middle_point = this.utilities.get_middle_position_normal(position[0].x, position[0].y,position[1].x, position[1].y, segmentation, courbure)
+            //     point1 = new THREE.Vector2(middle_point.x1, middle_point.y1);
+            //     point2 = new THREE.Vector2(middle_point.x1 + 100, middle_point.y1 + 100)
+            // }
+            // else{
             middle_point = this.utilities.get_middle_position_normal(position[0].x, position[0].y,position[1].x, position[1].y, segmentation, courbure)
             point1 = new THREE.Vector2(middle_point.x1, middle_point.y1);
             point2 = new THREE.Vector2(middle_point.x2, middle_point.y2);
+
+
+
+            // var firstPoint = this.utilities.get_normal_position_border(position[1].x, position[1].y, this.links[i].pointsInterpolation[1][0], this.links[i].pointsInterpolation[1][1], 3, 1);
+            
+            // var material = new THREE.MeshBasicMaterial({color: 0x0000ff,transparent:true,opacity: 1});
+            // var segments = 20 ;
+            // var circleGeometry = new THREE.CircleGeometry(1, segments );
+            // var circle = new THREE.Mesh( circleGeometry, material );
+            // circle.scale.set(1,1,1);
+            // circle.position.set(firstPoint[0]['x'], firstPoint[0]['y'], 1);
+            // circle.name = "circle" ;
+            // this.scene.add(circle);
+
+            
+
+            
             quadratic_path2 = [];
             for (var k=0; k<1; k+=pas){
                 quadratic_path2.push(this.utilities.bezier(k, position[0],point1, point2,position[1]));
             }
+
+            /****** END ******/
+
+
+
             quadratic_path2 = quadratic_path2.reverse();
 
+            
 
             var curve_result = curve.getSpacedPoints( 1 ).concat(quadratic_path1).concat(curve3.getSpacedPoints( 1 )).concat(quadratic_path2) ;
             // console.log(curve_result)
@@ -170,6 +207,7 @@ export class Links{
             this.links[i].linkColor = new THREE.Color('grey');
             this.links[i].tube_opacity = 1;
             this.links[i].spatial_distribution = [];
+            this.links[i].pointsInterpolation = null;
             if (this.links[i].link_length == undefined) this.links[i].link_length = 200;
 
             //this.links[i].particleSystems = [];
@@ -189,6 +227,12 @@ export class Links{
             var position = this.utilities.get_normal_position_border(x1, y1, x2, y2, 3, 1);
             //console.log(position)
             //console.log(x1, y1, x2, y2)
+
+            // 
+            // 2-----------------------3
+            // |                       |
+            // 0-----------------------1
+            // 
             /* MES EDGES SONT DROITES */
             curve = new THREE.SplineCurve([
                     new THREE.Vector2(position[0].x, position[0].y),
@@ -207,17 +251,17 @@ export class Links{
                     new THREE.Vector2(position[0].x, position[0].y)        
                 ]);
             //  console.log( this.links[i].numberSpacedPoints)
-                var curve_result = curve.getSpacedPoints( 1 ).concat(curve2.getSpacedPoints(this.links[i].numberSpacedPoints)).concat(curve3.getSpacedPoints( 1 )).concat(curve4.getSpacedPoints( this.links[i].numberSpacedPoints)) ;
-                //console.log("1", this.links.length);           
-                
-                //console.log(curve_result)
-                var shape = new THREE.Shape(curve_result);
+            var curve_result = curve.getSpacedPoints( 1 ).concat(curve2.getSpacedPoints(this.links[i].numberSpacedPoints)).concat(curve3.getSpacedPoints( 1 )).concat(curve4.getSpacedPoints( this.links[i].numberSpacedPoints)) ;
+            //console.log("1", this.links.length);           
+            
+            //console.log(curve_result)
+            var shape = new THREE.Shape(curve_result);
             
             //ICI BUG
-                geometry = new THREE.ShapeGeometry( shape );
-                //console.log(2)
-                // console.log(this.links[i]);
-                var material = new THREE.MeshBasicMaterial( { color: this.links[i].linkColor, opacity: this.links[i].tube_opacity, transparent: true } );
+            geometry = new THREE.ShapeGeometry( shape );
+            //console.log(2)
+            // console.log(this.links[i]);
+            var material = new THREE.MeshBasicMaterial( { color: this.links[i].linkColor, opacity: this.links[i].tube_opacity, transparent: true } );
             //  material.opacity = 1;
                 
                 

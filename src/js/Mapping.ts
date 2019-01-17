@@ -331,6 +331,15 @@ export class Mapping{
                 }
                 return this;
 
+            case "points":
+                for(var i=0 ; i<links.length ; i++){
+                    if (arguments[1] instanceof Array){value = arguments[1];}
+                    else{value = callback(links[i], i);}
+                    links[i].pointsInterpolation = value;
+                    // console.log("links", this.sparkiz.links[i])
+                }
+                return this;
+
 
             // case "courbure":
             //     value = arguments[1];

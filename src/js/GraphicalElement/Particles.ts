@@ -70,7 +70,7 @@ export class Particles{
     }
     fit_all_particles_to_frequence_temporal_distrib(){
         for(var i=0 ; i<this.particles.length ; i++){
-            console.log("FIT I", i)   
+            // console.log("FIT I", i)   
             this.fit_to_frequence_temporal_distrib(i);
         }
     }
@@ -174,8 +174,10 @@ export class Particles{
         // console.log("VELOCITY", this.links[id].gate_velocity)
     }
     updateParticles(){
+
+        // console.log(this.particles)
         for ( var j = 0;  j < this.particles.length; j ++ ){
-            console.log(this.particles)
+            // console.log(this.particles)
             this.createParticles_webgl(this.particles[j].number_particles, this.particles[j].index);
             // permits to update the spatial and temporal after resizing links
             // this.updateParticles_SpatialDistribution(this.links[j].spatial_distribution, this.links[j]._id);
@@ -187,8 +189,8 @@ export class Particles{
     }
     createParticles_webgl(particles, link_id){
 
-        // console.log(particles, link_id)
-        console.log("CREATE PARTICLES", particles, link_id)
+        // console.log(this.particles[link_id])
+        // console.log("CREATE PARTICLES", particles, link_id)
         var self = this;
 
         /**

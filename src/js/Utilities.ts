@@ -42,38 +42,120 @@ export class Utilities{
         //console.log(c)
         return c;
     }
-    get_middle_position_normal(x1, y1, x2, y2, segmentation,  courbure){
+    /**
+     * COMPUTE Two point for one point
+     * @param x1 C
+     * @param y1 
+     * @param x2 
+     * @param y2 
+     * @param segmentation 
+     * @param courbure 
+     */
+    get_middle_position_normal(x1, y1, x2, y2, segmentation,  courbure, pointsToInterpolate, link){
         
-        // POUR EVITER D'AVOIR UNE DIVISON PAR 0
-        if (y1 == y2) y1 = y2 + 1;
-        // var segmentation = this.links[link_id].number_segmentation;
-        var divide = Math.round(segmentation/3);
-        var euclidean_distance = Math.sqrt(Math.pow(x2 - x1,2) + Math.pow(y2 - y1,2));
-        
-        //console.log("COURBURE", this.links[link_id])
-        //console.log("EUCLIDEN DISTANCE", euclidean_distance)
-        var distance = euclidean_distance / courbure;
-        var alpha = (y2-y1)/(x2-x1);
-        var signe = -1;
-        if ( y2<y1 ){signe = 1;}
-        //if ( x2<x1 ){signe = 1;}
 
-        var x_middle = (((x2-x1)/segmentation)*divide) + x1;
-        var y_middle = (((y2-y1)/segmentation)*divide) + y1;
-        var alpha_normal = (x1 - x2) / (y2 - y1) ;
-        var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
-        var X1 = x_middle + (signe * Math.sqrt( Math.pow(distance,2)/(1+ Math.pow(alpha_normal, 2))));
-        var Y1 = alpha_normal * (X1) + ordonne_origine_normal;
-        
-        //console.log("AFTER",X1, Y1)
-        var x_middle = (((x2-x1)/segmentation)*divide*2) + x1;
-        var y_middle = (((y2-y1)/segmentation)*divide*2) + y1;
-        var alpha_normal = (x1 - x2) / (y2 - y1) ;
-        var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
-        var X2 = x_middle + (signe * Math.sqrt( Math.pow(distance,2)/(1+ Math.pow(alpha_normal, 2))));
-        var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
+        // console.log(link)
+        var SourceX = link.source.x;
+        var SourceY = link.source.y;
 
-        return {x1:X1,y1:Y1, x2:X2,y2:Y2 };
+        var TargetX = link.target.x;
+        var TargetY = link.target.y;
+
+       
+
+       /* if (pointsToInterpolate != null){
+
+            var diffX = x1 - SourceX;
+            var diffY = y1 - SourceY;
+
+            console.log(diffX, diffY)
+            // POUR EVITER D'AVOIR UNE DIVISON PAR 0
+            if (y1 == y2) y1 = y2 + 1;
+            // var segmentation = this.links[link_id].number_segmentation;
+            var divide = Math.round(segmentation/3);
+            var euclidean_distance = Math.sqrt(Math.pow(TargetX - SourceX,2) + Math.pow(TargetY - SourceY,2));
+            
+            //console.log("COURBURE", this.links[link_id])
+            //console.log("EUCLIDEN DISTANCE", euclidean_distance)
+            var distance = euclidean_distance / courbure;
+            var alpha = (TargetY - SourceY)/(TargetX - SourceX);
+            var signe = -1;
+            if ( y2<y1 ){signe = 1;}
+            //if ( x2<x1 ){signe = 1;}
+
+           
+            // var alpha_normal = (x1 - x2) / (y2 - y1) ;
+            // var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
+            // var X1 = x_middle + (signe * Math.sqrt( Math.pow(distance,2)/(1+ Math.pow(alpha_normal, 2))));
+            // var Y1 = alpha_normal * (X1) + ordonne_origine_normal;
+            // if (diffX < -2){
+            //     var x_middle = (((TargetX-SourceX)/segmentation)*divide) + SourceX;
+            //     var y_middle = (((TargetY-SourceY)/segmentation)*divide) + SourceY;
+            //     var alpha_normal = (SourceX - TargetX) / (TargetY - SourceY) ;
+            //     var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
+            //     var X1 = x_middle + (signe * Math.sqrt( Math.pow(distance,2)/(1+ Math.pow(alpha_normal, 2))));
+            //     var Y1 = alpha_normal * (X1) + ordonne_origine_normal;
+
+
+            //     var x_middle = (((TargetX-SourceX)/segmentation)*divide*2) + SourceX;
+            //     var y_middle = (((TargetY-SourceY)/segmentation)*divide*2) + SourceY;
+            //     var alpha_normal = (SourceX - TargetX) / (TargetY - SourceY) ;
+            //     var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
+            //     var X2 = x_middle + (signe * Math.sqrt( Math.pow(distance,2)/(1+ Math.pow(alpha_normal, 2))));
+            //     var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
+            // }
+            // else{
+                var X1 = pointsToInterpolate[0][0];
+                var Y1 = pointsToInterpolate[0][1];
+
+                var X2 = pointsToInterpolate[1][0];
+                var Y2 = pointsToInterpolate[1][1];
+    
+                console.log(X1, Y1)
+            // }
+            
+            //console.log("AFTER",X1, Y1)
+            // var x_middle = (((x2-x1)/segmentation)*divide*2) + x1;
+            // var y_middle = (((y2-y1)/segmentation)*divide*2) + y1;
+            // var alpha_normal = (x1 - x2) / (y2 - y1) ;
+            // var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
+            // var X2 = x_middle + (signe * Math.sqrt( Math.pow(distance,2)/(1+ Math.pow(alpha_normal, 2))));
+            // var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
+
+            return {x1:X1+diffX,y1:Y1+diffY, x2:X2+diffX,y2:Y2+diffY };
+        }
+        else{*/
+            // POUR EVITER D'AVOIR UNE DIVISON PAR 0
+            if (y1 == y2) y1 = y2 + 1;
+            // var segmentation = this.links[link_id].number_segmentation;
+            var divide = Math.round(segmentation/3);
+            var euclidean_distance = Math.sqrt(Math.pow(x2 - x1,2) + Math.pow(y2 - y1,2));
+            
+            //console.log("COURBURE", this.links[link_id])
+            //console.log("EUCLIDEN DISTANCE", euclidean_distance)
+            var distance = euclidean_distance / courbure;
+            var alpha = (y2-y1)/(x2-x1);
+            var signe = -1;
+            if ( y2<y1 ){signe = 1;}
+            //if ( x2<x1 ){signe = 1;}
+
+            var x_middle = (((x2-x1)/segmentation)*divide) + x1;
+            var y_middle = (((y2-y1)/segmentation)*divide) + y1;
+            var alpha_normal = (x1 - x2) / (y2 - y1) ;
+            var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
+            var X1 = x_middle + (signe * Math.sqrt( Math.pow(distance,2)/(1+ Math.pow(alpha_normal, 2))));
+            var Y1 = alpha_normal * (X1) + ordonne_origine_normal;
+            
+            //console.log("AFTER",X1, Y1)
+            var x_middle = (((x2-x1)/segmentation)*divide*2) + x1;
+            var y_middle = (((y2-y1)/segmentation)*divide*2) + y1;
+            var alpha_normal = (x1 - x2) / (y2 - y1) ;
+            var ordonne_origine_normal = y_middle - (alpha_normal * x_middle);
+            var X2 = x_middle + (signe * Math.sqrt( Math.pow(distance,2)/(1+ Math.pow(alpha_normal, 2))));
+            var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
+
+            return {x1:X1,y1:Y1, x2:X2,y2:Y2 };
+        }
     }
     /*
         * Recupere toutes les positions pour les roads
