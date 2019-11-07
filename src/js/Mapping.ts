@@ -414,6 +414,14 @@ export class Mapping{
                     nodes[i].scale = value;
                 }
                 return this;
+
+            case "opacity":
+                for(var i=0 ; i<nodes.length ; i++){
+                    if ( typeof(arguments[1]) == 'number'){value = arguments[1];}
+                    else{value = callback(nodes[i], i);}
+                    nodes[i].opacity = value;
+                }
+                return this;
             case "label":
                 for(var i=0 ; i<nodes.length ; i++){
                     if ( typeof(arguments[1]) == 'string'){value = arguments[1];}

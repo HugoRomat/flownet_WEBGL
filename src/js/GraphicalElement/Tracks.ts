@@ -177,17 +177,45 @@ export class Tracks{
             var object = this.curveSplines[i].children[0];
             /** IL FAUT QUE LA LONGUEUR SOIT EGALE AU NOMBRE DE VERTICES CREER DANS CREATE tracks */
             /** -1 CAR JE RAJOUTE LE POINT DE LA FIN POUR FERMER L BOUCLE */
-            var pas = 1.0 / (object.geometry.vertices.length - 1);
-            for (var k=0; k<1; k+=pas){
-                quadratic_path.push(new THREE.Vector3( this.utilities.bezier(k, array[0],array[1], array[2], array[3]).x, this.utilities.bezier(k, array[0],array[1], array[2], array[3]).y, 0));
-            }
-            quadratic_path.push(new THREE.Vector3(x2, y2, 0));
-            var curveSplineMaterial = new THREE.LineBasicMaterial( { color : this.tracks[i].roads_color, linewidth:  1,opacity: this.tracks[i].roads_opacity, transparent: true});
-            var p = new THREE.Path( quadratic_path);//curve.getSpacedPoints( this.tracks[i].number_segmentation) );
-            var geometry = p.createPointsGeometry( 50 );
-            object.material = curveSplineMaterial; 
-            object.geometry.vertices = geometry.vertices;
-            object.geometry.verticesNeedUpdate = true;
+           
+
+            // if (this.tracks[i].pointsInterpolation != null){
+            //     quadratic_path.push(new THREE.Vector3(x1, y1, 0));
+            //     for (var p = 0; p < this.tracks[i].pointsInterpolation.length; p++){
+            //         quadratic_path.push(new THREE.Vector3(this.tracks[i].pointsInterpolation[p]['x'], this.tracks[i].pointsInterpolation[p]['y'], 0))
+            //     }
+            //     quadratic_path.push(new THREE.Vector3(x2, y2, 0));
+            //     console.log(quadratic_path)
+            //     var curveSplineMaterial = new THREE.LineBasicMaterial( { color : this.tracks[i].roads_color, linewidth:  1,opacity: this.tracks[i].roads_opacity, transparent: true});
+            //     var p = new THREE.Path( quadratic_path);//curve.getSpacedPoints( this.tracks[i].number_segmentation) );
+            //     var geometry = p.createPointsGeometry( 50 );
+            //     object.material = curveSplineMaterial; 
+            //     object.geometry.vertices = geometry.vertices;
+            //     object.geometry.verticesNeedUpdate = true;
+
+            //     this.tracks[i].path_quadratic[0] = [];
+            //     for (var u in quadratic_path){
+            //         this.tracks[i].path_quadratic[0].push(new THREE.Vector2(quadratic_path[u].x, quadratic_path[u].y))
+            //         // console.log(quadratic_path[u])
+            //     }
+            //     // this.tracks[i].path_quadratic[0]= this.tracks[i].pointsInterpolation;
+
+            // }
+            // else{
+                var pas = 1.0 / (object.geometry.vertices.length - 1);
+                for (var k=0; k<1; k+=pas){
+                    quadratic_path.push(new THREE.Vector3( this.utilities.bezier(k, array[0],array[1], array[2], array[3]).x, this.utilities.bezier(k, array[0],array[1], array[2], array[3]).y, 0));
+                }
+                quadratic_path.push(new THREE.Vector3(x2, y2, 0));
+                var curveSplineMaterial = new THREE.LineBasicMaterial( { color : this.tracks[i].roads_color, linewidth:  1,opacity: this.tracks[i].roads_opacity, transparent: true});
+                var p = new THREE.Path( quadratic_path);//curve.getSpacedPoints( this.tracks[i].number_segmentation) );
+                var geometry = p.createPointsGeometry( 50 );
+                object.material = curveSplineMaterial; 
+                object.geometry.vertices = geometry.vertices;
+                object.geometry.verticesNeedUpdate = true;
+
+                
+            // }
             
             /************************* POUR LES GATES  ****************************************/
             /******** AFIN QUE LA DERNIERE PORTE CORRESPONDE AU NOEUD FINAL  ******************/

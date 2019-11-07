@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>particles</title>
+
+    <script src="../static/lib/d3.v4.js"></script>
+    <script src="../dist/main.entry.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+   
+    <style>
+       div{
+        float: left;
+        margin-right: 5px;
+      }
+      html { width: 100%; height:100%; /*overflow:hidden;*/ }
+      body{
+        width: 100%;
+        height:100%;
+        font-family: Lato;
+        margin: 0;
+        padding: 0;
+
+      }
+      canvas {
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+        .land {
+          fill: rgba(128, 128, 128, 0.2);
+          stroke: rgba(128, 128, 128, 0.5);
+          opacity: 1;
+        }
+
+        .county-boundary {
+          fill: none;
+          stroke: none;
+          stroke-width: .5px;
+        }
+
+        .state-boundary {
+          fill: none;
+          stroke: rgba(128, 128, 128, 0.5);
+          /* opacity: 0.2; */
+        }
+
+
+    </style>
+
+
+</head>
+<body>
+
+
+	<div id="visFrame"></div>
+
+	<script>
+
+            var proj = d3.geoAlbersUsa()
+                     .scale(1000)
+                     .translate([0, 0]);
+
+            
+
+
+
+
+    var color_scale_delay_dep = d3.scaleLinear()
+                   .domain([0, 23])
+                   .range([2,10])
+
+    var freq = d3.scaleLinear()
+                   .domain([0, 28])
+                   .range([0.1,0.8])
+                //    .interpolate(d3.interpolateHcl);
+
+ var size = d3.scaleLinear()
+                   .domain([50, 100])
+                   .range([50, 100])
+    // var proj = d3.geo.miller()
+    //                 .scale(328)
+    //                 .translate([-50,-10]);
+
+    appendMap()
+    d3.json("../static/data/starWars.json", function(json) {
+
+              json = {
+            "nodes":[
+              // {"name":"bonjour", "id":101, "X": -300,"Y":-50},
+              // {"name":"hugo", "id":102, "X": 200,"Y":-50},
+              // {"name":"France", "id":101, "textu": "images/france.png"},
+              // {"name":"Germany", "id":102, "textu": "images/USA.png"},
+              // {"name":"USA", "id":103, "textu": "images/germany.png"},
+              {"id": 0, "iata": "SLC", "label": "Salt Lake City Intl", "city": "Salt Lake City", "state": "UT", "country": "USA", "lat": "40.78838778", "long": "-111.9777731" }, 
+              {"id": 1, "iata": "MCO", "label": "Orlando International", "city": "Orlando", "state": "FL", "country": "USA", "lat": "28.42888889", "long": "-81.31602778"}, 
+              {"id": 2, "iata": "JFK", "label": "John F Kennedy Intl",  "city": "New York","state": "NY","country": "USA",  "lat": "40.63975111", "long": "-73.77892556" },
+              { "id": 3, "iata": "SEA", "label": "Seattle-Tacoma Intl", "city": "Seattle", "state": "WA", "country": "USA", "lat": "47.44898194", "long": "-122.3093131"}, 
+            ],
+            "links":[
+              {"source":0, "id":0, "target":1, "freq":2, "sp":30, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'wheel1', "textu": "images/plane2.png", 'size_': 40},
+              {"source":0, "id":1, "target":1, "freq":2, "sp":30, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'pollution1', "textu": "images/pollution.png", 'size_': 50},
+
+              {"source":0, "id":2, "target":2, "freq":2, "sp":14, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'wheel1', "textu": "images/plane2.png", 'size_': 40},
+              {"source":0, "id":3, "target":2, "freq":2, "sp":14, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'pollution1', "textu": "images/pollution.png", 'size_': 100},
+
+              {"source":0, "id":4, "target":3, "freq":2, "sp":50, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'wheel1', "textu": "images/plane2.png", 'size_': 40},
+              {"source":0, "id":5, "target":3, "freq":2, "sp":50, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'pollution1', "textu": "images/pollution.png", 'size_':150},
+              
+
+              // {"source":101, "id":3, "target":103, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'wheel1', "textu": "images/car.png", 'fromP': 50},
+              // {"source":101, "id":10, "target":103, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'pollution2', "textu": "images/pollution.png", 'fromP': 50},
+              
+
+              // {"source":102, "id":6, "target":103, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'wheel1', "textu": "images/car.png", 'fromP': 50},
+              // {"source":102, "id":9, "target":103, "freq":2, "sp":4, "temp": [0.25], "width": 10, "colour": "black", "nameV": 'pollution3', "textu": "images/pollution.png", 'fromP': 50},
+              
+            ]}
+            var n = 50;
+            var sizeParticule = 60;
+           
+            var size = 150;
+            var app = flownet.graph("#visFrame", 800, 500, "#E4E4E4", 0)
+                  .nodes(json.nodes)
+                  .links(json.links)
+                  .layout("linkDistance", 300)
+                  .tracks("count", 1 )
+                  .link_properties("curvature", 10)
+                  .link_properties("color", "#C1C1C1")
+                  .link_properties("size", 3)
+                  .link_properties("opacity", 0.2) //function(d, i) {return color_scale_delay_dep(d.value); })
+                  .node_properties("size",5)
+                  .node_properties("label",  function(d, i) {return d.city; })
+                  .node_properties("label_size", 10)
+                  .node_properties("label_color", "black")
+                  .node_properties("label_x", "10")
+                  // .node_properties("x", function(d, i) {return 50; })
+                  // .node_properties("y", function(d, i) {return (100 * i);  })
+                  .node_properties("color",  function(d, i) {return 'grey'; })
+                  .node_properties("image",  function(d, i) {return d.textu; })
+                  .node_properties("x", function(d, i) {return proj([d.long,d.lat])[0];  })
+                  .node_properties("y", function(d, i) {return - proj([d.long,d.lat])[1];  })
+
+                  .tracks("opacity", 0)
+
+                  .particles("opacity",function(d, i) {
+                    if (d.nameV == 'pollution1') return 1
+                    if (d.nameV == 'pollution2') return 1
+                    if (d.nameV == 'pollution3') return 1
+                    return 1
+                  })
+                  .particles("color",function(d, i) {
+                    
+                    // console.log(d)
+                    // if (d.nameV == 'wheel1') return '#fbe275';
+                    // if (d.nameV == 'wheel2') return '#ff0000';
+                    // if (d.nameV == 'carcasse') return '#45de88';
+                    if (d.nameV == 'pollution1') return '#725f5f'
+                    if (d.nameV == 'pollution2') return 'rgb(218, 223, 225)'
+                    if (d.nameV == 'pollution3') return 'rgb(218, 223, 225)'
+                    return '#496e88'
+                  })
+                  .particles("size", function(d, i) {
+                    console.log(d['size_'])
+                    return d['size_']
+                    // if (d.nameV == 'pollution1') return 100 
+                    // if (d.nameV == 'pollution2') return 200 
+                    // if (d.nameV == 'pollution3') return 400 
+                    // else return 50
+                  })
+
+
+                  .particles("speed", function(d, i) {return d.sp})
+                  .particles("pattern", function(d, i) {return [0]; })
+                  // .particles("track", 0)
+                  .particles("frequency", function(d, i) {return d.sp/80})
+                  // .particles("frequency", function(d, i) {return freq(d.value); })
+                  // .particles("speed", 10, 0.0)
+                  // .particles("speed", 3, 0.2)
+                  // .particles("speed", 5, 0.5)
+                  // .particles("color", "red", 0.1)
+                  // .particles("color", "blue", 0.2)
+                  // .particles("color", "red", 0.3)
+                  // .particles("color", "blue", 0.4)
+                  // .particles("color", "red", 0.5)
+                  // .particles("color", "red", 0.6)
+                  // .particles("color", "blue", 0.7)
+                  // .particles("color", "red", 0.8)
+                  // .particles("color", "blue", 0.9)
+
+                  // .particles("color",function(d, i) {
+                  //     if (d.nameV == 'wheel1') return 'red';
+                  //     if (d.nameV == 'wheel2') return 'blue';
+                  //     if (d.nameV == 'carcasse') return 'yellow';
+                  //     else 
+                  //     return 'black'
+                  //   }, 0.5)
+                  // .particles("size",function(d, i) {
+                  //   if (d.nameV == 'pollution1') return 0;
+                  //   return sizeParticule
+                  //  })
+
+                  // .particles("size",function(d, i) {
+                  //   if (d.nameV == 'pollution1') return 60;
+                  //   return sizeParticule
+                  //  }, 0.1)
+                  //  .particles("size",function(d, i) {
+                  //   if (d.nameV == 'pollution1') return 75;
+                  //   return sizeParticule
+                  //  }, 0.2)
+                  //  .particles("size",function(d, i) {
+                  //   if (d.nameV == 'pollution1') return 90;
+                  //   return sizeParticule
+                  //  }, 0.3)
+                  //  .particles("size",function(d, i) {
+                  //   if (d.nameV == 'pollution1') return 105;
+                  //   return sizeParticule
+                  //  }, 0.4)
+                  //  .particles("size",function(d, i) {
+                  //   if (d.nameV == 'pollution1') return 120;
+                  //   return sizeParticule
+                  //  }, 0.5)
+                  //  .particles("size",function(d, i) {
+                  //   if (d.nameV == 'pollution1') return 135;
+                  //   return sizeParticule
+                  //  }, 0.6)
+                  //  .particles("size",function(d, i) {
+                  //   if (d.nameV == 'pollution1') return 150;
+                  //   return sizeParticule
+                  //  }, 0.7)
+                  //  .particles("size",function(d, i) {
+                  //   if (d.nameV == 'pollution1') return 165;
+                  //   return sizeParticule
+                  //  }, 0.8)
+                  //  .particles("size",function(d, i) {
+                  //   if (d.nameV == 'pollution1') return 180;
+                  //   return sizeParticule
+                  //  }, 0.9)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution1') {return 100} else {return 100}}, 0.1)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution') {return size} else {return 100}}, 0.2)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution1') {return 100} else {return 100}}, 0.3)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution'){return size} else {return 100}}, 0.4)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution1') {return 100} else {return 100}}, 0.5)
+                  // .particles("size",function(d, i) {if (d.nameV == 'pollution') {return size} else {return 100}}, 0.6)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution1') {return 100} else {return 100}}, 0.7)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution') {return size} else {return 100}}, 0.8)
+                  // .particles("size", function(d, i) {if (d.nameV == 'pollution1') {return 100} else {return 100}}, 0.9)
+
+                  
+                  // .particles("size", 100, 0.7)
+                  // .particles("size", 100, 0.5)
+                  // .particles("size", 4, 0.5)
+                  // .particles("speed", 72, 0.5)
+                  .particles("texture", function(d, i) {return d.textu; })
+                  
+                  // .particles("speed", 3, 0.8)
+                  // .start_particle_delay(200000)
+                  .start()
+                  console.log(app)
+            });
+            
+        function appendMap(){
+          var projection = d3.geoAlbersUsa()
+                     .scale(1000)
+                     .translate([400, 250]);
+
+          var path = d3.geoPath()
+              .projection(projection);
+
+          var svg = d3.select("#visFrame").append("svg")
+              .attr("width", 800)
+              .attr("height", 500)
+              .attr("position", "absolute")
+              .attr("top", "0")
+              .attr("left", "0");
+
+          d3.json("../static/data/us.json", function(error, us) {
+            if (error) throw error;
+
+            svg.insert("path", ".graticule")
+                .datum(topojson.feature(us, us.objects.land))
+                .attr("class", "land")
+                .attr("d", path);
+
+            svg.insert("path", ".graticule")
+                .datum(topojson.mesh(us, us.objects.counties, function(a, b) { return a !== b && !(a.id / 1000 ^ b.id / 1000); }))
+                .attr("class", "county-boundary")
+                .attr("d", path);
+
+            svg.insert("path", ".graticule")
+                .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+                .attr("class", "state-boundary")
+                .attr("d", path);
+        });
+        }
+
+	</script>
+
+
+</body>
+</html>

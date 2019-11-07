@@ -42,6 +42,12 @@ export class Utilities{
         //console.log(c)
         return c;
     }
+    lineGenerator(arr){
+        return d3.line()
+          .x(function (d) { return d['x'] + 400})
+          .y(function (d) { return -d['y'] + 450})
+          .curve(d3.curveLinear)(arr)
+    }
     /**
      * COMPUTE Two point for one point
      * @param x1 C
@@ -55,11 +61,11 @@ export class Utilities{
         
 
         // console.log(link)
-        var SourceX = link.source.x;
-        var SourceY = link.source.y;
+        // var SourceX = link.source.x;
+        // var SourceY = link.source.y;
 
-        var TargetX = link.target.x;
-        var TargetY = link.target.y;
+        // var TargetX = link.target.x;
+        // var TargetY = link.target.y;
 
        
 
@@ -155,7 +161,7 @@ export class Utilities{
             var Y2 = alpha_normal * (X2) + ordonne_origine_normal;
 
             return {x1:X1,y1:Y1, x2:X2,y2:Y2 };
-        }
+        // }
     }
     /*
         * Recupere toutes les positions pour les roads

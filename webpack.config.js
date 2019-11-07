@@ -14,7 +14,11 @@ module.exports = {
 			test: /\.(glsl|vert|frag)$/,
 			use: ["raw-loader", "glslify-loader"],
 			exclude: /node_modules/
-		},
+    },
+    {
+      test: /\.node$/,
+      use: 'node-loader'
+  },
 		{	
 			test: /\.(jpe?g|png|gif|svg)$/i, 
 			loader: "url-loader?name=/src/img/[name].[ext]"

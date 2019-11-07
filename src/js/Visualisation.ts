@@ -77,9 +77,9 @@ export class Visualisation {
         
         this.raycaster = new THREE.Raycaster();
 
-        // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        // this.controls.enableRotate = false;
-        // this.controls.enablePan = true;
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableRotate = false;
+        this.controls.enablePan = true;
 
         // this.controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
         // this.controls.dampingFactor = 0.25;
@@ -118,7 +118,7 @@ export class Visualisation {
         // console.log(this.mapping)
         this.renderer.render( this.scene, this.camera );
         this.updateParticle(this.number_frame)
-        // this.controls.update();
+        this.controls.update();
     }
      /**
      * Permet d'updater mes particules en choisissant la frame ou elle devrait se trouver

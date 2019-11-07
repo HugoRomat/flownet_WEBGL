@@ -68,11 +68,48 @@
             float rand(vec2 co){
                 return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
             }
-            float distance(float x1, float y1, float x2, float y2){
+            float distance_(float x1, float y1, float x2, float y2){
 
                 float longueur = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
                 return longueur;
             }
+            float fadeLinear(float firstStep, float nextStep, int numberSteps, int index){ 
+                float temporarySize = ((nextStep - firstStep)/ float(numberSteps)) * float(index);
+                return firstStep + temporarySize;
+            }
+            vec2 linearInterp(int t, vec2 p0,vec2 p1,vec2 p2,vec2 p3){
+                float d1 = distance_(p0[0], p0[1], p1[0], p1[1]);
+                float d2 = distance_(p1[0], p1[1], p2[0], p2[1]) + d1;
+                float d3 = distance_(p2[0], p2[1], p3[0], p3[1]) + d2;
+
+                highp float t_ = float(t);
+                highp int d1_ = int(d1);
+                highp int d2_ = int(d2);
+                highp int d3_ = int(d3);
+                 
+                vec2 pos = vec2(0.0, 0.0);
+                if (t_ >= 0.0 && t_ <= d1){
+                    pos.x = fadeLinear(p0[0], p1[0], d1_, t);
+                    pos.y = fadeLinear(p0[1], p1[1], d1_, t);
+                   
+                }
+                else if (t_ >= d1 && t_ <= d2){
+                    vColor = vec3(1, 1, 0);
+                    pos.x = fadeLinear(p1[0], p2[0], d2_ - d1_, t- d1_);
+                    pos.y = fadeLinear(p1[1], p2[1], d2_ - d1_, t- d1_);
+                }
+                else if (t_ >= d2 && t_ <= d3){
+                    pos.x = fadeLinear(p2[0], p3[0], d3_ - d2_, t- d2_);
+                    pos.y = fadeLinear(p2[1], p3[1], d3_ - d2_, t- d2_);
+                }
+                else{
+                    //pos.x = 10000.0;//fadeLinear(p2[0], p3[0], d3_ - d2_, t- d2_);
+                    //pos.y = 10000.0;//fadeLinear(p2[1], p3[1], d3_ - d2_, t- d2_);
+                }
+                
+                return pos;
+            }
+           
             int determine_which_gate(int index_thorique){
 
                 for(int i = 0; i < number_max_gates - 1; i++){
@@ -89,7 +126,7 @@
                 }
                 return gate;
             }
-          
+            
             float fadeSize(float actualSize, float nextSize, int steps, int index){ 
 
                 float temporarySize = ((nextSize - actualSize)/ float(steps)) * float(index);
@@ -242,13 +279,15 @@
                 //4 car j'ai 4 variables : 0 33 66 100 pour faire ma courbe de bezier
                 highp int path_id = int(id) * (4);
 
+                //path = vec4(linearInterp(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]) , 1.0,1.0);
+                //path_next = vec4(linearInterp(index+1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]) , 1.0,1.0);
 
                 path = vec4( bezier(index, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);
                 path_next = vec4( bezier(index +1, path_quadratic[path_id],path_quadratic[path_id+ 1],path_quadratic[path_id + 2],path_quadratic[path_id+3]), 1.0,1.0);
 
         /************** TO DETERMINE THE DISTANCE WITH ARRIVAL ******************************/
-                distance_with_arrival = distance(path.x, path.y, path_quadratic[path_id+3].x, path_quadratic[path_id+3].y);
-                distance_with_departure = distance(path.x, path.y, path_quadratic[path_id].x, path_quadratic[path_id].y);
+                distance_with_arrival = distance_(path.x, path.y, path_quadratic[path_id+3].x, path_quadratic[path_id+3].y);
+                distance_with_departure = distance_(path.x, path.y, path_quadratic[path_id].x, path_quadratic[path_id].y);
 
         /************** TO DETERMINE THE WIGGLING ******************************/
                 float random = noise(vec2( index , index )) * wiggling_gate[gate];

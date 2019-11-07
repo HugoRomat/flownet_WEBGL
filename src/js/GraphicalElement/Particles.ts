@@ -113,7 +113,7 @@ export class Particles{
         // JE RAJOUTE UN POUR PAR QUE CA PARTE
         motifs = Math.ceil(motifs);
         // motifs = 71;
-        // console.log("MOTIFS", motifs)
+        console.log("MOTIFS", motifs)
         this.particles[id].number_particles = motifs * temporal_distribution.length;  
 
         // Motifs qui fitte en termes de une seconde pour un motif)
@@ -216,7 +216,7 @@ export class Particles{
         var number = 0;
         var posistion_gate_after_speed = [];
 
-        // console.log(temporal)
+        console.log(path_quadratic)
         /**
          * Met a jour le tableau contenant la position des gates.
          * en fonction de la vitesse de mes élèments
