@@ -27,7 +27,7 @@
     "svg-outline-stroke": "^1.2.3",
     "svg-path-outline": "^1.0.1",
     "svg-pathdata": "^5.0.2",
-    "three": "^0.85.0",
+    "three": "^0.137.0",
     "topojson": "^3.0.2",
     "types.d3": "^0.1.1",
     "url-loader": "^0.6.2",
