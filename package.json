@@ -14,7 +14,7 @@
   "dependencies": {
     "@types/three": "^0.89.0",
     "d3": "^4.12.0",
-    "d3-color": "^1.0.3",
+    "d3-color": "^3.1.0",
     "glslify-loader": "^1.0.2",
     "jquery": "^3.2.1",
     "jquery-ui": "^1.12.1",
