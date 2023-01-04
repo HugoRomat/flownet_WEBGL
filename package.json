@@ -22,7 +22,7 @@
     "makerjs": "^0.13.1",
     "markerjs": "^1.1.1",
     "node-loader": "^0.6.0",
-    "orbit-controls-es6": "^1.0.11",
+    "orbit-controls-es6": "^2.0.1",
     "sharp": "^0.21.2",
     "svg-outline-stroke": "^1.2.3",
     "svg-path-outline": "^1.0.1",
@@ -49,7 +49,7 @@
     "uglify-js": "^3.2.1",
     "uglifyjs-webpack-plugin": "^1.1.2",
     "underscore": "^1.8.3",
-    "webpack": "^3.8.1"
+    "webpack": "^5.75.0"
   },
   "repository": {
     "type": "git",
